@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=1100, initial-scale=1.0" />
+    <title>Document</title>
+</head>
+
+<body ondragstart="return false;">
+    <div id="demo-container">
+        <div id="info">
+            <pre id="set-content"></pre>
+            <pre id="style-content"></pre>
+        </div>
+        <div id="demo-box-container"></div>
+    </div>
+    <style>
+        * {
+            box-sizing: border-box;
+            padding: 0;
+            margin: 0;
+            -webkit-user-drag: none;
+        }
+
+        body {
+            background-color: rgb(7, 7, 7);
+            display: grid;
+            place-items: center;
+            height: 100vh;
+            perspective: 400px;
+        }
+
+        #demo-container {
+            margin: 10px;
+            height: 97vh;
+            display: grid;
+            grid-template: 1fr 1fr;
+            place-items: center;
+        }
+
+        #demo-box-container {
+            transform-style: preserve-3d;
+            display: grid;
+            place-items: center;
+        }
+
+        .demo-box {
+            background-image: linear-gradient(45deg,
+                    rgb(20, 20, 20),
+                    rgb(0, 0, 0) 60%,
+                    rgb(10, 10, 10) 60.2%,
+                    rgb(20, 20, 20) 100%);
+            box-shadow: inset 0 0 50px rgba(0, 0, 0, 1),
+                0 0 100px rgba(255, 255, 255, 0.1), 0 0 0 2px rgb(70, 70, 70);
+            height: 30vmin;
+            aspect-ratio: 1;
+            transition: all 500ms cubic-bezier(0.5, 0, 0.5, 1);
+            contain: size;
+            border-radius: 3px;
+            transform-style: preserve-3d;
+        }
+
+        .demo-box div {
+            content: "";
+            position: absolute;
+            inset: 0px;
+            border-radius: inherit;
+            /* animation: hue-rotate 1300ms linear reverse infinite; */
+            /* box-shadow: 0 0 0 2px var(--color); */
+            border: solid 2px var(--color);
+        }
+
+        @keyframes hue-rotate {
+            from {
+                filter: hue-rotate(0deg);
+            }
+
+            to {
+                filter: hue-rotate(360deg);
+            }
+        }
+
+        #info {
+            position: absolute;
+            top: 0;
+            z-index: 9999;
+            margin: 20px;
+        }
+
+        #info pre {
+            color: white;
+            font-family: monospace;
+            font-size: 2em;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            border-radius: 1em;
+            padding: 0.6em;
+            min-width: 40vw;
+        }
+    </style>
+    <script type="module">
+        import { zyX, html, sleep, newTransform } from "https://zyx.wumbl3.xyz";
+
+        const set_content = document.getElementById("set-content");
+        const style_content = document.getElementById("style-content");
+        const demo_box_container = document.getElementById("demo-box-container");
+        const test_element = zyX().zyx({
+            htme: html`
+                <div return class="demo-box">
+                </div>
+            `,
+        });
+
+        for (let i = 0; i < 15; i++) {
+            const new_box = zyX().zyx({
+                htme: html`
+                <div style="
+                --color: hsl(${i * 36}, 100%, 70%);
+                transform: translate3d(0, 0, ${6 * i}px) scale(${1 + (.03 * i)});
+                z-index: ${i};
+                "></div>
+                `,
+                appendTo: test_element
+            })
+        }
+
+        demo_box_container.append(test_element);
+        newTransform(test_element);
+        const between_delay = 4000;
+
+        async function demoSet(set_data) {
+            test_element.set(set_data);
+            set_content.innerText = `element.set(${JSON.stringify(
+                set_data,
+                null,
+                4
+            )})`;
+            const transforms = test_element.style.transform.replaceAll(
+                /\)+([ ]+)([a-z]{1})/g,
+                ")\n$2"
+            );
+            style_content.innerText = `style:\n${transforms}`;
+            await sleep(between_delay);
+        }
+
+        async function varianceTests() {
+            await demoSet(null);
+
+            await demoSet({
+                scale: "1.2",
+            });
+
+            await demoSet({
+                rotate: "135deg",
+            });
+
+            await demoSet({
+                scale: "*=1.5",
+            });
+
+            await demoSet({
+                rotate: "0",
+                rotate3D: "1, 0, 0, 20deg",
+            });
+
+            await demoSet({
+                rotate3D: "==, ==, ==, *=2",
+            });
+
+            await demoSet({
+                rotate3D: "==, ==, ==, *=-1",
+            });
+
+            setTimeout(varianceTests, 0);
+        }
+
+        async function perfTest() {
+            const test_count = 1000;
+            const startTime = performance.now();
+            for (let i = 0; i < test_count; i++) {
+                test_element.set({
+                    scale: randomTransform(),
+                });
+            }
+            const endTime = performance.now();
+            console.log(
+                `ran ${test_count} tests, total time:`,
+                endTime - startTime,
+                "ms, avg time per test:",
+                (endTime - startTime) / test_count,
+                "ms"
+            );
+        }
+
+        function randomTransform() {
+            const random_3int = Math.floor(Math.random() * 2);
+            const random_999int = Math.round(Math.random() * 999, 2);
+            return (
+                ["+", "-", "/"][random_3int] +
+                "=" +
+                random_999int +
+                ["em", "%", "px"][random_3int]
+            );
+        }
+
+        varianceTests();
+
+        const clamp = (num, min, max) => Math.min(Math.max(num, min), max);
+        const roundHundreth = (x) => Math.round(100 * x) / 100
+
+        class DragRotate {
+            constructor(target) {
+                this.target = target;
+                newTransform(this.target);
+                this.target.set({
+                    rotateX: "0deg",
+                    rotateY: "0deg",
+                });
+                this.pointerActive = false;
+                window.addEventListener('pointerdown', this.pointerDown)
+                window.addEventListener('pointerup', this.pointerUp)
+                window.addEventListener("pointermove", this.pointerMove);
+                this.rotation = [0, 0];
+                this.limit = 60;
+                this.degreesPerPx = 0.1;
+                this.retain = 0.975;
+                this.frametime = 0
+                this.frames = 0
+                this.frame();
+            }
+            pointerDown = () => this.pointerActive = true
+            pointerUp = () => this.pointerActive = false
+
+            pointerMove = (e) => {
+                if (!this.pointerActive) return;
+                this.rotation[0] = clamp(
+                    this.rotation[0] + e.movementX * this.degreesPerPx, -this.limit, this.limit
+                );
+                this.rotation[1] = clamp(
+                    this.rotation[1] + e.movementY * this.degreesPerPx, -this.limit, this.limit
+                );
+            };
+
+            frame = () => {
+                // this.frames++
+                // const now = performance.now()
+                this.rotation[0] = roundHundreth(this.rotation[0] * this.retain);
+                this.rotation[1] = roundHundreth(this.rotation[1] * this.retain);
+                if (Math.abs(this.rotation[0] - this.rotation[1]) > .5) {
+                    this.target.set({ rotateX: `${-this.rotation[1]}deg`, rotateY: `${this.rotation[0]}deg`, });
+                }
+                window.requestAnimationFrame(this.frame);
+                // this.frametime += performance.now() - now
+                // console.log('avg frametime', roundHundreth(this.frametime / this.frames), 'ms')
+            };
+
+        }
+
+        const dragRotate = new DragRotate(demo_box_container);
+
+      // perfTest()
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,11 @@
+html`
+`.*method()
+
+-> class htmlstrclass
+    .html
+
+    - methods
+        .bind
+
+interpreter read class instanceof htmlstrclass
+    place .html
