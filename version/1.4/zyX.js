@@ -1,4 +1,5 @@
-// version 1.4 - hot
+// version 1.4 - hot ??
+
 const __VERSION__ = "1.4";
 const __ROOT__ = "https://zyx.wumbl3.xyz/v:1.4/_";
 
@@ -8,7 +9,7 @@ function __GET__(path) {
 
 import { css, zyxcss } from "./_/zyx-CSS.js";
 
-import { html, join } from "./_/zyx-HTML.js";
+import { zyXHtml, html, join } from "./_/zyx-HTML.js";
 
 import { zyXPost, zyXGet, zyXGet2 } from "./_/zyx-Fetch.js";
 
@@ -27,8 +28,6 @@ import { sleep } from "./_/zyx-Async.js";
 import zyXcookie from "./_/zyx-Cookie.js";
 
 import { delayChain, breakDelayChain, clearDelay, delay, debounce } from "./_/zyx-Delay.js";
-
-import { zyxHTMLElement } from "./_/zyx-zyxHTMLElement.js";
 
 import Splash from "./_/zyx-Splash.js";
 
@@ -64,7 +63,6 @@ export {
 	html,
 	join,
 	calculateDominantColor,
-	zyxHTMLElement,
 	raf,
 	zyXio,
 	forwardEffect,
@@ -133,9 +131,7 @@ export class AsynConstructorv2 {
 	}
 }
 
-
-
-function loadCSSAsync(url) {
+export function loadCSSAsync2(url) {
 	return new Promise((resolve, reject) => {
 		const link = document.createElement('link');
 		link.rel = 'stylesheet';
@@ -149,7 +145,28 @@ function loadCSSAsync(url) {
 				cleanUp: () => {
 					link.remove();
 				}
-			});
+			})
+		};
+		document.head.appendChild(link);
+	});
+}
+
+
+export function loadCSSAsync(url) {
+	return new Promise((resolve, reject) => {
+		const link = document.createElement('link');
+		link.rel = 'stylesheet';
+		link.type = 'text/css';
+		link.href = url;
+		link.onerror = reject;
+		link.onload = () => {
+			link.remove();
+			setTimeout(_ => resolve({
+				link,
+				cleanUp: () => {
+					link.remove();
+				}
+			}), 100);
 		};
 		const head = document.head || document.getElementsByTagName('head')[0];
 		head.appendChild(link);
@@ -171,8 +188,11 @@ const zyXaccessible_methods = {
 	breakDelayChain,
 	rightClick,
 	debounce,
-	asyncCss: loadCSSAsync,
-	of: (times, markup) => Array(times).fill().map(_ => markup().const())
+	of: (times, markup) => Array(times).fill().map(_ => {
+		const out = markup()
+		if (out instanceof zyXHtml && !out.__constructed__) out.const();
+		return out;
+	})
 }
 
 const global = {}

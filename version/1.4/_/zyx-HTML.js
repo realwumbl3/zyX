@@ -91,6 +91,11 @@ export class zyXHtml extends HTMLTemplateElement {
 	return(_) {
 		return _({ this: this, proxy: this.proxy, markup: this.content });
 	}
+
+	pro() {
+		return this.proxy;
+	}
+
 }
 
 customElements.define("zyx-template", zyXHtml, { extends: "template" });
