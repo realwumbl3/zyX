@@ -202,10 +202,6 @@ function processPlaceholders(markup, data) {
 	return { markup, inheritable_data };
 }
 
-const CUSTOM_ZYX_ATTRS = ["pr0x", "this", "push"];
-
-const CUSTOM_ZYX_ATTRS_REGEX = new RegExp(`^(${CUSTOM_ZYX_ATTRS.join("|")})(.+)?`);
-
 import { typeProxy } from "./zyx-Prox.js";
 
 export function postProcessor(zyx, content) {
@@ -220,6 +216,10 @@ export function postProcessor(zyx, content) {
 	[...content.querySelectorAll("[pr0x]")].forEach((node) => {
 		node.__key__ = node.getAttribute("pr0x");
 		zyx.__proxscope__[node.__key__] = new typeProxy(node.__key__, "string", node);
+	});
+
+	[...content.querySelectorAll("[zyx-proxy]")].forEach((node) => {
+		node.proxy = zyx.proxy;
 	});
 
 	[...content.querySelectorAll("[this]")].forEach((node) => {
