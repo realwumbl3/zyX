@@ -35,6 +35,7 @@ export class zyXHtml extends HTMLTemplateElement {
 	}
 
 	const() {
+		if (this.__constructed__) return this;
 		const [raw, ...data] = this.__rawdata__;
 		const { markup, inheritable_data } = htmlLiteralProcessor(raw, ...data);
 		for (const data of inheritable_data) Object.assign(this.__scope__, data);
@@ -74,6 +75,7 @@ export class zyXHtml extends HTMLTemplateElement {
 	}
 
 	touch(_) {
+		if (!this.__constructed__) this.const();
 		_({ proxy: this.proxy, markup: this.content });
 		return this;
 	}

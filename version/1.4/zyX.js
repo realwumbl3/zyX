@@ -92,7 +92,8 @@ export {
 	pointerEventPathContains,
 	Splash,
 	zyXPost,
-	zyXGet
+	zyXGet,
+	zyXHtml,
 };
 
 ///// wumbl3.xyz 2023 ///// //// /// // 7
@@ -290,3 +291,60 @@ export function recursiveKeyCount(obj) {
 	}
 	return total;
 }
+
+
+
+export class zyXReactive {
+	constructor(obj) {
+		this.obj = obj;
+		this.__onchange__ = new WeakRefSet();
+		return new Proxy(this.obj, {
+			set: (target, key, value) => {
+				// console.log("set", key, value)
+				target[key] = value;
+				this.__onchange__.forEach(_ => _(key, value))
+				return true;
+			},
+			get: (target, key) => {
+				if (key === "onChange") return this.onChange;
+				if (key === "__onchange__") return this.__onchange__;
+				return target[key];
+			}
+		})
+	}
+
+	onChange(cb) {
+		this.__onchange__.add(cb);
+	}
+}
+
+
+// export class zyXRarray extends Array {
+// 	constructor(...args) {
+// 		super(...args)
+// 		this.__onchange__ = new WeakRefSet();
+
+// 		return new Proxy(this, {
+// 			set: (target, property, value) => {
+// 				target[property] = value;
+// 				this.observeChanges(target, property, value);
+// 				return true;
+// 			},
+// 			deleteProperty: (target, property, value) => {
+// 				delete target[property];
+// 				this.observeChanges(target, property, value);
+// 				return true;
+// 			}
+// 		});
+// 	}
+
+// 	observeChanges(...args) {
+// 		// console.log('Array changed:', args);
+// 		this.__onchange__.forEach(_ => _(...args));
+// 	}
+
+// 	onChange(cb) {
+// 		this.__onchange__.add(cb);
+// 	}
+
+// }
