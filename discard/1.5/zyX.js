@@ -1,7 +1,7 @@
-// version 1.4 - hot ??
+// version 1.5 - hot ??
 
-const __VERSION__ = "1.4";
-const __ROOT__ = "https://zyx.wumbl3.xyz/v:1.4/_";
+const __VERSION__ = "1.5";
+const __ROOT__ = `https://zyx.wumbl3.xyz/v:${__VERSION__}/_`;
 
 function __GET__(path) {
 	return __ROOT__ + path;
@@ -132,7 +132,7 @@ export class AsynConstructorv2 {
 	}
 }
 
-export function loadCSSAsync(url) {
+export function loadCSSAsync2(url) {
 	return new Promise((resolve, reject) => {
 		const link = document.createElement('link');
 		link.rel = 'stylesheet';
@@ -146,7 +146,28 @@ export function loadCSSAsync(url) {
 				cleanUp: () => {
 					link.remove();
 				}
-			});
+			})
+		};
+		document.head.appendChild(link);
+	});
+}
+
+
+export function loadCSSAsync(url) {
+	return new Promise((resolve, reject) => {
+		const link = document.createElement('link');
+		link.rel = 'stylesheet';
+		link.type = 'text/css';
+		link.href = url;
+		link.onerror = reject;
+		link.onload = () => {
+			link.remove();
+			setTimeout(_ => resolve({
+				link,
+				cleanUp: () => {
+					link.remove();
+				}
+			}), 100);
 		};
 		const head = document.head || document.getElementsByTagName('head')[0];
 		head.appendChild(link);

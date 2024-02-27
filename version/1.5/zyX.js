@@ -1,7 +1,5 @@
-// version 1.4 - hot ??
-
-const __VERSION__ = "1.4";
-const __ROOT__ = "https://zyx.wumbl3.xyz/v:1.4/_";
+const __VERSION__ = "1.5";
+const __ROOT__ = `https://zyx.wumbl3.xyz/v:${__VERSION__}`;
 
 function __GET__(path) {
 	return __ROOT__ + path;
