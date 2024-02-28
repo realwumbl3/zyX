@@ -36,11 +36,10 @@ export class zyXHtml extends HTMLTemplateElement {
 
 	const() {
 		if (this.__constructed__) return this;
-		const [raw, ...data] = this.__rawdata__;
-		const { markup, inheritable_data } = htmlLiteralProcessor(raw, ...data);
-		for (const data of inheritable_data) Object.assign(this.__scope__, data);
-		if (this.__mutable__) {
-			for (const data of inheritable_data) Object.assign(this.__mutable__, data);
+		const { markup, inheritable_data } = htmlLiteralProcessor(...this.__rawdata__);
+		for (const data of inheritable_data) {
+			Object.assign(this.__scope__, data);
+			if (this.__mutable__) Object.assign(this.__mutable__, data);
 		}
 		postProcessor(this, markup);
 		this.content.append(...markup.childNodes);

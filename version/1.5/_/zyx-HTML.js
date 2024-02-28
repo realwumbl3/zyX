@@ -3,23 +3,35 @@ import { debugCheckpoint, debugStart, debugLog } from "./zyx-Debugger.js";
 const ENABLE_TIMERS = false;
 
 export function html(raw, ...data) {
-	ENABLE_TIMERS && debugStart("html", "es6-html-string --> zyXHTML");
-	const zyxHTML = new zyXHtml(raw, ...data);
-	ENABLE_TIMERS && debugCheckpoint("html", `new zyXHtml created.`);
-	ENABLE_TIMERS && debugLog("html", { min: 0, dump: { zyxHTML, raw } });
-	return zyxHTML;
+	const { markup, inheritable_data } = htmlLiteralProcessor(raw, ...data);
+	// remove first and last child if they are empty text nodes
+	for (let i = 0; i < 2; i++) {
+		if (!markup.childNodes[i]) continue;
+		if (markup.childNodes[i].nodeType === 3 && markup.childNodes[i].textContent.trim() === "") {
+			markup.removeChild(markup.childNodes[i]);
+		}
+	}
+	if (markup.childNodes.length === 1) {
+		const zyxHTML = new zyXHtml(markup, inheritable_data);
+		return zyxHTML;
+	} else {
+		const asHTMLTemplate = document.createElement("template");
+		asHTMLTemplate.content.append(...markup.childNodes);
+		return new zyXHtml(asHTMLTemplate, inheritable_data);
+	}
 }
 
 // window.html = html;
 
-export class zyXHtml extends HTMLTemplateElement {
-	constructor(raw, ...data) {
-		super();
+export class zyXHtml {
+	constructor(dom, stringdata) {
 		this.__constructed__ = false;
+		this.__dom__ = dom;
+		this.__isTemplate__ = dom instanceof HTMLTemplateElement;
+		this.__stringdata__ = stringdata;
 		this.__scope__ = {};
 		this.__proxscope__ = {};
 		this.__mutable__ = null;
-		this.__rawdata__ = [raw, ...data];
 		this.proxy = new Proxy(this, {
 			get: (obj, key) => {
 				if (this.__scope__.hasOwnProperty(key)) return this.__scope__[key];
@@ -31,19 +43,13 @@ export class zyXHtml extends HTMLTemplateElement {
 				return (obj[key] = val);
 			},
 		});
-		// this.refresh()
 	}
 
 	const() {
 		if (this.__constructed__) return this;
-		const [raw, ...data] = this.__rawdata__;
-		const { markup, inheritable_data } = htmlLiteralProcessor(raw, ...data);
-		for (const data of inheritable_data) Object.assign(this.__scope__, data);
-		if (this.__mutable__) {
-			for (const data of inheritable_data) Object.assign(this.__mutable__, data);
-		}
-		postProcessor(this, markup);
-		this.content.append(...markup.childNodes);
+		postProcessor(this, this.__isTemplate__ ? this.__dom__.content : this.__dom__);
+		if (this.__isTemplate__) this.__dom__ = this.__dom__.content;
+		else this.__dom__ = this.__dom__.firstElementChild;
 		this.__constructed__ = true;
 		return this;
 	}
@@ -53,30 +59,30 @@ export class zyXHtml extends HTMLTemplateElement {
 		this.__mutable__ = any;
 		any.proxy = this.proxy;
 		any.__zyXHtml__ = this;
-		any.appendTo = (container) => container.append(this.content);
-		any.prependTo = (container) => container.prepend(this.content);
-		any.place = (place) => placer(this.content, place);
+		any.appendTo = (container) => container.append(this.__dom__);
+		any.prependTo = (container) => container.prepend(this.__dom__);
+		any.place = (place) => placer(this.__dom__, place);
 		return this.const();
 	}
 
 	appendTo(target) {
-		target.append(this.content);
+		target.append(this.__dom__);
 		return this;
 	}
 
 	prependTo(target) {
-		target.prepend(this.content);
+		target.prepend(this.__dom__);
 		return this;
 	}
 
 	place(place) {
-		placer(this.content, place);
+		placer(this.__dom__, place);
 		return this;
 	}
 
 	touch(_) {
 		if (!this.__constructed__) this.const();
-		_({ proxy: this.proxy, markup: this.content });
+		_({ proxy: this.proxy, markup: this.__dom__ });
 		return this;
 	}
 
@@ -91,7 +97,7 @@ export class zyXHtml extends HTMLTemplateElement {
 	}
 
 	return(_) {
-		return _({ this: this, proxy: this.proxy, markup: this.content });
+		return _({ this: this, proxy: this.proxy, markup: this.__dom__ });
 	}
 
 	pro() {
@@ -137,8 +143,8 @@ function htmlLiteralDataProcessor(stringData) {
 			fragment.content.append(
 				...value.map((item) => {
 					if (item?.__zyXHtml__) item = item.__zyXHtml__;
-					if (item instanceof zyXHtml) return item.content;
-					if (item instanceof DoJoin) return item.zyxHTMLInstance.content;
+					if (item instanceof zyXHtml) return item.__dom__;
+					if (item instanceof DoJoin) return item.zyxHTMLInstance.__dom__;
 					if (item instanceof HTMLTemplateElement) return item.content;
 					if (item instanceof HTMLElement) return item;
 					if (!item) return "";
@@ -192,10 +198,10 @@ function processPlaceholders(markup, data) {
 		if (placeholder_data?.__zyXHtml__) placeholder_data = placeholder_data.__zyXHtml__;
 
 		if (placeholder_data instanceof DoJoin) {
-			stringPlaceholder.replaceWith(placeholder_data.zyxHTMLInstance.content);
+			stringPlaceholder.replaceWith(placeholder_data.zyxHTMLInstance.__dom__);
 			inheritable_data.push(placeholder_data.zyxHTMLInstance.__scope__);
 		} else if (placeholder_data instanceof zyXHtml) {
-			stringPlaceholder.replaceWith(placeholder_data.content);
+			stringPlaceholder.replaceWith(placeholder_data.__dom__);
 		} else {
 			stringPlaceholder.replaceWith(placeholder_data);
 		}
@@ -207,7 +213,6 @@ function processPlaceholders(markup, data) {
 import { typeProxy } from "./zyx-Prox.js";
 
 export function postProcessor(zyx, content) {
-
 	[...content.querySelectorAll("ph")].forEach((node) => {
 		const firstKey = [...node.attributes][0].nodeName;
 		node.setAttribute("ph", firstKey);
