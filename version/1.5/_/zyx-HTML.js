@@ -2,15 +2,20 @@ import { debugCheckpoint, debugStart, debugLog } from "./zyx-Debugger.js";
 
 const ENABLE_TIMERS = false;
 
-export function html(raw, ...data) {
-	const { markup, inheritable_data } = htmlLiteralProcessor(raw, ...data);
+function trimTextNodes(dom) {
 	// remove first and last child if they are empty text nodes
+	const nodes = dom.childNodes;
 	for (let i = 0; i < 2; i++) {
-		if (!markup.childNodes[i]) continue;
-		if (markup.childNodes[i].nodeType === 3 && markup.childNodes[i].textContent.trim() === "") {
-			markup.removeChild(markup.childNodes[i]);
+		if (!nodes[i]) continue;
+		if (nodes[i].nodeType === 3 && nodes[i].textContent.trim() === "") {
+			dom.removeChild(nodes[i]);
 		}
 	}
+}
+
+export function html(raw, ...data) {
+	const { markup, inheritable_data } = htmlLiteralProcessor(raw, ...data);
+	trimTextNodes(markup);
 	if (markup.childNodes.length === 1) {
 		const zyxHTML = new zyXHtml(markup, inheritable_data);
 		return zyxHTML;
@@ -43,6 +48,11 @@ export class zyXHtml {
 				return (obj[key] = val);
 			},
 		});
+	}
+
+	markup() {
+		if (!this.__constructed__) this.const();
+		return this.__dom__;
 	}
 
 	const() {
@@ -105,8 +115,6 @@ export class zyXHtml {
 	}
 
 }
-
-customElements.define("zyx-template", zyXHtml, { extends: "template" });
 
 function htmlLiteralProcessor(raw, ...string_data) {
 	const { data, stringExpressions } = htmlLiteralDataProcessor(string_data);
