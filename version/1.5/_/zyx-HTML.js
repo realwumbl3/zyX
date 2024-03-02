@@ -2,17 +2,6 @@ import { debugCheckpoint, debugStart, debugLog } from "./zyx-Debugger.js";
 
 const ENABLE_TIMERS = false;
 
-function trimTextNodes(dom) {
-	// remove first and last child if they are empty text nodes
-	const nodes = dom.childNodes;
-	for (let i = 0; i < 2; i++) {
-		if (!nodes[i]) continue;
-		if (nodes[i].nodeType === 3 && nodes[i].textContent.trim() === "") {
-			dom.removeChild(nodes[i]);
-		}
-	}
-}
-
 export function html(raw, ...data) {
 	const { markup, inheritable_data } = htmlLiteralProcessor(raw, ...data);
 	trimTextNodes(markup);
@@ -57,7 +46,44 @@ export class zyXHtml {
 
 	const() {
 		if (this.__constructed__) return this;
-		postProcessor(this, this.__isTemplate__ ? this.__dom__.content : this.__dom__);
+
+		const content = this.__isTemplate__ ? this.__dom__.content : this.__dom__;
+
+		[...content.querySelectorAll("ph")].forEach((node) => {
+			const firstKey = [...node.attributes][0].nodeName;
+			node.setAttribute("ph", firstKey);
+			thisAssigner(this, node, firstKey);
+			return;
+		});
+
+		[...content.querySelectorAll("[pr0x]")].forEach((node) => {
+			node.__key__ = node.getAttribute("pr0x");
+			this.__proxscope__[node.__key__] = new typeProxy(node.__key__, "string", node);
+		});
+
+		// try depractating
+		[...content.querySelectorAll("[zyx-proxy]")].forEach((node) => {
+			node.proxy = this.proxy;
+		});
+
+		[...content.querySelectorAll("[this]")].forEach((node) => {
+			thisAssigner(this, node, node.getAttribute("this"));
+			node.removeAttribute("this");
+		});
+
+		[...content.querySelectorAll("[push]")].forEach((node) => {
+			push_assigner(this, node, node.getAttribute("push"));
+			node.removeAttribute("push");
+		});
+
+		applyZyxAttrs(this, content);
+
+		[...content.querySelectorAll("[shadow-root]")].forEach((node) => {
+			const node_nodes = node.childNodes;
+			node.attachShadow({ mode: "open" });
+			node.shadowRoot.append(...node_nodes);
+		});
+
 		if (this.__isTemplate__) this.__dom__ = this.__dom__.content;
 		else this.__dom__ = this.__dom__.firstElementChild;
 		this.__constructed__ = true;
@@ -117,21 +143,16 @@ export class zyXHtml {
 }
 
 function htmlLiteralProcessor(raw, ...string_data) {
-	const { data, stringExpressions } = htmlLiteralDataProcessor(string_data);
-
-	const string = String.raw({ raw }, ...stringExpressions);
-
-	const raw_markup = putInsideDiv(string);
-
-	const { markup, inheritable_data } = processPlaceholders(raw_markup, data);
-
+	const { data, dry_html } = htmlLiteralDataProcessor(raw, string_data);
+	const { markup, inheritable_data } = processPlaceholders(strCreateNodes(dry_html), data);
 	return { markup, inheritable_data };
 }
 
-function htmlLiteralDataProcessor(stringData) {
-	const data = stringData.map((value) => value || "");
-	const stringExpressions = [];
+function htmlLiteralDataProcessor(raw, string_data) {
+	const data = string_data.map((value) => value || "");
+	const placeholders = [];
 	for (let [key, value] of Object.entries(data)) {
+
 		if (typeof value === "function") {
 			const result = value();
 			if (result) {
@@ -152,7 +173,6 @@ function htmlLiteralDataProcessor(stringData) {
 				...value.map((item) => {
 					if (item?.__zyXHtml__) item = item.__zyXHtml__;
 					if (item instanceof zyXHtml) return item.__dom__;
-					if (item instanceof DoJoin) return item.zyxHTMLInstance.__dom__;
 					if (item instanceof HTMLTemplateElement) return item.content;
 					if (item instanceof HTMLElement) return item;
 					if (!item) return "";
@@ -160,103 +180,65 @@ function htmlLiteralDataProcessor(stringData) {
 				})
 			);
 			data[key] = fragment.content;
-			stringExpressions.push(stringPlaceholder(key));
+			placeholders.push(strPlaceholder(key));
+
 		} else if (isInsertable(value)) {
-			stringExpressions.push(stringPlaceholder(key));
+			placeholders.push(strPlaceholder(key));
 		} else {
-			stringExpressions.push(value);
+			placeholders.push(value);
 		}
+
 	}
-
-	return { stringExpressions, data };
-}
-
-function isInsertable(_) {
-	return _?.__zyXHtml__ || _ instanceof zyXHtml || _ instanceof HTMLElement || _ instanceof DocumentFragment || _ instanceof DoJoin;
-}
-
-function putInsideDiv(markup) {
-	const markupContent = document.createElement("div");
-	markupContent.innerHTML = markup;
-	return markupContent;
-}
-
-const placehold_tag = "zyx-processor-placehold";
-
-function stringPlaceholder(key) {
-	return `<${placehold_tag} id="${key}"></${placehold_tag}>`;
-}
-
-class DoJoin {
-	constructor(zyxHTMLInstance) {
-		this.zyxHTMLInstance = zyxHTMLInstance;
-	}
-}
-
-export function join(zyxHTMLInstance) {
-	return new DoJoin(zyxHTMLInstance);
+	const dry_html = String.raw({ raw }, ...placeholders);
+	return { data, dry_html };
 }
 
 function processPlaceholders(markup, data) {
 	const inheritable_data = [];
-	for (const stringPlaceholder of [...markup.querySelectorAll(placehold_tag)]) {
+	for (const placeholder of [...markup.querySelectorAll(placehold_tag)]) {
 
-		let placeholder_data = data[stringPlaceholder.id];
+		let placeholder_data = data[placeholder.id];
 
 		if (placeholder_data?.__zyXHtml__) placeholder_data = placeholder_data.__zyXHtml__;
 
-		if (placeholder_data instanceof DoJoin) {
-			stringPlaceholder.replaceWith(placeholder_data.zyxHTMLInstance.__dom__);
-			inheritable_data.push(placeholder_data.zyxHTMLInstance.__scope__);
-		} else if (placeholder_data instanceof zyXHtml) {
-			stringPlaceholder.replaceWith(placeholder_data.__dom__);
+		if (placeholder_data instanceof zyXHtml) {
+			placeholder.replaceWith(placeholder_data.markup());
 		} else {
-			stringPlaceholder.replaceWith(placeholder_data);
+			placeholder.replaceWith(placeholder_data);
 		}
 
 	}
 	return { markup, inheritable_data };
 }
 
-import { typeProxy } from "./zyx-Prox.js";
-
-export function postProcessor(zyx, content) {
-	[...content.querySelectorAll("ph")].forEach((node) => {
-		const firstKey = [...node.attributes][0].nodeName;
-		node.setAttribute("ph", firstKey);
-		thisAssigner(zyx, node, firstKey);
-		return;
-	});
-
-	[...content.querySelectorAll("[pr0x]")].forEach((node) => {
-		node.__key__ = node.getAttribute("pr0x");
-		zyx.__proxscope__[node.__key__] = new typeProxy(node.__key__, "string", node);
-	});
-
-	[...content.querySelectorAll("[zyx-proxy]")].forEach((node) => {
-		node.proxy = zyx.proxy;
-	});
-
-	[...content.querySelectorAll("[this]")].forEach((node) => {
-		thisAssigner(zyx, node, node.getAttribute("this"));
-		node.removeAttribute("this");
-	});
-
-	[...content.querySelectorAll("[push]")].forEach((node) => {
-		push_assigner(zyx, node, node.getAttribute("push"));
-		node.removeAttribute("push");
-	});
-
-	applyZyxAttrs(zyx, content);
-
-	[...content.querySelectorAll("[shadow-root]")].forEach((node) => {
-		const node_nodes = node.childNodes;
-		node.attachShadow({ mode: "open" });
-		node.shadowRoot.append(...node_nodes);
-	});
-
+function isInsertable(_) {
+	return _?.__zyXHtml__ || _ instanceof zyXHtml || _ instanceof HTMLElement || _ instanceof DocumentFragment;
 }
 
+function strCreateNodes(markup) {
+	const markupContent = document.createElement("div");
+	markupContent.innerHTML = markup;
+	return markupContent;
+}
+
+function trimTextNodes(dom) {
+	// remove first and last child if they are empty text nodes
+	const nodes = dom.childNodes;
+	for (let i = 0; i < 2; i++) {
+		if (!nodes[i]) continue;
+		if (nodes[i].nodeType === 3 && nodes[i].textContent.trim() === "") {
+			dom.removeChild(nodes[i]);
+		}
+	}
+}
+
+const placehold_tag = "zyx-processor-placehold";
+
+function strPlaceholder(key) {
+	return `<${placehold_tag} id="${key}"></${placehold_tag}>`;
+}
+
+import { typeProxy } from "./zyx-Prox.js";
 
 export function placer(what, where) {
 	if (typeof where === "object") return where.replaceWith(what);

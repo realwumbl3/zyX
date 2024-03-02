@@ -7,7 +7,7 @@ function __GET__(path) {
 
 import { css, zyxcss } from "./_/zyx-CSS.js";
 
-import { zyXHtml, html, join } from "./_/zyx-HTML.js";
+import { zyXHtml, html } from "./_/zyx-HTML.js";
 
 import { zyXPost, zyXGet, zyXGet2 } from "./_/zyx-Fetch.js";
 
@@ -59,7 +59,6 @@ export {
 	css,
 	zyxcss,
 	html,
-	join,
 	calculateDominantColor,
 	raf,
 	zyXio,
