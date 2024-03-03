@@ -22,7 +22,6 @@ export default function calculateDominantColor(img_url) {
 		Img.src = img_url;
 
 		Img.onload = () => {
-			console.log("img loaded");
 			CTX.drawImage(Img, 0, 0, 500, 500);
 			if (!CTX) {
 				return resolve();
