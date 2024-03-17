@@ -7,11 +7,7 @@ css`url(${__ROOT__}/zyX-Attr.css)`;
 
 import { zyXHtml, html } from "./_/zyx-HTML.js";
 
-import { zyXPost, zyXGet, zyXGet2 } from "./_/zyx-Fetch.js";
-
-import { pr0x } from "./_/zyx-Prox.js";
-
-import { doMe } from "./_/zyx-DoMe.js";
+import { zyXPost, zyXGet } from "./_/zyx-Fetch.js";
 
 import { offset, offsetLimit } from "./_/zyx-Math.js";
 
@@ -30,14 +26,12 @@ import calculateDominantColor from "./_/zyx-HUE.js";
 import { zyXDomArray, zyXArray } from "./_/zyx-Reactive.js";
 
 import {
-	raf,
 	timeoutLimiter,
 	rightClick,
 	events,
 	forQuery,
 	pathContains,
-	pointerDrag,
-	pointerDragGlobal,
+	pointerDrag, // depracate this (feednav in feed dekapp)
 	setProps,
 	WeakRefSet,
 	pointerEventPathContains
@@ -50,8 +44,6 @@ import zyxAudio from "./_/zyx-Audio.js";
 ///// wumbl3.xyz 2023 ///// //// /// // 7
 
 const zyXMethods = {
-	pointerDrag,
-	pointerDragGlobal,
 	forQuery,
 	setProps,
 	pathContains,
@@ -89,16 +81,11 @@ export {
 	zyXDomArray,
 	zyXArray,
 	EventSystem,
-	zyXGet2,
 	css,
 	zyxcss,
 	html,
 	calculateDominantColor,
-	raf,
 	zyXio,
-	pr0x,
-	doMe,
-	events,
 	zyXcookie,
 	offset,
 	offsetLimit,
@@ -106,7 +93,6 @@ export {
 	setProps,
 	pathContains,
 	pointerDrag,
-	pointerDragGlobal,
 	zyxAudio,
 	delay,
 	clearDelay,
