@@ -33,7 +33,7 @@ function debugLog(name, { min, dump } = {}) {
 }
 
 function timerColors(time) {
-	return `color:${time <= 1 ? "green" : time <= 3 ? "yellow" : time <= 5 ? "orange" : "red"}`;
+	return `color:${time <= 100 ? "green" : time <= 300 ? "yellow" : time <= 500 ? "orange" : "red"}`;
 }
 
 export { debugStart, debugCheckpoint, debugLog };

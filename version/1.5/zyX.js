@@ -33,6 +33,8 @@ import EventSystem from "./_/zyx-Event.js";
 
 import calculateDominantColor from "./_/zyx-HUE.js";
 
+import { zyXDomArray, zyXArray } from "./_/zyx-Reactive.js";
+
 import {
 	raf,
 	timeoutLimiter,
@@ -54,6 +56,8 @@ import zyxAudio from "./_/zyx-Audio.js";
 
 /////// \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 export {
+	zyXDomArray,
+	zyXArray,
 	EventSystem,
 	zyXGet2,
 	css,

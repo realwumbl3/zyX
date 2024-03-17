@@ -2,77 +2,96 @@ import { debugCheckpoint, debugStart, debugLog } from "./zyx-Debugger.js";
 
 const ENABLE_TIMERS = false;
 
+
+
 export function html(raw, ...data) {
+	ENABLE_TIMERS && debugStart("html", "html`<...>` called");
 	const { markup, inheritable_data } = htmlLiteralProcessor(raw, ...data);
+	ENABLE_TIMERS && debugCheckpoint("html", `htmlLiteralProcessor(raw, ...data)`);
+	let created = null;
 	trimTextNodes(markup);
 	if (markup.childNodes.length === 1) {
-		const zyxHTML = new zyXHtml(markup, inheritable_data);
-		return zyxHTML;
+		created = new zyXHtml(markup);
 	} else {
 		const asHTMLTemplate = document.createElement("template");
 		asHTMLTemplate.content.append(...markup.childNodes);
-		return new zyXHtml(asHTMLTemplate, inheritable_data);
+		created = new zyXHtml(asHTMLTemplate);
 	}
+	ENABLE_TIMERS && debugCheckpoint("html", `new zyXHtml(markup)`);
+	ENABLE_TIMERS && debugLog("html", { min: 0, dump: { created } });
+	return created;
 }
 
 // window.html = html;
 
 export class zyXHtml {
-	constructor(dom, stringdata) {
-		this.__constructed__ = false;
-		this.__dom__ = dom;
-		this.__isTemplate__ = dom instanceof HTMLTemplateElement;
-		this.__stringdata__ = stringdata;
-		this.__scope__ = {};
-		this.__proxscope__ = {};
-		this.__mutable__ = null;
-		this.proxy = new Proxy(this, {
+	#constructed = false;
+	#dom;
+	#isTemplate;
+	#proxscope;
+	#proxy;
+	#mutable;
+	constructor(dom) {
+		this.#constructed = false;
+		this.#dom = dom;
+		this.#isTemplate = dom instanceof HTMLTemplateElement;
+		this.#proxscope = {};
+		this.#proxy = new Proxy(this, {
 			get: (obj, key) => {
-				if (this.__scope__.hasOwnProperty(key)) return this.__scope__[key];
-				if (this.__proxscope__.hasOwnProperty(key)) return this.__proxscope__[key].value;
+				if (this.hasOwnProperty(key)) return this[key];
+				if (this.#proxscope.hasOwnProperty(key)) return this.#proxscope[key].value;
 				return obj[key];
 			},
 			set: (obj, key, val) => {
-				if (this.__proxscope__.hasOwnProperty(key)) return this.__proxscope__[key].set(val);
+				if (this.#proxscope.hasOwnProperty(key)) return this.#proxscope[key].set(val);
 				return (obj[key] = val);
 			},
 		});
 	}
 
 	markup() {
-		if (!this.__constructed__) this.const();
-		return this.__dom__;
+		if (!this.#constructed) this.const();
+		return this.#dom;
+	}
+
+	flatten() {
+		if (!this.#constructed) this.const();
+		this.#isTemplate = true;
+		const template = document.createElement("template");
+		template.content.append(...this.#dom.childNodes);
+		this.#dom = template.content;
+		return this;
 	}
 
 	const() {
-		if (this.__constructed__) return this;
+		if (this.#constructed) return this;
 
-		const content = this.__isTemplate__ ? this.__dom__.content : this.__dom__;
+		const content = this.#isTemplate ? this.#dom.content : this.#dom;
 
 		[...content.querySelectorAll("ph")].forEach((node) => {
 			const firstKey = [...node.attributes][0].nodeName;
 			node.setAttribute("ph", firstKey);
-			thisAssigner(this, node, firstKey);
+			this.thisAssigner(node, firstKey);
 			return;
 		});
 
 		[...content.querySelectorAll("[pr0x]")].forEach((node) => {
 			node.__key__ = node.getAttribute("pr0x");
-			this.__proxscope__[node.__key__] = new typeProxy(node.__key__, "string", node);
+			this.#proxscope[node.__key__] = new typeProxy(node.__key__, "string", node);
 		});
 
 		// try depractating
 		[...content.querySelectorAll("[zyx-proxy]")].forEach((node) => {
-			node.proxy = this.proxy;
+			node.proxy = this.#proxy;
 		});
 
 		[...content.querySelectorAll("[this]")].forEach((node) => {
-			thisAssigner(this, node, node.getAttribute("this"));
+			this.thisAssigner(node, node.getAttribute("this"));
 			node.removeAttribute("this");
 		});
 
 		[...content.querySelectorAll("[push]")].forEach((node) => {
-			push_assigner(this, node, node.getAttribute("push"));
+			this.pushAssigner(node, node.getAttribute("push"));
 			node.removeAttribute("push");
 		});
 
@@ -84,61 +103,89 @@ export class zyXHtml {
 			node.shadowRoot.append(...node_nodes);
 		});
 
-		if (this.__isTemplate__) this.__dom__ = this.__dom__.content;
-		else this.__dom__ = this.__dom__.firstElementChild;
-		this.__constructed__ = true;
+		if (this.#isTemplate) this.#dom = this.#dom.content;
+		else this.#dom = this.#dom.firstElementChild;
+		this.#constructed = true;
 		return this;
 	}
 
 	bind(any) {
 		Object.assign(any, this.__scope__);
-		this.__mutable__ = any;
-		any.proxy = this.proxy;
+		this.#mutable = any;
+		any.proxy = this.#proxy;
 		any.__zyXHtml__ = this;
-		any.appendTo = (container) => container.append(this.__dom__);
-		any.prependTo = (container) => container.prepend(this.__dom__);
-		any.place = (place) => placer(this.__dom__, place);
+		any.appendTo = (container) => this.appendTo(container);
+		any.prependTo = (container) => this.prependTo(container);
+		any.place = (place) => this.place(place);
 		return this.const();
 	}
 
 	appendTo(target) {
-		target.append(this.__dom__);
+		target.append(this.markup());
 		return this;
 	}
 
 	prependTo(target) {
-		target.prepend(this.__dom__);
+		target.prepend(this.markup());
 		return this;
 	}
 
 	place(place) {
-		placer(this.__dom__, place);
+		placer(this.markup(), place);
 		return this;
 	}
 
 	touch(_) {
-		if (!this.__constructed__) this.const();
-		_({ proxy: this.proxy, markup: this.__dom__ });
+		if (!this.#constructed) this.const();
+		_({ proxy: this.#proxy, markup: this.markup() });
 		return this;
 	}
 
 	ns(_) {
-		return _(this.proxy);
+		if (!this.#constructed) this.const();
+		return _(this.#proxy);
 	}
 
 	pass(_) {
-		this.const()
+		if (!this.#constructed) this.const();
 		_(this);
 		return this;
 	}
 
 	return(_) {
-		return _({ this: this, proxy: this.proxy, markup: this.__dom__ });
+		return _({ this: this, proxy: this.#proxy, markup: this.markup() });
 	}
 
-	pro() {
-		return this.proxy;
+	thisAssigner(node, keyname) {
+		const splitNames = keyname.split(" ");
+		if (splitNames.length > 1) {
+			const [first_key, second_key] = splitNames;
+			IfNotSetEmptyObject(this, first_key);
+			this[first_key][second_key] = node;
+
+			if (this.#mutable) {
+				IfNotSetEmptyObject(this.#mutable, first_key);
+				this.#mutable[first_key][second_key] = node;
+			}
+
+			node.__group__ = first_key;
+			node.__key__ = second_key;
+		} else if (splitNames.length === 1) {
+			node.__key__ = splitNames[0];
+			this[splitNames[0]] = node;
+			this.#mutable && (this.#mutable[splitNames[0]] = node);
+		}
 	}
+
+	pushAssigner(node, keyname) {
+		if (!this.hasOwnProperty(keyname)) {
+			this[keyname] = [];
+			this.#mutable && (this.#mutable[keyname] = this[keyname]);
+		}
+		node.__key__ = keyname;
+		this[keyname].push(node);
+	}
+
 
 }
 
@@ -157,7 +204,7 @@ function htmlLiteralDataProcessor(raw, string_data) {
 			const result = value();
 			if (result) {
 				if (result instanceof zyXHtml) {
-					if (!result.__constructed__) result.const();
+					result.const();
 				}
 				data[key] = result;
 				value = result;
@@ -172,7 +219,7 @@ function htmlLiteralDataProcessor(raw, string_data) {
 			fragment.content.append(
 				...value.map((item) => {
 					if (item?.__zyXHtml__) item = item.__zyXHtml__;
-					if (item instanceof zyXHtml) return item.__dom__;
+					if (item instanceof zyXHtml) return item.markup();
 					if (item instanceof HTMLTemplateElement) return item.content;
 					if (item instanceof HTMLElement) return item;
 					if (!item) return "";
@@ -247,38 +294,9 @@ export function placer(what, where) {
 	else throw new Error(where, "not found");
 }
 
-function thisAssigner(zyx, node, keyname) {
-	const splitNames = keyname.split(" ");
-	if (splitNames.length > 1) {
-		const [first_key, second_key] = splitNames;
-		IfNotSetEmptyObject(zyx.__scope__, first_key);
-		zyx.__scope__[first_key][second_key] = node;
-
-		if (zyx.__mutable__) {
-			IfNotSetEmptyObject(zyx.__mutable__, first_key);
-			zyx.__mutable__[first_key][second_key] = node;
-		}
-
-		node.__group__ = first_key;
-		node.__key__ = second_key;
-	} else if (splitNames.length === 1) {
-		node.__key__ = splitNames[0];
-		zyx.__scope__[splitNames[0]] = node;
-		zyx?.__mutable__ && (zyx.__mutable__[splitNames[0]] = node);
-	}
-}
-
 function IfNotSetEmptyObject(obj, key) {
 	if (!obj.hasOwnProperty(key)) obj[key] = {};
 }
 
-function push_assigner(zyx, node, keyname) {
-	if (!zyx.__scope__.hasOwnProperty(keyname)) {
-		zyx.__scope__[keyname] = [];
-		zyx?.__mutable__ && (zyx.__mutable__[keyname] = zyx.__scope__[keyname]);
-	}
-	node.__key__ = keyname;
-	zyx.__scope__[keyname].push(node);
-}
 
 import { applyZyxAttrs } from "./zyx-Attrs.js";
