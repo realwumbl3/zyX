@@ -9,18 +9,18 @@ export function html(raw, ...data) {
 	let created = null;
 	trimTextNodes(markup);
 	if (markup.childNodes.length === 1) {
-		created = new zyXHtml(markup);
+		created = new ZyXHtml(markup);
 	} else {
 		const asHTMLTemplate = document.createElement("template");
 		asHTMLTemplate.content.append(...markup.childNodes);
-		created = new zyXHtml(asHTMLTemplate);
+		created = new ZyXHtml(asHTMLTemplate);
 	}
-	ENABLE_TIMERS && debugCheckpoint("html", `new zyXHtml(markup)`);
+	ENABLE_TIMERS && debugCheckpoint("html", `new ZyXHtml(markup)`);
 	ENABLE_TIMERS && debugLog("html", { min: 0, dump: { created } });
 	return created;
 }
 
-export class zyXHtml {
+export class ZyXHtml {
 	#constructed = false;
 	#dom;
 	#isTemplate;
@@ -109,7 +109,7 @@ export class zyXHtml {
 		Object.assign(any, this.__scope__);
 		this.#mutable = any;
 		any.proxy = this.#proxy;
-		any.__zyXHtml__ = this;
+		any.__ZyXHtml__ = this;
 		any.appendTo = (container) => this.appendTo(container);
 		any.prependTo = (container) => this.prependTo(container);
 		any.place = (place) => this.place(place);
@@ -199,7 +199,7 @@ function htmlLiteralDataProcessor(raw, string_data) {
 		if (typeof value === "function") {
 			const result = value();
 			if (result) {
-				if (result instanceof zyXHtml) {
+				if (result instanceof ZyXHtml) {
 					result.const();
 				}
 				data[key] = result;
@@ -214,8 +214,8 @@ function htmlLiteralDataProcessor(raw, string_data) {
 			const fragment = document.createElement("template");
 			fragment.content.append(
 				...value.map((item) => {
-					if (item?.__zyXHtml__) item = item.__zyXHtml__;
-					if (item instanceof zyXHtml) return item.markup();
+					if (item?.__ZyXHtml__) item = item.__ZyXHtml__;
+					if (item instanceof ZyXHtml) return item.markup();
 					if (item instanceof HTMLTemplateElement) return item.content;
 					if (item instanceof HTMLElement) return item;
 					if (!item) return "";
@@ -242,9 +242,9 @@ function processPlaceholders(markup, data) {
 
 		let placeholder_data = data[placeholder.id];
 
-		if (placeholder_data?.__zyXHtml__) placeholder_data = placeholder_data.__zyXHtml__;
+		if (placeholder_data?.__ZyXHtml__) placeholder_data = placeholder_data.__ZyXHtml__;
 
-		if (placeholder_data instanceof zyXHtml) {
+		if (placeholder_data instanceof ZyXHtml) {
 			placeholder.replaceWith(placeholder_data.markup());
 		} else {
 			placeholder.replaceWith(placeholder_data);
@@ -255,7 +255,7 @@ function processPlaceholders(markup, data) {
 }
 
 function isInsertable(_) {
-	return _?.__zyXHtml__ || _ instanceof zyXHtml || _ instanceof HTMLElement || _ instanceof DocumentFragment;
+	return _?.__ZyXHtml__ || _ instanceof ZyXHtml || _ instanceof HTMLElement || _ instanceof DocumentFragment;
 }
 
 function strCreateNodes(markup) {

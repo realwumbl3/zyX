@@ -25,7 +25,7 @@ import { offset, offsetLimit } from "./_/zyx-Math.js";
 
 import { sleep } from "./_/zyx-Async.js";
 
-import zyXcookie from "./_/zyx-Cookie.js";
+import zyXCookie from "./_/zyx-Cookie.js";
 
 import { delayChain, breakDelayChain, clearDelay, delay, debounce } from "./_/zyx-Delay.js";
 
@@ -69,7 +69,7 @@ export {
 	pr0x,
 	doMe,
 	events,
-	zyXcookie,
+	zyXCookie,
 	offset,
 	offsetLimit,
 	forQuery,
@@ -213,7 +213,7 @@ export default function zyX(that) {
 	);
 }
 
-export class asyncWorkerHost {
+export class AsyncWorker {
 	constructor({ url, type = "module" } = {}) {
 		this.sW = new Worker(url, { type });
 		this.serviceWorkerTasks = {};

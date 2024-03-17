@@ -5,15 +5,15 @@ import { css, zyxcss } from "./_/zyx-CSS.js";
 
 css`url(${__ROOT__}/zyX-Attr.css)`;
 
-import { zyXHtml, html } from "./_/zyx-HTML.js";
+import { ZyXHtml, html } from "./_/zyx-HTML.js";
 
 import { zyXPost, zyXGet } from "./_/zyx-Fetch.js";
 
 import { offset, offsetLimit } from "./_/zyx-Math.js";
 
-import { sleep, asyncWorkerHost, AsynConstructor } from "./_/zyx-Async.js";
+import { sleep, AsyncWorker, AsynConstructor } from "./_/zyx-Async.js";
 
-import zyXcookie from "./_/zyx-Cookie.js";
+import zyXCookie from "./_/zyx-Cookie.js";
 
 import { delayChain, breakDelayChain, clearDelay, delay, debounce } from "./_/zyx-Delay.js";
 
@@ -56,7 +56,7 @@ const zyXMethods = {
 	debounce,
 	of: (times, markup) => Array(times).fill().map(_ => {
 		const out = markup()
-		if (out instanceof zyXHtml) out.const();
+		if (out instanceof ZyXHtml) out.const();
 		return out;
 	})
 }
@@ -78,36 +78,43 @@ export default function zyX(that) {
 
 /////// \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 export {
-	zyXDomArray,
-	zyXArray,
-	EventSystem,
+	ZyXHtml,
+	html,
 	css,
 	zyxcss,
-	html,
-	calculateDominantColor,
+	zyXDomArray,
+	zyXArray,
+	//
+	zyXCookie,
+	zyxAudio,
 	zyXio,
-	zyXcookie,
+	//
 	offset,
 	offsetLimit,
+	//
 	forQuery,
 	setProps,
 	pathContains,
 	pointerDrag,
-	zyxAudio,
+	pointerEventPathContains,
+	// 
 	delay,
 	clearDelay,
 	delayChain,
 	breakDelayChain,
 	debounce,
 	sleep,
-	rightClick,
 	timeoutLimiter,
+	//
+	EventSystem,
 	WeakRefSet,
-	pointerEventPathContains,
 	Splash,
+	//
 	zyXPost,
 	zyXGet,
-	zyXHtml,
-	asyncWorkerHost,
-	AsynConstructor
+	//
+	AsyncWorker,
+	AsynConstructor,
+	//
+	calculateDominantColor,
 };

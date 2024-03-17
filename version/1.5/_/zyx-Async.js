@@ -2,7 +2,7 @@ export function sleep(ms) {
 	return new Promise((resolve, reject) => setTimeout(resolve, ms));
 }
 
-export class asyncWorkerHost {
+export class AsyncWorker {
 	constructor({ url, type = "module" } = {}) {
 		this.sW = new Worker(url, { type });
 		this.serviceWorkerTasks = {};

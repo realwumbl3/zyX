@@ -1,4 +1,4 @@
-import zyX, { WeakRefSet, zyXHtml } from "zyX";
+import zyX, { WeakRefSet, ZyXHtml } from "zyX";
 
 export class zyXDomArray extends HTMLElement {
     constructor(target, cb, {
@@ -62,12 +62,12 @@ export class zyXDomArray extends HTMLElement {
         for (const item of target_content) {
             const frag_create = this.cb(item);
             let frag;
-            if (frag_create instanceof zyXHtml) {
+            if (frag_create instanceof ZyXHtml) {
                 frag = frag_create.markup();
-            } else if (frag_create?.__zyXHtml__) {
-                frag = frag_create.__zyXHtml__.markup();
+            } else if (frag_create?.__ZyXHtml__) {
+                frag = frag_create.__ZyXHtml__.markup();
             } else {
-                console.error("Can't insert non-zyXHtml content")
+                console.error("Can't insert non-ZyXHtml content")
                 continue;
             }
             if (frag instanceof HTMLTemplateElement) {

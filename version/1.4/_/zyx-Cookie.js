@@ -34,5 +34,5 @@ class ZyXCookie {
 	}
 
 }
-const zyXcookie = new ZyXCookie();
-export default zyXcookie;
+const zyXCookie = new ZyXCookie();
+export default zyXCookie;
