@@ -1,31 +1,24 @@
-
 import zyX, { WeakRefSet, zyXHtml } from "zyX";
-
 
 export class zyXDomArray extends HTMLElement {
     constructor(target, cb, {
         debounce = 0,
-        limit = 0,
+        range = null,
         id = null,
-        classList = [],
+        classList = []
     } = {}) {
         super();
+
         if (!(target instanceof zyXArray)) throw new Error("zyXDomArray target must be zyXArray");
         this.target = target;
         this.cb = cb;
-        this.limit = limit;
 
+        this.range = range;
         this.debounce = debounce;
+
         this.pending_update = null;
 
-        this.target.addListener((...args) => {
-            if (this.debounce <= 0) return this.update(...args);
-            if (this.pending_update) clearTimeout(this.pending_update);
-            this.pending_update = setTimeout(() => {
-                this.pending_update = null;
-                this.update(...args);
-            }, this.debounce);
-        });
+        this.target.addListener(this.targetCallback);
 
         this.objDomWeakRef = new WeakMap();
 
@@ -33,17 +26,21 @@ export class zyXDomArray extends HTMLElement {
         if (classList.length > 0) this.classList.add(...classList);
     }
 
+    targetCallback = () => {
+        if (this.debounce <= 0) return this.update();
+        if (this.pending_update) clearTimeout(this.pending_update);
+        this.pending_update = setTimeout(() => {
+            this.pending_update = null;
+            this.update();
+        }, this.debounce);
+    }
 
     forEachInDom(cb) {
-        for (const dom_element of this.children) {
-            cb(dom_element);
-        }
+        for (const dom_element of this.children) cb(dom_element);
     }
 
     forEach(cb) {
-        for (const dom_element of this.children) {
-            cb([dom_element, this.objDomWeakRef.get(dom_element)]);
-        }
+        for (const dom_element of this.children) cb([dom_element, this.objDomWeakRef.get(dom_element)]);
     }
 
     domGet(obj) {
@@ -51,18 +48,24 @@ export class zyXDomArray extends HTMLElement {
     }
 
     update() {
-        console.log("zyXDomArray.update", this.target);
         this.innerHTML = "";
-        let added = 0;
-        for (const item of Object.values(this.target)) {
+        let target_content = Object.values(this.target)
+
+        if (this.range !== null && target_content.length > Math.abs(this.range)) {
+            if (this.range < 0) {
+                target_content = target_content.slice(target_content.length + this.range, target_content.length);
+            } else {
+                target_content = target_content.slice(0, this.range);
+            }
+        }
+
+        for (const item of target_content) {
             const frag_create = this.cb(item);
             let frag;
             if (frag_create instanceof zyXHtml) {
                 frag = frag_create.markup();
-                this.append(frag);
             } else if (frag_create?.__zyXHtml__) {
                 frag = frag_create.__zyXHtml__.markup();
-                this.append(frag);
             } else {
                 console.error("Can't insert non-zyXHtml content")
                 continue;
@@ -70,9 +73,8 @@ export class zyXDomArray extends HTMLElement {
             if (frag instanceof HTMLTemplateElement) {
                 throw Error("cannot associate reactive object with a template element")
             }
+            this.append(frag);
             this.objDomWeakRef.set(frag, item);
-            added++;
-            if (this.limit > 0 && added >= this.limit) break;
         }
     }
 

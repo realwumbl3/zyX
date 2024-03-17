@@ -1,17 +1,13 @@
 const __VERSION__ = "1.5";
 const __ROOT__ = `https://zyx.wumbl3.xyz/v:${__VERSION__}`;
 
-function __GET__(path) {
-	return __ROOT__ + path;
-}
-
 import { css, zyxcss } from "./_/zyx-CSS.js";
+
+css`url(${__ROOT__}/zyX-Attr.css)`;
 
 import { zyXHtml, html } from "./_/zyx-HTML.js";
 
 import { zyXPost, zyXGet, zyXGet2 } from "./_/zyx-Fetch.js";
-
-zyxcss.l(__GET__("/css/zyX-Attr.css"));
 
 import { pr0x } from "./_/zyx-Prox.js";
 
@@ -119,41 +115,6 @@ export class AsynConstructor {
 
 }
 
-//class that returns a promise that resolves the next cpu cycle after the constructor is called 
-export class AsynConstructorv2 {
-	constructor(...args) { }
-	promise() {
-		return new Promise((resolve, reject) => {
-			if (typeof this.asynConstructor === "function") {
-				setTimeout(_ => { resolve(this.asynConstructor()) }, 1);
-			} else {
-				console.warn("you are using a asynConstructor without an async asynConstructor() method");
-			}
-		});
-	}
-}
-
-export function loadCSSAsync(url) {
-	return new Promise((resolve, reject) => {
-		const link = document.createElement('link');
-		link.rel = 'stylesheet';
-		link.type = 'text/css';
-		link.href = url;
-		link.onerror = reject;
-		link.onload = () => {
-			link.remove();
-			resolve({
-				link,
-				cleanUp: () => {
-					link.remove();
-				}
-			});
-		};
-		const head = document.head || document.getElementsByTagName('head')[0];
-		head.appendChild(link);
-	});
-}
-
 const zyXaccessible_methods = {
 	pointerDrag,
 	pointerDragGlobal,
@@ -250,17 +211,6 @@ export function shorthandTypeof(obj) {
 	return "ukwn";
 }
 
-
-export class stateInDom {
-	constructor(zyXHtml) {
-
-
-
-	}
-
-}
-
-
 export function recursiveKeyCount(obj) {
 	let total = 0;
 	for (const key in obj) {
@@ -271,60 +221,3 @@ export function recursiveKeyCount(obj) {
 	}
 	return total;
 }
-
-
-
-export class zyXReactive {
-	constructor(obj) {
-		this.obj = obj;
-		this.__onchange__ = new WeakRefSet();
-		return new Proxy(this.obj, {
-			set: (target, key, value) => {
-				// console.log("set", key, value)
-				target[key] = value;
-				this.__onchange__.forEach(_ => _(key, value))
-				return true;
-			},
-			get: (target, key) => {
-				if (key === "onChange") return this.onChange;
-				if (key === "__onchange__") return this.__onchange__;
-				return target[key];
-			}
-		})
-	}
-
-	onChange(cb) {
-		this.__onchange__.add(cb);
-	}
-}
-
-
-// export class zyXRarray extends Array {
-// 	constructor(...args) {
-// 		super(...args)
-// 		this.__onchange__ = new WeakRefSet();
-
-// 		return new Proxy(this, {
-// 			set: (target, property, value) => {
-// 				target[property] = value;
-// 				this.observeChanges(target, property, value);
-// 				return true;
-// 			},
-// 			deleteProperty: (target, property, value) => {
-// 				delete target[property];
-// 				this.observeChanges(target, property, value);
-// 				return true;
-// 			}
-// 		});
-// 	}
-
-// 	observeChanges(...args) {
-// 		// console.log('Array changed:', args);
-// 		this.__onchange__.forEach(_ => _(...args));
-// 	}
-
-// 	onChange(cb) {
-// 		this.__onchange__.add(cb);
-// 	}
-
-// }

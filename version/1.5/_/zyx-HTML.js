@@ -2,8 +2,6 @@ import { debugCheckpoint, debugStart, debugLog } from "./zyx-Debugger.js";
 
 const ENABLE_TIMERS = false;
 
-
-
 export function html(raw, ...data) {
 	ENABLE_TIMERS && debugStart("html", "html`<...>` called");
 	const { markup, inheritable_data } = htmlLiteralProcessor(raw, ...data);
@@ -21,8 +19,6 @@ export function html(raw, ...data) {
 	ENABLE_TIMERS && debugLog("html", { min: 0, dump: { created } });
 	return created;
 }
-
-// window.html = html;
 
 export class zyXHtml {
 	#constructed = false;
