@@ -61,16 +61,6 @@ export function events(that, _events, callbackfn) {
 	}
 }
 
-export function forwardEffect(_events, callback, ...containers) {
-	for (const containA of containers) {
-		events(containA, _events, () => {
-			for (const containB of containers) {
-				callback(containB);
-			}
-		});
-	}
-}
-
 export function timeoutLimiter({ cooldown = 60, last } = {}) {
 	return () => {
 		if (performance.now() - last < cooldown) return false;
@@ -93,49 +83,9 @@ export function pathContains(e, match) {
 	return false;
 }
 
-function nullifyEvent(e) {
-	e.stopPropagation();
-	e.stopImmediatePropagation();
-	e.preventDefault();
-}
-
-function disconnect_scan(connected) {
-	if (!connected) return false;
-	for (const n of connected) {
-		if (!n.isConnected) return true;
-	}
-	return false;
-}
-
-export function clickOutsideOf(node, kwargs, type) {
-	const { callback, connected } = kwargs;
-	if (!type) type = ["click", "contextmenu"];
-	const destroy = () => {
-		for (const t of type) {
-			window.removeEventListener(t, clickScanFunction, true);
-		}
-	};
-	const clickScanFunction = (e) => {
-		// if click is inside node, don't destroy event listener
-		if (e.composedPath().includes(node)) return;
-
-		// any click outside of node will destroy the event listener and call the callback 
-		destroy();
-
-		// check if all connected nodes are still connected, if no (must be connected) nodes are provided always nullify event.
-		const disconnected_trigger = disconnect_scan(connected);
-
-		callback(); // call callback after disconnect check because callback may disconnect nodes
-
-		if (disconnected_trigger) return; // don't nullify event if a (must be connected) node is disconnected
-		nullifyEvent(e);
-	};
-	setTimeout((_) => {
-		for (const t of type) {
-			window.addEventListener(t, clickScanFunction, true);
-		}
-	}, 1);
-	return destroy;
+export function pointerEventPathContains(e, cssSelector) {
+	const path = e.path || (e.composedPath && e.composedPath());
+	return path.some(e => e.matches?.(cssSelector))
 }
 
 export function pointerDrag(node, callback) {
