@@ -1,37 +1,68 @@
 import { debugCheckpoint, debugStart, debugLog } from "./zyx-Debugger.js";
 
-const ENABLE_TIMERS = false;
+const bench = false;
 
 export function html(raw, ...data) {
-	ENABLE_TIMERS && debugStart("html", "html`<...>` called");
-	const { markup, inheritable_data } = htmlLiteralProcessor(raw, ...data);
-	ENABLE_TIMERS && debugCheckpoint("html", `htmlLiteralProcessor(raw, ...data)`);
-	let created = null;
-	trimTextNodes(markup);
-	if (markup.childNodes.length === 1) {
-		created = new ZyXHtml(markup);
-	} else {
-		const asHTMLTemplate = document.createElement("template");
-		asHTMLTemplate.content.append(...markup.childNodes);
-		created = new ZyXHtml(asHTMLTemplate);
+	return new ZyXHtml(raw, ...data)
+}
+
+// remove newlines, tabs and spaces caused by template literals and indentation from prettier or other formatters
+function removeNewline(string) {
+	return string.replace(/\n|\t/g, "").replace(/\s\s+/g, " ");
+}
+
+const placehold_tag = "oxk8-zph";
+
+function strPlaceholder(key) {
+	return `<${placehold_tag} id='${key}'></${placehold_tag}>`;
+}
+
+function getPlaceholderID(markup) {
+	return markup.match(/id='(.*?)'/)[1];
+}
+
+function processLiteralData(string_data) {
+	const output = {}
+	for (const [key, value] of Object.entries(string_data)) {
+		const type = typeof value;
+		const content = !(type === "string" || type === "number");
+		output[key] = {
+			type,
+			value,
+			content,
+			placeholder: content ? strPlaceholder(key) : value,
+		}
 	}
-	ENABLE_TIMERS && debugCheckpoint("html", `new ZyXHtml(markup)`);
-	ENABLE_TIMERS && debugLog("html", { min: 0, dump: { created } });
-	return created;
+	return output
 }
 
 export class ZyXHtml {
 	#constructed = false;
 	#dom;
+	#data;
 	#isTemplate;
-	#proxscope;
-	#proxy;
+	#proxscope = {};
 	#mutable;
-	constructor(dom) {
-		this.#constructed = false;
-		this.#dom = dom;
-		this.#isTemplate = dom instanceof HTMLTemplateElement;
-		this.#proxscope = {};
+	#proxy;
+	#ingrediants = {};
+	constructor(raw, ...literal_data) {
+		this.#ingrediants = { raw, literal_data };
+		// (raw, ...data) '<div zyx-keyup=', '>', '</div>' || ...function, "content"
+		bench && debugStart("html", "html`<...>` called");
+
+		// process the literal data.
+		this.#data = processLiteralData(literal_data);
+
+		// place the placeholders in the markup.
+		const markup = removeNewline(String.raw({ raw }, ...Object.values(this.#data).map((_) => _.placeholder)));
+
+		// put inside div to make it a valid html, this div is the oven where processing happens.
+		const div = newDivInnerHTML(markup);
+
+		// if the div has more than one child, wrap it in a template.
+		this.#dom = div.childNodes.length > 1 ? wrapInTemplate(div) : div;
+		this.#isTemplate = this.#dom instanceof HTMLTemplateElement;
+
 		this.#proxy = new Proxy(this, {
 			get: (obj, key) => {
 				if (this.hasOwnProperty(key)) return this[key];
@@ -43,70 +74,11 @@ export class ZyXHtml {
 				return (obj[key] = val);
 			},
 		});
-	}
 
-	markup() {
-		if (!this.#constructed) this.const();
-		return this.#dom;
-	}
-
-	flatten() {
-		if (!this.#constructed) this.const();
-		this.#isTemplate = true;
-		const template = document.createElement("template");
-		template.content.append(...this.#dom.childNodes);
-		this.#dom = template.content;
-		return this;
-	}
-
-	const() {
-		if (this.#constructed) return this;
-
-		const content = this.#isTemplate ? this.#dom.content : this.#dom;
-
-		[...content.querySelectorAll("ph")].forEach((node) => {
-			const firstKey = [...node.attributes][0].nodeName;
-			node.setAttribute("ph", firstKey);
-			this.thisAssigner(node, firstKey);
-			return;
-		});
-
-		[...content.querySelectorAll("[pr0x]")].forEach((node) => {
-			node.__key__ = node.getAttribute("pr0x");
-			this.#proxscope[node.__key__] = new typeProxy(node.__key__, "string", node);
-		});
-
-		// try depractating
-		[...content.querySelectorAll("[zyx-proxy]")].forEach((node) => {
-			node.proxy = this.#proxy;
-		});
-
-		[...content.querySelectorAll("[this]")].forEach((node) => {
-			this.thisAssigner(node, node.getAttribute("this"));
-			node.removeAttribute("this");
-		});
-
-		[...content.querySelectorAll("[push]")].forEach((node) => {
-			this.pushAssigner(node, node.getAttribute("push"));
-			node.removeAttribute("push");
-		});
-
-		applyZyxAttrs(this, content);
-
-		[...content.querySelectorAll("[shadow-root]")].forEach((node) => {
-			const node_nodes = node.childNodes;
-			node.attachShadow({ mode: "open" });
-			node.shadowRoot.append(...node_nodes);
-		});
-
-		if (this.#isTemplate) this.#dom = this.#dom.content;
-		else this.#dom = this.#dom.firstElementChild;
-		this.#constructed = true;
-		return this;
+		bench && debugLog("html", { min: 0, dump: { zyXHtml: this } });
 	}
 
 	bind(any) {
-		Object.assign(any, this.__scope__);
 		this.#mutable = any;
 		any.proxy = this.#proxy;
 		any.__ZyXHtml__ = this;
@@ -114,6 +86,63 @@ export class ZyXHtml {
 		any.prependTo = (container) => this.prependTo(container);
 		any.place = (place) => this.place(place);
 		return this.const();
+	}
+
+	const() {
+		if (this.#constructed) return this;
+
+		const dom = this.#isTemplate ? this.#dom.content : this.#dom;
+
+		[...new Set(dom.querySelectorAll(zyxBindAttributesPatern))].forEach((node) => {
+			const attributes = [...node.attributes];
+			const zyXBinds = attributes.filter((_) => _.name.startsWith("zyx-"));
+			for (const attr of zyXBinds) {
+				const placeholder = getPlaceholderID(attr.value);
+				zyxBindAttributes[attr.name]({ node, data: this.#data[placeholder] })
+			}
+		});
+
+		// process the placeholders, after this we have a ready to use dom
+		processPlaceholders(dom, this.#data);
+
+		[...dom.querySelectorAll("ph")].forEach((node) => {
+			const firstKey = [...node.attributes][0].nodeName;
+			node.setAttribute("ph", firstKey);
+			this.thisAssigner(node, firstKey);
+		});
+
+		[...dom.querySelectorAll("[pr0x]")].forEach((node) => {
+			node.__key__ = node.getAttribute("pr0x");
+			this.#proxscope[node.__key__] = new typeProxy(node.__key__, "string", node);
+		});
+
+		// try depractating (in projects first, then here)
+		[...dom.querySelectorAll("[zyx-proxy]")].forEach((node) => {
+			node.proxy = this.#proxy;
+		});
+
+		[...dom.querySelectorAll("[this]")].forEach((node) => {
+			this.thisAssigner(node, node.getAttribute("this"));
+			node.removeAttribute("this");
+		});
+
+		[...dom.querySelectorAll("[push]")].forEach((node) => {
+			this.pushAssigner(node, node.getAttribute("push"));
+			node.removeAttribute("push");
+		});
+
+		applyZyxAttrs(this, dom);
+
+		if (this.#isTemplate) this.#dom = this.#dom.content;
+		else this.#dom = this.#dom.firstElementChild;
+
+		this.#constructed = true;
+		return this;
+	}
+
+	markup() {
+		this.const();
+		return this.#dom;
 	}
 
 	appendTo(target) {
@@ -131,46 +160,34 @@ export class ZyXHtml {
 		return this;
 	}
 
-	touch(_) {
-		if (!this.#constructed) this.const();
-		_({ proxy: this.#proxy, markup: this.markup() });
+	touch(callback) {
+		callback({ proxy: this.#proxy, markup: this.markup() });
 		return this;
 	}
 
-	ns(_) {
-		if (!this.#constructed) this.const();
-		return _(this.#proxy);
-	}
-
-	pass(_) {
-		if (!this.#constructed) this.const();
-		_(this);
+	pass(callback) {
+		this.const() && callback(this);
 		return this;
-	}
-
-	return(_) {
-		return _({ this: this, proxy: this.#proxy, markup: this.markup() });
 	}
 
 	thisAssigner(node, keyname) {
 		const splitNames = keyname.split(" ");
-		if (splitNames.length > 1) {
-			const [first_key, second_key] = splitNames;
-			IfNotSetEmptyObject(this, first_key);
-			this[first_key][second_key] = node;
-
-			if (this.#mutable) {
-				IfNotSetEmptyObject(this.#mutable, first_key);
-				this.#mutable[first_key][second_key] = node;
-			}
-
-			node.__group__ = first_key;
-			node.__key__ = second_key;
-		} else if (splitNames.length === 1) {
-			node.__key__ = splitNames[0];
-			this[splitNames[0]] = node;
-			this.#mutable && (this.#mutable[splitNames[0]] = node);
+		if (splitNames.length === 1) {
+			const key = splitNames[0];
+			node.__key__ = key;
+			this[key] = node;
+			this.#mutable && (this.#mutable[key] = node);
+			return
 		}
+		const [first_key, second_key] = splitNames;
+		defaultObject(this, first_key);
+		this[first_key][second_key] = node;
+		if (this.#mutable) {
+			defaultObject(this.#mutable, first_key);
+			this.#mutable[first_key][second_key] = node;
+		}
+		node.__group__ = first_key;
+		node.__key__ = second_key;
 	}
 
 	pushAssigner(node, keyname) {
@@ -182,106 +199,45 @@ export class ZyXHtml {
 		this[keyname].push(node);
 	}
 
-
 }
 
-function htmlLiteralProcessor(raw, ...string_data) {
-	const { data, dry_html } = htmlLiteralDataProcessor(raw, string_data);
-	const { markup, inheritable_data } = processPlaceholders(strCreateNodes(dry_html), data);
-	return { markup, inheritable_data };
-}
-
-function htmlLiteralDataProcessor(raw, string_data) {
-	const data = string_data.map((value) => value || "");
-	const placeholders = [];
-	for (let [key, value] of Object.entries(data)) {
-
-		if (typeof value === "function") {
-			const result = value();
-			if (result) {
-				if (result instanceof ZyXHtml) {
-					result.const();
-				}
-				data[key] = result;
-				value = result;
-			} else {
-				data[key] = "";
-				value = "";
-			}
-		}
-
-		if (Array.isArray(value)) {
-			const fragment = document.createElement("template");
-			fragment.content.append(
-				...value.map((item) => {
-					if (item?.__ZyXHtml__) item = item.__ZyXHtml__;
-					if (item instanceof ZyXHtml) return item.markup();
-					if (item instanceof HTMLTemplateElement) return item.content;
-					if (item instanceof HTMLElement) return item;
-					if (!item) return "";
-					return document.createTextNode(item);
-				})
-			);
-			data[key] = fragment.content;
-			placeholders.push(strPlaceholder(key));
-
-		} else if (isInsertable(value)) {
-			placeholders.push(strPlaceholder(key));
-		} else {
-			placeholders.push(value);
-		}
-
-	}
-	const dry_html = String.raw({ raw }, ...placeholders);
-	return { data, dry_html };
-}
-
-function processPlaceholders(markup, data) {
-	const inheritable_data = [];
+function processPlaceholders(markup, templateData) {
 	for (const placeholder of [...markup.querySelectorAll(placehold_tag)]) {
-
-		let placeholder_data = data[placeholder.id];
-
-		if (placeholder_data?.__ZyXHtml__) placeholder_data = placeholder_data.__ZyXHtml__;
-
-		if (placeholder_data instanceof ZyXHtml) {
-			placeholder.replaceWith(placeholder_data.markup());
-		} else {
-			placeholder.replaceWith(placeholder_data);
-		}
-
+		placeholder.replaceWith(makePlaceable(templateData[placeholder.id].value));
 	}
-	return { markup, inheritable_data };
 }
 
-function isInsertable(_) {
-	return _?.__ZyXHtml__ || _ instanceof ZyXHtml || _ instanceof HTMLElement || _ instanceof DocumentFragment;
+function makePlaceable(object) {
+	if (!object) return "";
+	if (Array.isArray(object)) return templateFromPlaceables(object).content;
+	if (typeof object === "function") return makePlaceable(object());
+	if (object?.__ZyXHtml__) return object.__ZyXHtml__.markup();
+	if (object instanceof ZyXHtml) return object.markup();
+	if (object instanceof HTMLTemplateElement) return object.content;
+	return object
 }
 
-function strCreateNodes(markup) {
+function templateFromPlaceables(placebles) {
+	const fragment = document.createElement("template");
+	fragment.content.append(...spreadPlaceables(placebles));
+	return fragment;
+}
+
+function spreadPlaceables(array) {
+	return array.map(makePlaceable)
+}
+
+function newDivInnerHTML(markup) {
 	const markupContent = document.createElement("div");
 	markupContent.innerHTML = markup;
 	return markupContent;
 }
 
-function trimTextNodes(dom) {
-	// remove first and last child if they are empty text nodes
-	const nodes = dom.childNodes;
-	for (let i = 0; i < 2; i++) {
-		if (!nodes[i]) continue;
-		if (nodes[i].nodeType === 3 && nodes[i].textContent.trim() === "") {
-			dom.removeChild(nodes[i]);
-		}
-	}
+function wrapInTemplate(markup) {
+	const asHTMLTemplate = document.createElement("template");
+	asHTMLTemplate.content.append(...markup.childNodes);
+	return asHTMLTemplate;
 }
-
-const placehold_tag = "zyx-processor-placehold";
-
-function strPlaceholder(key) {
-	return `<${placehold_tag} id="${key}"></${placehold_tag}>`;
-}
-
-import { typeProxy } from "./zyx-Prox.js";
 
 export function placer(what, where) {
 	if (typeof where === "object") return where.replaceWith(what);
@@ -290,9 +246,35 @@ export function placer(what, where) {
 	else throw new Error(where, "not found");
 }
 
-function IfNotSetEmptyObject(obj, key) {
+function defaultObject(obj, key) {
 	if (!obj.hasOwnProperty(key)) obj[key] = {};
 }
 
+import { typeProxy } from "./zyx-Prox.js";
 
 import { applyZyxAttrs } from "./zyx-Attrs.js";
+
+const zyxBindAttributes = {
+	"zyx-click": ({ node, data }) => node.addEventListener("click", data.value),
+	"zyx-dblclick": ({ node, data }) => node.addEventListener("dblclick", data.value),
+	"zyx-mousedown": ({ node, data }) => node.addEventListener("mousedown", data.value),
+	"zyx-mouseup": ({ node, data }) => node.addEventListener("mouseup", data.value),
+	"zyx-mouseover": ({ node, data }) => node.addEventListener("mouseover", data.value),
+	"zyx-mousemove": ({ node, data }) => node.addEventListener("mousemove", data.value),
+	"zyx-mouseout": ({ node, data }) => node.addEventListener("mouseout", data.value),
+	"zyx-mouseenter": ({ node, data }) => node.addEventListener("mouseenter", data.value),
+	"zyx-mouseleave": ({ node, data }) => node.addEventListener("mouseleave", data.value),
+	"zyx-keydown": ({ node, data }) => node.addEventListener("keydown", data.value),
+	"zyx-keypress": ({ node, data }) => node.addEventListener("keypress", data.value),
+	"zyx-keyup": ({ node, data }) => node.addEventListener("keyup", data.value),
+	"zyx-focus": ({ node, data }) => node.addEventListener("focus", data.value),
+	"zyx-blur": ({ node, data }) => node.addEventListener("blur", data.value),
+	"zyx-submit": ({ node, data }) => node.addEventListener("submit", data.value),
+	"zyx-load": ({ node, data }) => node.addEventListener("load", data.value),
+	"zyx-error": ({ node, data }) => node.addEventListener("error", data.value),
+	"zyx-input": ({ node, data }) => node.addEventListener("input", data.value),
+	"zyx-change": ({ node, data }) => node.addEventListener("change", data.value),
+	"zyx-scroll": ({ node, data }) => node.addEventListener("scroll", data.value),
+}
+
+const zyxBindAttributesPatern = `[${Object.keys(zyxBindAttributes).join("],[")}]`

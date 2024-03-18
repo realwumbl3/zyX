@@ -16,15 +16,12 @@ export const ZYXATTR = {
 
 export function applyZyxAttrs(that, content) {
 	try {
-		// const zyxattr_query = ZYXATTR.query(content);
-		// console.log('zyxattr_query', zyxattr_query)
 		for (const [preset, func] of Object.entries(ZYX_ATTRS)) {
 			for (const e of [...content.querySelectorAll(`[zyx-${preset}]`)]) {
 				const arg = e.getAttribute(`zyx-${preset}`);
 				try {
 					arg = JSON.parse(arg);
 				} catch (err) { }
-				// console.log(preset, arg);
 				func(e, arg, that);
 			}
 		}
@@ -57,7 +54,8 @@ ZYXATTR.add("click-pop", (element, arg) => {
 			</div>
 		`.const()
 			.appendTo(element)
-			.ns(_ => {
+			.pass(_ => {
+				console.log("touch", _);
 				_.circle.style.left = xPer + "px";
 				_.circle.style.top = yPer + "px";
 				_.circle.addEventListener("animationend", function () {

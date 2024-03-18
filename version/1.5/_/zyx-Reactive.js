@@ -63,14 +63,17 @@ export class zyXDomArray extends HTMLElement {
             const frag_create = this.cb(item);
             let frag;
             if (frag_create instanceof ZyXHtml) {
+                console.log("instanceof ZyXHtml", frag_create);
                 frag = frag_create.markup();
             } else if (frag_create?.__ZyXHtml__) {
+                console.log("binded with __ZyXHtml__", frag_create.__ZyXHtml__);
                 frag = frag_create.__ZyXHtml__.markup();
             } else {
                 console.error("Can't insert non-ZyXHtml content")
                 continue;
             }
-            if (frag instanceof HTMLTemplateElement) {
+            // check if HTMLTemplateElement or HTMLTemplateElement.content
+            if (frag instanceof HTMLTemplateElement || frag instanceof DocumentFragment) {
                 throw Error("cannot associate reactive object with a template element")
             }
             this.append(frag);

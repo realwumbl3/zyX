@@ -15,6 +15,7 @@ function debugCheckpoint(name, chkpoint) {
 }
 function debugLog(name, { min, dump } = {}) {
 	const TIMER = DEBUG_TIMERS[name];
+	const finish = ((performance.now() - TIMER.start) * 1000).toFixed().padStart(5, "0");
 	let title = name;
 	if (min) {
 		const overMin = TIMER.chkpoints.filter((_) => _.timeSinceStart > min);
@@ -25,6 +26,7 @@ function debugLog(name, { min, dump } = {}) {
 	for (const chkpoint of TIMER.chkpoints) {
 		console.log(`Checkpoint: ${chkpoint.chkpoint}, time since start: %c${chkpoint.timeSinceStart}ns`, timerColors(chkpoint.timeSinceStart));
 	}
+	console.log(`Finish: %c${finish}ns`, timerColors(finish));
 	if (dump) {
 		console.log("dump", dump);
 		// console.trace();
