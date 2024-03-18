@@ -6,11 +6,6 @@ export function html(raw, ...data) {
 	return new ZyXHtml(raw, ...data)
 }
 
-// remove newlines, tabs and spaces caused by template literals and indentation from prettier or other formatters
-function removeNewline(string) {
-	return string.replace(/\n|\t/g, "").replace(/\s\s+/g, " ");
-}
-
 const placehold_tag = "oxk8-zph";
 
 function strPlaceholder(key) {
@@ -54,10 +49,12 @@ export class ZyXHtml {
 		this.#data = processLiteralData(literal_data);
 
 		// place the placeholders in the markup.
-		const markup = removeNewline(String.raw({ raw }, ...Object.values(this.#data).map((_) => _.placeholder)));
+		const markup = String.raw({ raw }, ...Object.values(this.#data).map((_) => _.placeholder))
 
 		// put inside div to make it a valid html, this div is the oven where processing happens.
 		const div = newDivInnerHTML(markup);
+
+		trimTextNodes(div);
 
 		// if the div has more than one child, wrap it in a template.
 		this.#dom = div.childNodes.length > 1 ? wrapInTemplate(div) : div;
@@ -225,6 +222,18 @@ function templateFromPlaceables(placebles) {
 
 function spreadPlaceables(array) {
 	return array.map(makePlaceable)
+}
+
+function trimTextNodes(dom) {
+	// remove first and last child if they are empty text nodes
+	const nodes = dom.childNodes;
+	for (let i = 0; i < 2; i++) {
+		if (!nodes[i]) continue;
+		if (nodes[i].nodeType === 3 && nodes[i].textContent.trim() === "") {
+			dom.removeChild(nodes[i]);
+		}
+	}
+	return dom;
 }
 
 function newDivInnerHTML(markup) {
