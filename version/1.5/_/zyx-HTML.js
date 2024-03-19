@@ -24,7 +24,6 @@ function processLiteralData(string_data) {
 		output[key] = {
 			type,
 			value,
-			content,
 			placeholder: content ? strPlaceholder(key) : value,
 		}
 	}
@@ -90,17 +89,19 @@ export class ZyXHtml {
 
 		const dom = this.#isTemplate ? this.#dom.content : this.#dom;
 
-		[...new Set(dom.querySelectorAll(zyxBindAttributesPatern))].forEach((node) => {
+		[...new Set(dom.querySelectorAll(zyxBindAttributespattern))].forEach((node) => {
 			const attributes = [...node.attributes];
-			const zyXBinds = attributes.filter((_) => _.name.startsWith("zyx-"));
+			const zyXBinds = attributes.filter((_) => _.name in zyxBindAttributes);
 			for (const attr of zyXBinds) {
 				const placeholder = getPlaceholderID(attr.value);
+				console.log({ attr, placeholder, data: this.#data[placeholder] });
 				zyxBindAttributes[attr.name]({ node, data: this.#data[placeholder] })
 			}
 		});
 
 		// process the placeholders, after this we have a ready to use dom
 		processPlaceholders(dom, this.#data);
+		applyZyxAttrs(this, dom);
 
 		[...dom.querySelectorAll("ph")].forEach((node) => {
 			const firstKey = [...node.attributes][0].nodeName;
@@ -128,7 +129,6 @@ export class ZyXHtml {
 			node.removeAttribute("push");
 		});
 
-		applyZyxAttrs(this, dom);
 
 		if (this.#isTemplate) this.#dom = this.#dom.content;
 		else this.#dom = this.#dom.firstElementChild;
@@ -214,9 +214,9 @@ function makePlaceable(object) {
 	return object
 }
 
-function templateFromPlaceables(placebles) {
+function templateFromPlaceables(placeables) {
 	const fragment = document.createElement("template");
-	fragment.content.append(...spreadPlaceables(placebles));
+	fragment.content.append(...spreadPlaceables(placeables));
 	return fragment;
 }
 
@@ -263,6 +263,8 @@ import { typeProxy } from "./zyx-Prox.js";
 
 import { applyZyxAttrs } from "./zyx-Attrs.js";
 
+import { zyXDomArray } from "./zyx-Reactive.js";
+
 const zyxBindAttributes = {
 	"zyx-click": ({ node, data }) => node.addEventListener("click", data.value),
 	"zyx-dblclick": ({ node, data }) => node.addEventListener("dblclick", data.value),
@@ -284,6 +286,7 @@ const zyxBindAttributes = {
 	"zyx-input": ({ node, data }) => node.addEventListener("input", data.value),
 	"zyx-change": ({ node, data }) => node.addEventListener("change", data.value),
 	"zyx-scroll": ({ node, data }) => node.addEventListener("scroll", data.value),
+	"zyx-array": ({ node, data }) => new zyXDomArray({ container: node, ...data.value }),
 }
 
-const zyxBindAttributesPatern = `[${Object.keys(zyxBindAttributes).join("],[")}]`
+const zyxBindAttributespattern = `[${Object.keys(zyxBindAttributes).join("],[")}]`
