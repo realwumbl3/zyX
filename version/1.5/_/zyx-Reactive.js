@@ -43,12 +43,8 @@ export class zyXDomArray {
         }, this.#debounce);
     }
 
-    forEachInDom(cb) {
-        for (const dom_element of this.#container.children) cb(dom_element);
-    }
-
     forEach(cb) {
-        for (const [dom_element, item] of this.entries()) cb([dom_element, item]);
+        for (const entry of this.entries()) cb(entry);
     }
 
     entries() {
