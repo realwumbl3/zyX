@@ -72,16 +72,16 @@ ZYXATTR.add("uplate", (element, arg) => {
 	element.active_template = "default";
 
 	element.add = ({ template_name, template, carry_values } = {}) => {
-		const prev_active = element.templates[element.active_template];
-		if (template_name in element.templates) {
-			return element;
-		} else {
-			element.templates[template_name] = {
-				fragments: {},
-				values: {},
-			};
-		}
+		if (template_name in element.templates) return element;
+
+		element.templates[template_name] = {
+			fragments: {},
+			values: {},
+		};
+
 		const active_template_data = element.templates[template_name];
+		const prev_active = element.templates[element.active_template];
+
 		if (carry_values && prev_active.values) {
 			Object.assign(active_template_data.values, prev_active.values);
 		}
@@ -90,11 +90,9 @@ ZYXATTR.add("uplate", (element, arg) => {
 		if (matches)
 			for (let var_template of matches) {
 				const var_data = /{([a-z0-9]*?){(.*?)}}/gm.exec(var_template);
-				const template_fragment = var_data[0],
-					var_name = var_data[1],
-					default_val = var_data[2];
+				const [ fragment, var_name, default_val ] = var_data;
 				if (default_val) active_template_data.values[var_name] = default_val;
-				active_template_data.fragments[template_fragment] = () => active_template_data.values[var_name];
+				active_template_data.fragments[fragment] = () => active_template_data.values[var_name];
 			}
 		return element;
 	};
@@ -108,10 +106,8 @@ ZYXATTR.add("uplate", (element, arg) => {
 	element.flash = (new_data) => {
 		const active_template_data = element.templates[element.active_template];
 		let string_template = `${active_template_data.template}`; // clone string
-		if (new_data) {
-			Object.assign(active_template_data.values, new_data);
-		}
-		for (let [var_tmp, getval] of Object.entries(active_template_data.fragments)) {
+		if (new_data) Object.assign(active_template_data.values, new_data);
+		for (const [var_tmp, getval] of Object.entries(active_template_data.fragments)) {
 			string_template = string_template.replace(var_tmp, getval());
 		}
 		element.innerHTML = string_template;

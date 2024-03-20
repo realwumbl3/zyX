@@ -1,4 +1,5 @@
-import zyX, { WeakRefSet, ZyXHtml } from "zyX";
+import { ZyXHtml } from "./zyx-HTML.js";
+import { WeakRefSet } from "./zyx-Toolbox.js";
 
 export class zyXDomArray {
     /**
@@ -47,10 +48,14 @@ export class zyXDomArray {
     }
 
     forEach(cb) {
-        for (const dom_element of this.#container.children) cb([dom_element, this.#arrayMap.get(dom_element)]);
+        for (const [dom_element, item] of this.entries()) cb([dom_element, item]);
     }
 
-    domGet(obj) {
+    entries() {
+        return [...this.#container.children].map((dom_element) => [dom_element, this.#arrayMap.get(dom_element)]);
+    }
+
+    get(obj) {
         return this.#arrayMap.get(obj);
     }
 
@@ -64,8 +69,9 @@ export class zyXDomArray {
                 target_content = target_content.slice(0, this.#range);
             }
         }
+        let previous = null;
         for (const item of target_content) {
-            const frag_create = this.#compose(item);
+            const frag_create = this.#compose(item, previous);
             let frag;
             if (frag_create instanceof ZyXHtml) {
                 frag = frag_create.markup();
@@ -81,6 +87,8 @@ export class zyXDomArray {
             }
             this.#container.append(frag);
             this.#arrayMap.set(frag, item);
+            this.#arrayMap.set(item, frag);
+            previous = { item, frag };
         }
     }
 
