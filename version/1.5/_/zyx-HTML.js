@@ -37,14 +37,13 @@ function processLiteralData(string_data) {
 export class ZyXHtml {
 	#constructed = false;
 	#dom;
+	#oven;
 	#data;
 	#isTemplate;
 	#proxscope = {};
 	#mutable;
 	#proxy;
-	#ingrediants = {};
 	constructor(raw, ...literal_data) {
-		this.#ingrediants = { raw, literal_data };
 		// (raw, ...data) '<div zyx-keyup=', '>', '</div>' || ...function, "content"
 		bench && debugStart("html", "html`<...>` called");
 
@@ -55,13 +54,9 @@ export class ZyXHtml {
 		const markup = String.raw({ raw }, ...Object.values(this.#data).map((_) => _.placeholder))
 
 		// put inside div to make it a valid html, this div is the oven where processing happens.
-		const div = newDivInnerHTML(markup);
+		this.#oven = newDivInnerHTML(markup);
 
-		trimTextNodes(div);
-
-		// if the div has more than one child, wrap it in a template.
-		this.#dom = div.childNodes.length > 1 ? wrapInTemplate(div) : div;
-		this.#isTemplate = this.#dom instanceof HTMLTemplateElement;
+		trimTextNodes(this.#oven);
 
 		this.#proxy = new Proxy(this, {
 			get: (obj, key) => {
@@ -91,50 +86,47 @@ export class ZyXHtml {
 	const() {
 		if (this.#constructed) return this;
 
-		const dom = this.#isTemplate ? this.#dom.content : this.#dom;
-
-		[...new Set(dom.querySelectorAll(zyxBindAttributespattern))].forEach((node) => {
+		[...new Set(this.#oven.querySelectorAll(zyxBindAttributespattern))].forEach((node) => {
 			const attributes = [...node.attributes];
 			const zyXBinds = attributes.filter((_) => _.name in zyxBindAttributes);
 			for (const attr of zyXBinds) {
 				const placeholder = getPlaceholderID(attr.value);
-				console.log({ attr, placeholder, data: this.#data[placeholder] });
 				zyxBindAttributes[attr.name]({ node, data: this.#data[placeholder] })
 				node.removeAttribute(attr.name);
 			}
 		});
 
-		// process the placeholders, after this we have a ready to use dom
-		processPlaceholders(dom, this.#data);
-		applyZyxAttrs(this, dom);
+		processPlaceholders(this.#oven, this.#data);
+		applyZyxAttrs(this.#oven, this);
 
-		[...dom.querySelectorAll("ph")].forEach((node) => {
+		[...this.#oven.querySelectorAll("ph")].forEach((node) => {
 			const firstKey = [...node.attributes][0].nodeName;
 			node.setAttribute("ph", firstKey);
 			this.thisAssigner(node, firstKey);
 		});
 
-		[...dom.querySelectorAll("[pr0x]")].forEach((node) => {
+		[...this.#oven.querySelectorAll("[pr0x]")].forEach((node) => {
 			node.__key__ = node.getAttribute("pr0x");
 			this.#proxscope[node.__key__] = new typeProxy(node.__key__, "string", node);
 		});
 
 		// try depractating (in projects first, then here)
-		[...dom.querySelectorAll("[zyx-proxy]")].forEach((node) => {
+		[...this.#oven.querySelectorAll("[zyx-proxy]")].forEach((node) => {
 			node.proxy = this.#proxy;
 		});
 
-		[...dom.querySelectorAll("[this]")].forEach((node) => {
+		[...this.#oven.querySelectorAll("[this]")].forEach((node) => {
 			this.thisAssigner(node, node.getAttribute("this"));
 			node.removeAttribute("this");
 		});
 
-		[...dom.querySelectorAll("[push]")].forEach((node) => {
+		[...this.#oven.querySelectorAll("[push]")].forEach((node) => {
 			this.pushAssigner(node, node.getAttribute("push"));
 			node.removeAttribute("push");
 		});
 
-
+		this.#dom = this.#oven.childNodes.length > 1 ? wrapInTemplate(this.#oven) : this.#oven;
+		this.#isTemplate = this.#dom instanceof HTMLTemplateElement;
 		if (this.#isTemplate) this.#dom = this.#dom.content;
 		else this.#dom = this.#dom.firstElementChild;
 
@@ -204,16 +196,21 @@ export class ZyXHtml {
 }
 
 function processPlaceholders(markup, templateData) {
-	for (const placeholder of [...markup.querySelectorAll(placehold_tag)]) {
-		placeholder.replaceWith(makePlaceable(templateData[placeholder.id].value));
-	}
-	const placehodlersUnproccesed = markup.innerHTML.match(/<oxk8-zph id='.*?'><\/oxk8-zph>/);
-	if (placehodlersUnproccesed) {
-		for (const placeholderTag of placehodlersUnproccesed) {
-			const placeholderId = getPlaceholderID(placeholderTag);
-			const { placeholder, value } = templateData[placeholderId];
-			markup.innerHTML = markup.innerHTML.replace(placeholder, value);
+	try {
+		for (const placeholder of [...markup.querySelectorAll(placehold_tag)]) {
+			placeholder.replaceWith(makePlaceable(templateData[placeholder.id].value));
 		}
+		const placehodlersUnproccesed = markup.innerHTML.match(/<oxk8-zph id='.*?'><\/oxk8-zph>/);
+		if (placehodlersUnproccesed) {
+			for (const placeholderTag of placehodlersUnproccesed) {
+				const placeholderId = getPlaceholderID(placeholderTag);
+				const { placeholder, value } = templateData[placeholderId];
+				markup.innerHTML = markup.innerHTML.replace(placeholder, value);
+			}
+		}
+	} catch (e) {
+		console.log({ markup, templateData })
+		throw e;
 	}
 }
 

@@ -14,7 +14,7 @@ export const ZYXATTR = {
 	}
 }
 
-export function applyZyxAttrs(that, content) {
+export function applyZyxAttrs(content, that) {
 	try {
 		for (const [preset, func] of Object.entries(ZYX_ATTRS)) {
 			for (const e of [...content.querySelectorAll(`[zyx-${preset}]`)]) {
@@ -90,7 +90,7 @@ ZYXATTR.add("uplate", (element, arg) => {
 		if (matches)
 			for (let var_template of matches) {
 				const var_data = /{([a-z0-9]*?){(.*?)}}/gm.exec(var_template);
-				const [ fragment, var_name, default_val ] = var_data;
+				const [fragment, var_name, default_val] = var_data;
 				if (default_val) active_template_data.values[var_name] = default_val;
 				active_template_data.fragments[fragment] = () => active_template_data.values[var_name];
 			}
