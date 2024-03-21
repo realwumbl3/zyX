@@ -21,6 +21,10 @@ function processLiteralData(string_data) {
 	for (const [key, value] of Object.entries(string_data)) {
 		const type = typeof value;
 		const content = !(type === "string" || type === "number");
+		if (value === "" || !value) {
+			output[key] = { placeholder: "" }
+			continue;
+		}
 		output[key] = {
 			type,
 			value,
@@ -96,6 +100,7 @@ export class ZyXHtml {
 				const placeholder = getPlaceholderID(attr.value);
 				console.log({ attr, placeholder, data: this.#data[placeholder] });
 				zyxBindAttributes[attr.name]({ node, data: this.#data[placeholder] })
+				node.removeAttribute(attr.name);
 			}
 		});
 
@@ -201,6 +206,14 @@ export class ZyXHtml {
 function processPlaceholders(markup, templateData) {
 	for (const placeholder of [...markup.querySelectorAll(placehold_tag)]) {
 		placeholder.replaceWith(makePlaceable(templateData[placeholder.id].value));
+	}
+	const placehodlersUnproccesed = markup.innerHTML.match(/<oxk8-zph id='.*?'><\/oxk8-zph>/);
+	if (placehodlersUnproccesed) {
+		for (const placeholderTag of placehodlersUnproccesed) {
+			const placeholderId = getPlaceholderID(placeholderTag);
+			const { placeholder, value } = templateData[placeholderId];
+			markup.innerHTML = markup.innerHTML.replace(placeholder, value);
+		}
 	}
 }
 

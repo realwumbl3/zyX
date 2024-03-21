@@ -56,7 +56,6 @@ export class zyXDomArray {
     }
 
     update() {
-        this.#container.innerHTML = "";
         let target_content = Object.values(this.#array)
         if (this.#range !== null && target_content.length > Math.abs(this.#range)) {
             if (this.#range < 0) {
@@ -66,8 +65,10 @@ export class zyXDomArray {
             }
         }
         let previous = null;
+        this.#container.innerHTML = "";
         for (const item of target_content) {
-            const frag_create = this.#compose(item, previous);
+            const next_item = target_content[target_content.indexOf(item) + 1];
+            const frag_create = this.#compose(item, previous, next_item);
             let frag;
             if (frag_create instanceof ZyXHtml) {
                 frag = frag_create.markup();
@@ -96,6 +97,11 @@ export class zyXArray extends Array {
 
     constructor(...args) {
         super(...args);
+    }
+
+    clear() {
+        super.splice(0, this.length);
+        this.#onchange.forEach((cb) => cb(this));
     }
 
     addListener(cb) {

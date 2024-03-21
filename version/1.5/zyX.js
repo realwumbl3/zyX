@@ -7,7 +7,7 @@ css`url(${__ROOT__}/zyX-Attr.css)`;
 
 import { ZyXHtml, html } from "./_/zyx-HTML.js";
 
-import { zyXPost, zyXGet } from "./_/zyx-Fetch.js";
+import { zyXPost, zyXGet, getImageBlob } from "./_/zyx-Fetch.js";
 
 import { offset, offsetLimit } from "./_/zyx-Math.js";
 
@@ -112,6 +112,7 @@ export {
 	//
 	zyXPost,
 	zyXGet,
+	getImageBlob,
 	//
 	AsyncWorker,
 	AsynConstructor,
