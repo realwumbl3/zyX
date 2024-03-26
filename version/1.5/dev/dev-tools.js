@@ -1,21 +1,19 @@
-import { io } from "../_/dependencies/socket.io.esm.min.js";
+import { io } from "../_/Cdn/socket.io.esm.min.js";
 
 import { html, css } from "https://zyx.wumbl3.xyz/v:1.5/";
 
 css`
-	.auto-reload_alert {
-		z-index: 99999999;
-		position: absolute;
-		right: 15px;
-		bottom: 15px;
-		width: min-content;
-		height: min-content;
-		overflow: hidden;
-		pointer-events: none;
-		font-size: 13px;
-	}
-
-	.auto-reload_alertmsg {
+.zyXServerDebugAlert {
+	z-index: 99999999;
+	position: absolute;
+	right: 15px;
+	bottom: 15px;
+	width: min-content;
+	height: min-content;
+	overflow: hidden;
+	pointer-events: none;
+	font-size: 13px;
+	&>.alertmsg {
 		display: grid;
 		position: relative;
 		bottom: 0;
@@ -32,11 +30,11 @@ css`
 		transform: translateY(200%);
 		backdrop-filter: blur(10px);
 		place-items: center;
+		> p {
+			white-space: nowrap;
+		}
 	}
-
-	.auto-reload_alertmsg > p {
-		white-space: nowrap;
-	}
+}		
 `;
 
 export const devTools = new (class dev_tools_class {

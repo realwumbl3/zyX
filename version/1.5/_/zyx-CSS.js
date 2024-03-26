@@ -26,6 +26,7 @@ export default class zyXCssManager {
 		if (String(strcss).startsWith("url(")) {
 			const urls = strcss.split("url(").slice(1).map((url) => url.split(")")[0])
 			for (const url of urls) await this.loadUrl(url)
+			return
 		}
 		return html`
 			<style this=style></style>
@@ -46,4 +47,8 @@ export const zyxcss = new zyXCssManager({
 	root: document !== "undefined" && document.head
 });
 
-export const css = (raw, ..._) => zyxcss.str(raw);
+export const css = (raw, ..._) => {
+
+	zyxcss.str(raw);
+
+}

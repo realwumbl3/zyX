@@ -76,8 +76,13 @@ export default function zyX(that) {
 	);
 }
 
+function isMobile() {
+	return navigator.maxTouchPoints > 0;
+}
+
 /////// \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 export {
+	isMobile,
 	ZyXHtml,
 	html,
 	css,

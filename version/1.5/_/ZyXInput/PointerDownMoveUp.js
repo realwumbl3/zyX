@@ -1,0 +1,184 @@
+// #region [Imports] Copyright wumbl3 ©️ 2023 - No copying / redistribution / modification unless strictly allowed.
+import zyX, { pointerEventPathContains } from "../../";
+
+import { angleToDirection, calculateAngle, calculateFourAngleSnap } from "./Functions.js";
+
+// #endregion
+
+export default function PointerDownMoveUp(element, {
+    onDown,
+    onStartMove,
+    onMove,
+    onUp,
+    once = false,
+    deadzone = null,
+    capture = false,
+    captureMove = false,
+    verbose = false,
+    stopPropagation = false,
+    stopImmediatePropagation = false,
+    stopMovePropagation = false,
+    stopImmediateMovePropagation = false,
+    movePrecision = 1,
+} = {}) {
+
+    const down_func = (dwn_e) => {
+
+        deadzone = deadzone || this.moveTripperDist;
+
+        const b4 = this.beforePointerEvent("pointerdownmoveup", dwn_e);
+        if (!b4) return false
+
+        const {
+            event_fuse = this.returnFuse(true),
+            pointerDown = this.returnFuse(true),
+            startX, startY
+        } = { startX: dwn_e.clientX, startY: dwn_e.clientY }
+
+        this.activeEvents.push(event_fuse);
+
+        const { move_fuse, check } = this.simpleMoveTripper({ startX, startY, deadzone });
+
+        stopPropagation && dwn_e.stopPropagation()
+        stopImmediatePropagation && dwn_e.stopImmediatePropagation()
+
+        let {
+            startAngle = null,
+            moveCalledOnce = false,
+            latest_move_e = null,
+            startMove
+        } = {}
+
+        const down_return = onDown({
+            dwn_e,
+            b4,
+            move_fuse,
+            pointerDown,
+            event_fuse,
+            kingOfTheStack: _ => this.kingOfTheStack(event_fuse),
+            pathContains: (selector) => pointerEventPathContains(dwn_e, selector)
+        });
+
+        if (!down_return) {
+            return false;
+        }
+
+        const angleFromStart = (e) => calculateAngle(startX, startY, e.clientX, e.clientY);
+
+        const distanceFromStart = (e) => Math.sqrt(Math.pow(e.clientX - startX, 2) + Math.pow(e.clientY - startY, 2))
+
+        const fourAngleSnap = (e) => calculateFourAngleSnap(angleFromStart(e));
+
+        let pixels_moved = 0;
+
+        const move_wrapped = (mv_e) => {
+            try {
+
+                if (event_fuse.false) {
+                    verbose && console.log({ element }, "event_fuse.false, returning")
+
+                    return unbind();
+
+                }
+
+                pixels_moved++;
+                if (movePrecision > 1) {
+                    if (pixels_moved < movePrecision) return
+                    else (pixels_moved = 0);
+                }
+
+                latest_move_e = mv_e;
+
+                if (!check(mv_e)) return;
+
+                if (!startAngle) {
+                    startAngle = angleFromStart(mv_e);
+                }
+
+                const call = {
+                    dwn_e,
+                    mv_e,
+                    startX,
+                    startY,
+                    startAngle,
+                    movementX: mv_e.movementX,
+                    movementY: mv_e.movementY,
+                    stop: unbind,
+                    up: canceled_or_up,
+                    move_fuse,
+                    startMove,
+                    kingOfTheStack: _ => this.kingOfTheStack(event_fuse),
+                    clearAllSelections: () => this.clearAllSelections(),
+                    fourAngleSnap: () => fourAngleSnap(mv_e),
+                    angleFromStart: () => angleFromStart(mv_e),
+                    distanceFromStart: () => distanceFromStart(mv_e),
+                    direction: () => angleToDirection(angleFromStart(mv_e))
+                }
+
+                stopMovePropagation && mv_e.stopPropagation()
+                stopImmediateMovePropagation && mv_e.stopImmediatePropagation()
+
+                if (moveCalledOnce && onMove) return onMove(call, down_return);
+
+                if (onStartMove) {
+                    startMove = onStartMove(call, down_return)
+                    if (!startMove) return false;
+                    if (typeof startMove === 'object' && startMove !== null && ('onMove' in startMove || 'onUp' in startMove)) {
+                        startMove?.onMove && (onMove = startMove.onMove)
+                        startMove?.onUp && (onUp = startMove.onUp)
+                    }
+                }
+
+                this.kingOfTheStack(event_fuse);
+
+                moveCalledOnce = true;
+
+            } catch (e) {
+                console.error(e, {
+                    element,
+                    onDown,
+                    onStartMove,
+                    onMove,
+                    onUp,
+                    once,
+                })
+            }
+        }
+
+        const canceled_or_up = (up_e) => {
+            pointerDown.False();
+            unbind();
+            const call = {
+                dwn_e,
+                up_e,
+                mv_e: latest_move_e,
+                startX,
+                startY,
+                startAngle,
+                startMove,
+                move_fuse,
+                onStartMove,
+                fourAngleSnap: () => fourAngleSnap(up_e),
+                angleFromStart: () => angleFromStart(up_e),
+                distanceFromStart: () => distanceFromStart(up_e),
+                direction: () => angleToDirection(angleFromStart(up_e))
+            }
+            onUp && onUp(call, down_return)
+        }
+
+        document.addEventListener("pointermove", move_wrapped, { capture: captureMove });
+        document.addEventListener("pointerup", canceled_or_up)
+        document.addEventListener("pointercancel", canceled_or_up)
+        const unbind = _ => {
+            document.removeEventListener("pointermove", move_wrapped, { capture: captureMove });
+            document.removeEventListener("pointerup", canceled_or_up);
+            document.removeEventListener("pointercancel", canceled_or_up);
+        }
+    }
+
+    element.addEventListener("pointerdown", down_func, { once, capture });
+
+    return {
+        removeEventListener: _ => element.removeEventListener("pointerdown", down_func, { capture })
+    }
+}

@@ -11,6 +11,7 @@ export class zyXDomArray {
      */
     #array;
     #compose;
+    #after;
     #arrayMap = new WeakMap();
     #debounce;
     #range;
@@ -21,16 +22,20 @@ export class zyXDomArray {
         compose = null,
         debounce = 0,
         range = null,
+        after = null,
     } = {}) {
+        if (!(array instanceof zyXArray)) throw new Error("zyXDomArray target must be zyXArray");
+
         this.#container = container;
         container.__zyXArray__ = this;
 
         this.#compose = compose;
+        this.#after = after;
+
         this.#array = array;
         this.#range = range;
         this.#debounce = debounce;
 
-        if (!(this.#array instanceof zyXArray)) throw new Error("zyXDomArray target must be zyXArray");
         this.#array.addListener(this.arrayModified);
     }
 
@@ -55,54 +60,53 @@ export class zyXDomArray {
         return this.#arrayMap.get(obj);
     }
 
-    update() {
+    getTarget() {
         let target_content = Object.values(this.#array)
         if (this.#range !== null && target_content.length > Math.abs(this.#range)) {
             if (this.#range < 0) {
-                target_content = target_content.slice(target_content.length + this.#range, target_content.length);
+                return target_content.slice(target_content.length + this.#range, target_content.length);
             } else {
-                target_content = target_content.slice(0, this.#range);
+                return target_content.slice(0, this.#range);
             }
         }
-        let previous = null;
+        return target_content;
+    }
+
+    update() {
         this.#container.innerHTML = "";
+        const target_content = this.getTarget();
+        const prev = { item: null, element: null };
+        let index = 0;
         for (const item of target_content) {
-            const next_item = target_content[target_content.indexOf(item) + 1];
-            const frag_create = this.#compose(item, previous, next_item);
-            let frag;
-            if (frag_create instanceof ZyXHtml) {
-                frag = frag_create.markup();
-            } else if (frag_create?.__ZyXHtml__) {
-                frag = frag_create.__ZyXHtml__.markup();
-            } else {
-                console.error("Can't insert non-ZyXHtml content")
-                continue;
-            }
-            // check if HTMLTemplateElement or HTMLTemplateElement.content
-            if (frag instanceof HTMLTemplateElement || frag instanceof DocumentFragment) {
+            const next = target_content[index + 1];
+            const zyXHtml = this.#compose(item, { prev, next, index });
+            const element = getZyXMarkup(zyXHtml);
+            if (element instanceof HTMLTemplateElement || element instanceof DocumentFragment) {
                 throw Error("cannot associate reactive object with a template element")
             }
-            this.#container.append(frag);
-            this.#arrayMap.set(frag, item);
-            this.#arrayMap.set(item, frag);
-            previous = { item, frag };
+            this.#container.append(element);
+            this.#arrayMap.set(element, item);
+            // check if symbol or object
+            if (typeof item === "symbol" || typeof item === "object") this.#arrayMap.set(item, element);
+            prev.item = item;
+            prev.element = element;
+            index++;
         }
+        if (this.#after) this.#after();
     }
 
 }
 
+function getZyXMarkup(composed) {
+    if (composed instanceof ZyXHtml) {
+        return composed.markup();
+    } else if (composed?.__ZyXHtml__) {
+        return composed.__ZyXHtml__.markup();
+    }
+}
 
 export class zyXArray extends Array {
     #onchange = new WeakRefSet();
-
-    constructor(...args) {
-        super(...args);
-    }
-
-    clear() {
-        super.splice(0, this.length);
-        this.#onchange.forEach((cb) => cb(this));
-    }
 
     addListener(cb) {
         this.#onchange.add(cb);
@@ -112,36 +116,38 @@ export class zyXArray extends Array {
         this.#onchange.delete(cb);
     }
 
+    constructor(...args) {
+        super(...args);
+    }
+
+    clear() {
+        super.splice(0, this.length);
+        this.#onchange.forEach((cb) => cb(this, "clear"));
+    }
+
     push(...args) {
         super.push(...args);
-        this.#onchange.forEach((cb) => cb(this));
+        this.#onchange.forEach((cb) => cb(this, "push", ...args));
     }
 
     pop(...args) {
         super.pop(...args);
-        this.#onchange.forEach((cb) => cb(this));
+        this.#onchange.forEach((cb) => cb(this, "pop", ...args));
     }
 
     shift(...args) {
         super.shift(...args);
-        this.#onchange.forEach((cb) => cb(this));
+        this.#onchange.forEach((cb) => cb(this, "shift", ...args));
     }
 
     unshift(...args) {
         super.unshift(...args);
-        this.#onchange.forEach((cb) => cb(this));
+        this.#onchange.forEach((cb) => cb(this, "unshift", ...args));
     }
 
     splice(...args) {
         super.splice(...args);
-        this.#onchange.forEach((cb) => cb(this));
+        this.#onchange.forEach((cb) => cb(this, "splice", ...args));
     }
 
-    get onchange() {
-        return new Proxy(this.#onchange, {
-            get: () => {
-                throw new Error("'onchange' is a private property and cannot be accessed directly.");
-            },
-        });
-    }
 }

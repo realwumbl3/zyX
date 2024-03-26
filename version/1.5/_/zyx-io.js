@@ -1,4 +1,4 @@
-import { io } from "./dependencies/socket.io.esm.min.js";
+import { io } from "./Cdn/socket.io.esm.min.js";
 
 export default class zyXio {
 	constructor({ endpointUrl, events } = {}) {

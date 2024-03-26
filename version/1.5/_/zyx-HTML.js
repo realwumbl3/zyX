@@ -16,7 +16,7 @@ function getPlaceholderID(markup) {
 	return markup.match(/id='(.*?)'/)[1];
 }
 
-function processLiteralData(string_data) {
+function processLiteralData(raw, string_data) {
 	const output = {}
 	for (const [key, value] of Object.entries(string_data)) {
 		const type = typeof value;
@@ -34,6 +34,7 @@ function processLiteralData(string_data) {
 	return output
 }
 
+
 export class ZyXHtml {
 	#constructed = false;
 	#dom;
@@ -48,7 +49,9 @@ export class ZyXHtml {
 		bench && debugStart("html", "html`<...>` called");
 
 		// process the literal data.
-		this.#data = processLiteralData(literal_data);
+		this.#data = processLiteralData(raw, literal_data);
+
+		// console.log({ data: this.#data })
 
 		// place the placeholders in the markup.
 		const markup = String.raw({ raw }, ...Object.values(this.#data).map((_) => _.placeholder))
@@ -87,8 +90,14 @@ export class ZyXHtml {
 		if (this.#constructed) return this;
 
 		[...new Set(this.#oven.querySelectorAll(zyxBindAttributespattern))].forEach((node) => {
-			const attributes = [...node.attributes];
-			const zyXBinds = attributes.filter((_) => _.name in zyxBindAttributes);
+			const attributes = [...node.attributes].filter((_) => _.name.startsWith("zyx-"));
+			const zyXBinds = attributes.filter((_) => {
+				if (_.name in zyxBindAttributes) return true;
+				else {
+					console.log({ attributes })
+					throw Error(`[zyX]Html] : <${_.name}=""> is not a valid zyx-bind attribute.`);
+				}
+			});
 			for (const attr of zyXBinds) {
 				const placeholder = getPlaceholderID(attr.value);
 				zyxBindAttributes[attr.name]({ node, data: this.#data[placeholder] })
@@ -297,6 +306,14 @@ const zyxBindAttributes = {
 	"zyx-change": ({ node, data }) => node.addEventListener("change", data.value),
 	"zyx-scroll": ({ node, data }) => node.addEventListener("scroll", data.value),
 	"zyx-array": ({ node, data }) => new zyXDomArray({ container: node, ...data.value }),
+	"zyx-pointerdown": ({ node, data }) => node.addEventListener("pointerdown", data.value),
+	"zyx-pointermove": ({ node, data }) => node.addEventListener("pointermove", data.value),
+	"zyx-pointerup": ({ node, data }) => node.addEventListener("pointerup", data.value),
+	"zyx-pointerover": ({ node, data }) => node.addEventListener("pointerover", data.value),
+	"zyx-pointerout": ({ node, data }) => node.addEventListener("pointerout", data.value),
+	"zyx-pointerenter": ({ node, data }) => node.addEventListener("pointerenter", data.value),
+	"zyx-pointerleave": ({ node, data }) => node.addEventListener("pointerleave", data.value),
+	"zyx-pointercancel": ({ node, data }) => node.addEventListener("pointercancel", data.value),
 }
 
 const zyxBindAttributespattern = `[${Object.keys(zyxBindAttributes).join("],[")}]`
