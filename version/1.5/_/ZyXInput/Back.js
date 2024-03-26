@@ -1,5 +1,5 @@
 // #region [Imports] Copyright wumbl3 ©️ 2023 - No copying / redistribution / modification unless strictly allowed.
-import zyX, { html, isMobile } from "../";
+import zyX, { html, isMobile } from "../../";
 // #endregion
 export default class BackHandler {
 	constructor() {
