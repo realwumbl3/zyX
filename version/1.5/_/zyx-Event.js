@@ -1,21 +1,16 @@
-export default class EventSystem {
-    constructor() {
-        this.__events__ = {};
-    }
-
+export default class ZyXEvents {
+    #events = {};
     on(event, callback) {
         if (event.includes(",")) {
             event.split(",").forEach((event) => this.on(event, callback));
             return;
         }
-        if (!(event in this.__events__)) this.__events__[event] = [];
-        this.__events__[event].push(callback);
+        if (!(event in this.#events)) this.#events[event] = [];
+        this.#events[event].push(callback);
     }
-
     call(eventName, ...args) {
-        const eventCallbacks = this.__events__[eventName];
+        const eventCallbacks = this.#events[eventName];
         if (!eventCallbacks) return;
         for (const cb of eventCallbacks) cb(...args);
     }
-
 }

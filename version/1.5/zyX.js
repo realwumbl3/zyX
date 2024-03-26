@@ -19,7 +19,7 @@ import { delayChain, breakDelayChain, clearDelay, delay, debounce } from "./_/zy
 
 import Splash from "./_/zyx-Splash.js";
 
-import EventSystem from "./_/zyx-Event.js";
+import ZyXEvents from "./_/zyx-Event.js";
 
 import calculateDominantColor from "./_/zyx-HUE.js";
 
@@ -37,7 +37,7 @@ import {
 	pointerEventPathContains
 } from "./_/zyx-Toolbox.js";
 
-import zyXio from "./_/zyx-io.js";
+import zyXio from "./_/zyx-IO.js";
 
 import zyxAudio from "./_/zyx-Audio.js";
 
@@ -90,6 +90,7 @@ export {
 	zyXDomArray,
 	zyXArray,
 	//
+	ZyXEvents,
 	zyXCookie,
 	zyxAudio,
 	zyXio,
@@ -111,7 +112,6 @@ export {
 	sleep,
 	timeoutLimiter,
 	//
-	EventSystem,
 	WeakRefSet,
 	Splash,
 	//

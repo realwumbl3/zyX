@@ -1,4 +1,8 @@
-export default class zyxAudio {
+// #region [Imports] Copyright wumbl3 ©️ 2023 - No copying / redistribution / modification unless strictly allowed.
+
+// #endregion
+
+export default class ZyXAudio {
 	constructor(audio_root) {
 		this.AUDIO_ROOT = audio_root;
 		this.ctx = new AudioContext();
@@ -53,24 +57,45 @@ export default class zyxAudio {
 		return this.createBuffer(name, onended).start(0);
 	}
 
-	async play({ name, looping = false, delay = null, volume = 1, loopOnEnded } = {}) {
+	async play({ source, name, looping = false, delay = 0, volume = 1, loopOnEnded, n = 0 } = {}) {
+		// fetch sound if not already fetched, caching it in this.SOUNDS.
 		await this.addSound(name);
-		this.gainNode.gain.value = volume;
-		if (looping) {
-			let source = this.createAndExecute(name);
+		if (volume === 0) return;
+		// Set volume
+		this.gainNode.gain.value = calculateLogarithmicVolume(volume);
+		if (looping || n) {
+			looping = true;
+			// If n is set, decrement n and check if it is still greater than 0.
+			let repeat_count = n-- > 0;
+			// If loopOnEnded is not set, create a default loopOnEnded function.
 			loopOnEnded = () => {
-				if (!looping) return;
+				// If looping is false or n is set and n is less than or equal to 0, break loop.
+				if (!looping || (repeat_count && n-- <= 0)) return;
+				// If delay is set, wait for delay before looping
 				setTimeout((_) => {
+					// Create and execute the sound.
 					source = this.createAndExecute(name, loopOnEnded);
-				}, delay || 0);
+				}, delay);
 			};
+			// Create and execute the sound.
 			source = this.createAndExecute(name, loopOnEnded);
 			return {
 				source,
 				stop: () => (looping = false),
 			};
 		} else {
+			// If looping or n is not set, create and execute the sound emmediately.
 			this.createAndExecute(name);
 		}
+	}
+}
+
+function calculateLogarithmicVolume(volume) {
+	if (volume <= 0) {
+		return 0;
+	} else if (volume >= 1) {
+		return 1;
+	} else {
+		return Math.pow(volume, 3);
 	}
 }

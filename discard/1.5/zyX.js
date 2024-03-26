@@ -50,7 +50,7 @@ import {
 	WeakRefSet,
 } from "./_/zyx-Toolbox.js";
 
-import zyXio from "./_/zyx-io.js";
+import zyXio from "./_/zyx-IO.js";
 
 import zyxAudio from "./_/zyx-Audio.js";
 
