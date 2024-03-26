@@ -11,3 +11,4 @@ export function offset(int, off) {
 export function offsetLimit(int, off) {
 	return Math.min(1, int / off);
 }
+

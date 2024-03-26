@@ -37,6 +37,8 @@ export class zyXDomArray {
         this.#debounce = debounce;
 
         this.#array.addListener(this.arrayModified);
+
+        this.update();
     }
 
     arrayModified = () => {
@@ -72,6 +74,15 @@ export class zyXDomArray {
         return target_content;
     }
 
+    createCompose(...args) {
+        // check if class instantiator, if so use new this.#compose()
+        // check if function, if so use this.#compose()
+        if (typeof this.#compose.prototype === "object") {
+            return new this.#compose(...args);
+        }
+        return this.#compose(...args);
+    }
+
     update() {
         this.#container.innerHTML = "";
         const target_content = this.getTarget();
@@ -79,7 +90,7 @@ export class zyXDomArray {
         let index = 0;
         for (const item of target_content) {
             const next = target_content[index + 1];
-            const zyXHtml = this.#compose(item, { prev, next, index });
+            const zyXHtml = this.createCompose(item, { prev, next, index });
             const element = getZyXMarkup(zyXHtml);
             if (element instanceof HTMLTemplateElement || element instanceof DocumentFragment) {
                 throw Error("cannot associate reactive object with a template element")

@@ -13,9 +13,7 @@ export default class zyXCssManager {
 			html`<link rel="stylesheet" type="text/css" this=link href="${url}">`
 				.appendTo(this.styles)
 				.pass(({ link } = {}) => {
-					link.onload = () => {
-						res({ link, cleanuUp: () => link.remove() })
-					}
+					link.onload = () => res({ link, cleanuUp: () => link.remove() })
 					link.onerror = rej
 				})
 		})
@@ -47,8 +45,4 @@ export const zyxcss = new zyXCssManager({
 	root: document !== "undefined" && document.head
 });
 
-export const css = (raw, ..._) => {
-
-	zyxcss.str(raw);
-
-}
+export const css = (raw, ..._) => zyxcss.str(raw)

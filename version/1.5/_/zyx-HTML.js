@@ -13,7 +13,8 @@ function strPlaceholder(key) {
 }
 
 function getPlaceholderID(markup) {
-	return markup.match(/id='(.*?)'/)[1];
+	const match = markup.match(/id='(.*?)'/)
+	return match?.length > 0 ? match[1] : null;
 }
 
 function processLiteralData(raw, string_data) {
@@ -100,6 +101,7 @@ export class ZyXHtml {
 			});
 			for (const attr of zyXBinds) {
 				const placeholder = getPlaceholderID(attr.value);
+				if (!placeholder) continue;
 				zyxBindAttributes[attr.name]({ node, data: this.#data[placeholder] })
 				node.removeAttribute(attr.name);
 			}
@@ -314,6 +316,8 @@ const zyxBindAttributes = {
 	"zyx-pointerenter": ({ node, data }) => node.addEventListener("pointerenter", data.value),
 	"zyx-pointerleave": ({ node, data }) => node.addEventListener("pointerleave", data.value),
 	"zyx-pointercancel": ({ node, data }) => node.addEventListener("pointercancel", data.value),
+	"zyx-switch": ({ node, data }) => node,
+	"zyx-switch-active": ({ node, data }) => node
 }
 
 const zyxBindAttributespattern = `[${Object.keys(zyxBindAttributes).join("],[")}]`
