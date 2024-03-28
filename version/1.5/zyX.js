@@ -1,9 +1,20 @@
-const __VERSION__ = "1.5";
-const __ROOT__ = `https://zyx.wumbl3.xyz/v:${__VERSION__}`;
+export const __BASEDIR__ = import.meta.url.split("zyX.js")[0]
+export const __VERSION__ = __BASEDIR__.split("/").slice(-2)[0]
+console.log("[ZyX] Version:", __VERSION__, "BaseDir:", __BASEDIR__);
+/*
+	<script type="importmap">
+	{
+		"imports": {
+			"zyX": "https://zyx.wumbl3.xyz/v:1.5/",
+			"zyX/": "https://zyx.wumbl3.xyz/v:1.5/"
+		}
+	}
+	</script>
+*/
 
 import { css, zyxcss } from "./_/zyx-CSS.js";
 
-css`url(${__ROOT__}/zyX-Attr.css)`;
+css`url(${__BASEDIR__}_/@css/zyX-Attr.css);`;
 
 import { ZyXHtml, html } from "./_/zyx-HTML.js";
 
@@ -23,7 +34,7 @@ import ZyXEvents from "./_/zyx-Event.js";
 
 import calculateDominantColor from "./_/zyx-HUE.js";
 
-import { zyXDomArray, zyXArray } from "./_/zyx-Reactive.js";
+import { ZyXDomArray, ZyXArray } from "./_/zyx-Reactive.js";
 
 import {
 	timeoutLimiter,
@@ -37,9 +48,9 @@ import {
 	pointerEventPathContains
 } from "./_/zyx-Toolbox.js";
 
-import zyXio from "./_/zyx-IO.js";
+import ZyXio from "./_/zyx-IO.js";
 
-import zyxAudio from "./_/zyx-Audio.js";
+import ZyXAudio from "./_/zyx-Audio.js";
 
 ///// wumbl3.xyz 2023 ///// //// /// // 7
 
@@ -80,17 +91,26 @@ export function isMobile() { return navigator.maxTouchPoints > 0; }
 
 /////// \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 export {
-	ZyXHtml,
 	html,
 	css,
 	zyxcss,
-	zyXDomArray,
-	zyXArray,
 	//
-	ZyXEvents,
 	zyXCookie,
-	zyxAudio,
-	zyXio,
+	zyXPost,
+	zyXGet,
+	getImageBlob,
+	//
+	ZyXHtml,
+	ZyXDomArray,
+	ZyXArray,
+	ZyXEvents,
+	ZyXAudio,
+	ZyXio,
+	//
+	AsyncWorker,
+	AsynConstructor,
+	//
+	WeakRefSet,
 	//
 	offset,
 	offsetLimit,
@@ -109,15 +129,7 @@ export {
 	sleep,
 	timeoutLimiter,
 	//
-	WeakRefSet,
-	Splash,
-	//
-	zyXPost,
-	zyXGet,
-	getImageBlob,
-	//
-	AsyncWorker,
-	AsynConstructor,
-	//
 	calculateDominantColor,
+	//
+	Splash,
 };

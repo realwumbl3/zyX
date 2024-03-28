@@ -1,6 +1,5 @@
 import { html } from "./zyx-HTML.js";
 
-
 export const ZYX_ATTRS = {};
 
 export const ZYXATTR = {

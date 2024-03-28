@@ -39,7 +39,7 @@ css`
 
 export const devTools = new (class dev_tools_class {
 	constructor() {
-		console.log("[ zyX() Dev Tools loaded. ]");
+		console.log("[ZyX] Dev Tools loaded.");
 		this.page_name = pageData.page_name;
 		this.io = io("/dev_socket_io");
 		this.io.on("connect", (e) => this.io.emit("enter", { room_code: `${this.page_name}-reload` }));

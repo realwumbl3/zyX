@@ -284,7 +284,7 @@ import { typeProxy } from "./zyx-Prox.js";
 
 import { applyZyxAttrs } from "./zyx-Attrs.js";
 
-import { zyXDomArray } from "./zyx-Reactive.js";
+import { ZyXDomArray } from "./zyx-Reactive.js";
 
 const zyxBindAttributes = {
 	"zyx-click": ({ node, data }) => node.addEventListener("click", data.value),
@@ -307,7 +307,7 @@ const zyxBindAttributes = {
 	"zyx-input": ({ node, data }) => node.addEventListener("input", data.value),
 	"zyx-change": ({ node, data }) => node.addEventListener("change", data.value),
 	"zyx-scroll": ({ node, data }) => node.addEventListener("scroll", data.value),
-	"zyx-array": ({ node, data }) => new zyXDomArray({ container: node, ...data.value }),
+	"zyx-array": ({ node, data }) => new ZyXDomArray({ container: node, ...data.value }),
 	"zyx-pointerdown": ({ node, data }) => node.addEventListener("pointerdown", data.value),
 	"zyx-pointermove": ({ node, data }) => node.addEventListener("pointermove", data.value),
 	"zyx-pointerup": ({ node, data }) => node.addEventListener("pointerup", data.value),

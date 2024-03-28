@@ -1,13 +1,13 @@
 import { ZyXHtml } from "./zyx-HTML.js";
 import { WeakRefSet } from "./zyx-Toolbox.js";
 
-export class zyXDomArray {
+export class ZyXDomArray {
     /**
      *  @type {HTMLElement}
      */
     #container;
     /**
-     *  @type {zyXArray}
+     *  @type {ZyXArray}
      */
     #array;
     #compose;
@@ -24,7 +24,7 @@ export class zyXDomArray {
         range = null,
         after = null,
     } = {}) {
-        if (!(array instanceof zyXArray)) throw new Error("zyXDomArray target must be zyXArray");
+        if (!(array instanceof ZyXArray)) throw new Error("zyXDomArray target must be zyXArray");
 
         this.#container = container;
         container.__zyXArray__ = this;
@@ -74,13 +74,12 @@ export class zyXDomArray {
         return target_content;
     }
 
-    createCompose(...args) {
-        // check if class instantiator, if so use new this.#compose()
-        // check if function, if so use this.#compose()
+    createCompose(item, ...args) {
+        if (!this.#compose) return item
         if (typeof this.#compose.prototype === "object") {
-            return new this.#compose(...args);
+            return new this.#compose(item, ...args);
         }
-        return this.#compose(...args);
+        return this.#compose(item, ...args);
     }
 
     update() {
@@ -116,7 +115,7 @@ function getZyXMarkup(composed) {
     }
 }
 
-export class zyXArray extends Array {
+export class ZyXArray extends Array {
     #onchange = new WeakRefSet();
 
     addListener(cb) {
