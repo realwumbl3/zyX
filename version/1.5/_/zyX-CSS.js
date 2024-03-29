@@ -1,4 +1,4 @@
-import { html } from "./zyx-HTML.js";
+import { html } from "./zyX-HTML.js";
 
 export default class zyXCssManager {
 	constructor({ root } = {}) {
@@ -42,7 +42,7 @@ export default class zyXCssManager {
 }
 
 export const zyxcss = new zyXCssManager({
-	root: document !== "undefined" && document.head
+	root: typeof document !== "undefined" && document.head
 });
 
 export const css = (raw, ..._) => zyxcss.str(raw, ..._)

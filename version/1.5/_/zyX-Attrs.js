@@ -1,4 +1,4 @@
-import { html } from "./zyx-HTML.js";
+import { html } from "./zyX-HTML.js";
 
 export const ZYX_ATTRS = {};
 

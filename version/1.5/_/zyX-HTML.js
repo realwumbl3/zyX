@@ -1,4 +1,4 @@
-import { debugCheckpoint, debugStart, debugLog } from "./zyx-Debugger.js";
+import { debugCheckpoint, debugStart, debugLog } from "./zyX-Debugger.js";
 
 const bench = false;
 
@@ -46,22 +46,14 @@ export class ZyXHtml {
 	#mutable;
 	#proxy;
 	constructor(raw, ...literal_data) {
-		// (raw, ...data) '<div zyx-keyup=', '>', '</div>' || ...function, "content"
 		bench && debugStart("html", "html`<...>` called");
-
 		// process the literal data.
 		this.#data = processLiteralData(raw, literal_data);
-
-		// console.log({ data: this.#data })
-
 		// place the placeholders in the markup.
 		const markup = String.raw({ raw }, ...Object.values(this.#data).map((_) => _.placeholder))
-
 		// put inside div to make it a valid html, this div is the oven where processing happens.
 		this.#oven = newDivInnerHTML(markup);
-
 		trimTextNodes(this.#oven);
-
 		this.#proxy = new Proxy(this, {
 			get: (obj, key) => {
 				if (this.hasOwnProperty(key)) return this[key];
@@ -73,7 +65,6 @@ export class ZyXHtml {
 				return (obj[key] = val);
 			},
 		});
-
 		bench && debugLog("html", { min: 0, dump: { zyXHtml: this } });
 	}
 
@@ -280,11 +271,11 @@ function defaultObject(obj, key) {
 	if (!obj.hasOwnProperty(key)) obj[key] = {};
 }
 
-import { typeProxy } from "./zyx-Prox.js";
+import { typeProxy } from "./zyX-Prox.js";
 
-import { applyZyxAttrs } from "./zyx-Attrs.js";
+import { applyZyxAttrs } from "./zyX-Attrs.js";
 
-import { ZyXDomArray } from "./zyx-Reactive.js";
+import { ZyXDomArray } from "./zyX-Reactive.js";
 
 const zyxBindAttributes = {
 	"zyx-click": ({ node, data }) => node.addEventListener("click", data.value),

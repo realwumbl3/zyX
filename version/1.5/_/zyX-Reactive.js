@@ -1,5 +1,5 @@
-import { ZyXHtml } from "./zyx-HTML.js";
-import { WeakRefSet } from "./zyx-Toolbox.js";
+import { ZyXHtml } from "./zyX-HTML.js";
+import { WeakRefSet } from "./zyX-Toolbox.js";
 
 export class ZyXDomArray {
     /**

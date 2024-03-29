@@ -22,7 +22,7 @@ import { MomentumScroll } from "./ZyXInput/Scrolling.js";
 import * as inputFunctions from "./ZyXInput/Functions.js";
 // #endregion
 
-import { Focusable, FocusController } from "./zyx-Focusables.js";
+import { Focusable, FocusController } from "./zyX-Focusables.js";
 
 export default class ZyXInput {
     constructor({ app, special_query_func } = {}) {

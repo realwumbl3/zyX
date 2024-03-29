@@ -10,6 +10,7 @@ export default class ZyXAudio {
 		this.gainNode.gain.value = 1.0;
 		this.gainNode.connect(this.ctx.destination);
 		this.SOUNDS = {};
+		this.muted = false;
 	}
 
 	addSound(file_name) {
@@ -39,6 +40,11 @@ export default class ZyXAudio {
 		if (source.disconnect) source.disconnect();
 	}
 
+	toggleMute() {
+		this.muted = !this.muted;
+		return this.muted;
+	}
+
 	createBuffer(name, onended) {
 		const source = this.ctx.createBufferSource();
 		source.buffer = this.SOUNDS[name];
@@ -60,6 +66,7 @@ export default class ZyXAudio {
 	async play({ source, name, looping = false, delay = 0, volume = 1, loopOnEnded, n = 0 } = {}) {
 		// fetch sound if not already fetched, caching it in this.SOUNDS.
 		await this.addSound(name);
+		volume = this.muted ? 0 : volume;
 		if (volume === 0) return;
 		// Set volume
 		this.gainNode.gain.value = calculateLogarithmicVolume(volume);

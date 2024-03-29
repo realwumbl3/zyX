@@ -12,29 +12,35 @@ console.log("[ZyX] Version:", __VERSION__, "BaseDir:", __BASEDIR__);
 	</script>
 */
 
-import { css, zyxcss } from "./_/zyx-CSS.js";
+import { css, zyxcss } from "./_/zyX-CSS.js";
 
 css`url(${__BASEDIR__}_/@css/zyX-Attr.css);`;
 
-import { ZyXHtml, html } from "./_/zyx-HTML.js";
+import { ZyXHtml, html } from "./_/zyX-HTML.js";
 
-import { zyXPost, zyXGet, getImageBlob } from "./_/zyx-Fetch.js";
+import { zyXPost, zyXGet, getImageBlob } from "./_/zyX-Fetch.js";
 
-import { offset, offsetLimit } from "./_/zyx-Math.js";
+import { offset, offsetLimit } from "./_/zyX-Math.js";
 
-import { sleep, AsyncWorker, AsynConstructor } from "./_/zyx-Async.js";
+import { sleep, AsyncWorker, AsynConstructor } from "./_/zyX-Async.js";
 
-import zyXCookie from "./_/zyx-Cookie.js";
+import zyXCookie from "./_/zyX-Cookie.js";
 
-import { delayChain, breakDelayChain, clearDelay, delay, debounce } from "./_/zyx-Delay.js";
+import {
+	delayChain,
+	breakDelayChain,
+	clearDelay,
+	delay,
+	debounce
+} from "./_/zyX-Delay.js";
 
-import Splash from "./_/zyx-Splash.js";
+import Splash from "./_/zyX-Splash.js";
 
-import ZyXEvents from "./_/zyx-Event.js";
+import ZyXEvents from "./_/zyX-Event.js";
 
-import calculateDominantColor from "./_/zyx-HUE.js";
+import calculateDominantColor from "./_/zyX-HUE.js";
 
-import { ZyXDomArray, ZyXArray } from "./_/zyx-Reactive.js";
+import { ZyXDomArray, ZyXArray } from "./_/zyX-Reactive.js";
 
 import {
 	timeoutLimiter,
@@ -46,11 +52,11 @@ import {
 	setProps,
 	WeakRefSet,
 	pointerEventPathContains
-} from "./_/zyx-Toolbox.js";
+} from "./_/zyX-Toolbox.js";
 
-import ZyXio from "./_/zyx-IO.js";
+import ZyXio from "./_/zyX-IO.js";
 
-import ZyXAudio from "./_/zyx-Audio.js";
+import ZyXAudio from "./_/zyX-Audio.js";
 
 ///// wumbl3.xyz 2023 ///// //// /// // 7
 
