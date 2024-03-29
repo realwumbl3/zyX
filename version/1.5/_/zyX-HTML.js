@@ -1,18 +1,22 @@
 import { debugCheckpoint, debugStart, debugLog } from "./zyX-Debugger.js";
 
+import { typeProxy } from "./zyX-Prox.js";
+
+import { zyXAttrProcess } from "./zyX-Attrs.js";
+
 const bench = false;
 
 export function html(raw, ...data) {
 	return new ZyXHtml(raw, ...data)
 }
 
-const placehold_tag = "oxk8-zph";
+const placehold_tag = "x0k8-zyxph-a9n3";
 
 function strPlaceholder(key) {
 	return `<${placehold_tag} id='${key}'></${placehold_tag}>`;
 }
 
-function getPlaceholderID(markup) {
+export function getPlaceholderID(markup) {
 	const match = markup.match(/id='(.*?)'/)
 	return match?.length > 0 ? match[1] : null;
 }
@@ -81,25 +85,9 @@ export class ZyXHtml {
 	const() {
 		if (this.#constructed) return this;
 
-		[...new Set(this.#oven.querySelectorAll(zyxBindAttributespattern))].forEach((node) => {
-			const attributes = [...node.attributes].filter((_) => _.name.startsWith("zyx-"));
-			const zyXBinds = attributes.filter((_) => {
-				if (_.name in zyxBindAttributes) return true;
-				else {
-					console.log({ attributes })
-					throw Error(`[zyX]Html] : <${_.name}=""> is not a valid zyx-bind attribute.`);
-				}
-			});
-			for (const attr of zyXBinds) {
-				const placeholder = getPlaceholderID(attr.value);
-				if (!placeholder) continue;
-				zyxBindAttributes[attr.name]({ node, data: this.#data[placeholder] })
-				node.removeAttribute(attr.name);
-			}
-		});
+		zyXAttrProcess(this.#oven, this.#data);
 
 		processPlaceholders(this.#oven, this.#data);
-		applyZyxAttrs(this.#oven, this);
 
 		[...this.#oven.querySelectorAll("ph")].forEach((node) => {
 			const firstKey = [...node.attributes][0].nodeName;
@@ -202,7 +190,7 @@ function processPlaceholders(markup, templateData) {
 		for (const placeholder of [...markup.querySelectorAll(placehold_tag)]) {
 			placeholder.replaceWith(makePlaceable(templateData[placeholder.id].value));
 		}
-		const placehodlersUnproccesed = markup.innerHTML.match(/<oxk8-zph id='.*?'><\/oxk8-zph>/);
+		const placehodlersUnproccesed = markup.innerHTML.match(strPlaceholder("(.*?)"));
 		if (placehodlersUnproccesed) {
 			for (const placeholderTag of placehodlersUnproccesed) {
 				const placeholderId = getPlaceholderID(placeholderTag);
@@ -270,45 +258,3 @@ export function placer(what, where) {
 function defaultObject(obj, key) {
 	if (!obj.hasOwnProperty(key)) obj[key] = {};
 }
-
-import { typeProxy } from "./zyX-Prox.js";
-
-import { applyZyxAttrs } from "./zyX-Attrs.js";
-
-import { ZyXDomArray } from "./zyX-Reactive.js";
-
-const zyxBindAttributes = {
-	"zyx-click": ({ node, data }) => node.addEventListener("click", data.value),
-	"zyx-dblclick": ({ node, data }) => node.addEventListener("dblclick", data.value),
-	"zyx-mousedown": ({ node, data }) => node.addEventListener("mousedown", data.value),
-	"zyx-mouseup": ({ node, data }) => node.addEventListener("mouseup", data.value),
-	"zyx-mouseover": ({ node, data }) => node.addEventListener("mouseover", data.value),
-	"zyx-mousemove": ({ node, data }) => node.addEventListener("mousemove", data.value),
-	"zyx-mouseout": ({ node, data }) => node.addEventListener("mouseout", data.value),
-	"zyx-mouseenter": ({ node, data }) => node.addEventListener("mouseenter", data.value),
-	"zyx-mouseleave": ({ node, data }) => node.addEventListener("mouseleave", data.value),
-	"zyx-keydown": ({ node, data }) => node.addEventListener("keydown", data.value),
-	"zyx-keypress": ({ node, data }) => node.addEventListener("keypress", data.value),
-	"zyx-keyup": ({ node, data }) => node.addEventListener("keyup", data.value),
-	"zyx-focus": ({ node, data }) => node.addEventListener("focus", data.value),
-	"zyx-blur": ({ node, data }) => node.addEventListener("blur", data.value),
-	"zyx-submit": ({ node, data }) => node.addEventListener("submit", data.value),
-	"zyx-load": ({ node, data }) => node.addEventListener("load", data.value),
-	"zyx-error": ({ node, data }) => node.addEventListener("error", data.value),
-	"zyx-input": ({ node, data }) => node.addEventListener("input", data.value),
-	"zyx-change": ({ node, data }) => node.addEventListener("change", data.value),
-	"zyx-scroll": ({ node, data }) => node.addEventListener("scroll", data.value),
-	"zyx-array": ({ node, data }) => new ZyXDomArray({ container: node, ...data.value }),
-	"zyx-pointerdown": ({ node, data }) => node.addEventListener("pointerdown", data.value),
-	"zyx-pointermove": ({ node, data }) => node.addEventListener("pointermove", data.value),
-	"zyx-pointerup": ({ node, data }) => node.addEventListener("pointerup", data.value),
-	"zyx-pointerover": ({ node, data }) => node.addEventListener("pointerover", data.value),
-	"zyx-pointerout": ({ node, data }) => node.addEventListener("pointerout", data.value),
-	"zyx-pointerenter": ({ node, data }) => node.addEventListener("pointerenter", data.value),
-	"zyx-pointerleave": ({ node, data }) => node.addEventListener("pointerleave", data.value),
-	"zyx-pointercancel": ({ node, data }) => node.addEventListener("pointercancel", data.value),
-	"zyx-switch": ({ node, data }) => node,
-	"zyx-switch-active": ({ node, data }) => node
-}
-
-const zyxBindAttributespattern = `[${Object.keys(zyxBindAttributes).join("],[")}]`

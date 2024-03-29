@@ -16,11 +16,11 @@ const GlobalGet = (ref, bank) => {
 	return map.banks[bank];
 };
 
-const createChainMap = () => {
-	return new Object({
+function createChainMap() {
+	return {
 		callbacks: [],
 		pending: [],
-	});
+	}
 };
 
 export function delayChain(that, keyname) {
@@ -71,7 +71,6 @@ export function delay(that, keyname, ms, func) {
 		const map = GlobalGet(that, "delays");
 		if (keyname in map) clearTimeout(map[keyname]);
 		ms = ms || 0;
-
 		if (func) map[keyname] = setTimeout(() => res(func()), ms);
 		else map[keyname] = setTimeout(res, ms);
 	});
@@ -111,18 +110,3 @@ export function debounce(that, keyname, func, ms) {
 		map[keyname] = (newfunc) => (func = newfunc);
 	}
 }
-
-// const test_scope = {};
-// let test_i = 0;
-// setInterval((_) => {
-// 	test_i++;
-// 	console.log("un-debounced", test_i);
-// 	debounce(
-// 		test_scope,
-// 		"test",
-// 		(_) => {
-// 			console.log("debounced", test_i);
-// 		},
-// 		1000
-// 	);
-// }, 10);
