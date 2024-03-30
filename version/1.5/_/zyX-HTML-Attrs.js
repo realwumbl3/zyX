@@ -1,6 +1,6 @@
 import { html } from "./zyX-HTML.js";
+import { getPlaceholderID } from "./html.js";
 
-import { getPlaceholderID } from "./zyX-HTML.js";
 import { ZyXDomArray } from "./zyX-Reactive.js";
 
 export function zyXAttrProcess(oven, data) {

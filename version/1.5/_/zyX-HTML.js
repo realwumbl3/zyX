@@ -2,7 +2,7 @@ import { debugCheckpoint, debugStart, debugLog } from "./zyX-Debugger.js";
 
 import { typeProxy } from "./zyX-Prox.js";
 
-import { zyXAttrProcess } from "./zyX-Attrs.js";
+import { zyXAttrProcess } from "./zyX-HTML-Attrs.js";
 
 const bench = false;
 
@@ -10,35 +10,16 @@ export function html(raw, ...data) {
 	return new ZyXHtml(raw, ...data)
 }
 
-const placehold_tag = "x0k8-zyxph-a9n3";
-
-function strPlaceholder(key) {
-	return `<${placehold_tag} id='${key}'></${placehold_tag}>`;
-}
-
-export function getPlaceholderID(markup) {
-	const match = markup.match(/id='(.*?)'/)
-	return match?.length > 0 ? match[1] : null;
-}
-
-function processLiteralData(raw, string_data) {
-	const output = {}
-	for (const [key, value] of Object.entries(string_data)) {
-		const type = typeof value;
-		const content = !(type === "string" || type === "number");
-		if (value === "" || !value) {
-			output[key] = { placeholder: "" }
-			continue;
-		}
-		output[key] = {
-			type,
-			value,
-			placeholder: content ? strPlaceholder(key) : value,
-		}
-	}
-	return output
-}
-
+import {
+	defaultObject,
+	placeholdTag,
+	getPlaceholderID,
+	newDivInnerHTML,
+	placer,
+	strPlaceholder,
+	trimTextNodes,
+	wrapInTemplate
+} from "./html.js";
 
 export class ZyXHtml {
 	#constructed = false;
@@ -52,7 +33,7 @@ export class ZyXHtml {
 	constructor(raw, ...literal_data) {
 		bench && debugStart("html", "html`<...>` called");
 		// process the literal data.
-		this.#data = processLiteralData(raw, literal_data);
+		this.#data = processLiteralData(literal_data);
 		// place the placeholders in the markup.
 		const markup = String.raw({ raw }, ...Object.values(this.#data).map((_) => _.placeholder))
 		// put inside div to make it a valid html, this div is the oven where processing happens.
@@ -125,8 +106,7 @@ export class ZyXHtml {
 	}
 
 	markup() {
-		this.const();
-		return this.#dom;
+		return this.const().#dom;
 	}
 
 	appendTo(target) {
@@ -185,15 +165,34 @@ export class ZyXHtml {
 
 }
 
+function processLiteralData(string_data) {
+	const output = {}
+	for (const [key, value] of Object.entries(string_data)) {
+		const type = typeof value;
+		const content = !(type === "string" || type === "number");
+		if (value === "" || !value) {
+			output[key] = { placeholder: "" }
+			continue;
+		}
+		output[key] = {
+			type,
+			value,
+			placeholder: content ? strPlaceholder(key) : value,
+		}
+	}
+	return output
+}
+
+
 function processPlaceholders(markup, templateData) {
 	try {
-		for (const placeholder of [...markup.querySelectorAll(placehold_tag)]) {
+		for (const placeholder of [...markup.querySelectorAll(placeholdTag)]) {
 			placeholder.replaceWith(makePlaceable(templateData[placeholder.id].value));
 		}
-		const placehodlersUnproccesed = markup.innerHTML.match(strPlaceholder("(.*?)"));
-		if (placehodlersUnproccesed) {
-			for (const placeholderTag of placehodlersUnproccesed) {
-				const placeholderId = getPlaceholderID(placeholderTag);
+		const lastStagePlaceholders = markup.innerHTML.match(strPlaceholder("(.*?)"));
+		if (lastStagePlaceholders) {
+			for (const _placeholder of lastStagePlaceholders) {
+				const placeholderId = getPlaceholderID(_placeholder);
 				const { placeholder, value } = templateData[placeholderId];
 				markup.innerHTML = markup.innerHTML.replace(placeholder, value);
 			}
@@ -222,39 +221,4 @@ function templateFromPlaceables(placeables) {
 
 function spreadPlaceables(array) {
 	return array.map(makePlaceable)
-}
-
-function trimTextNodes(dom) {
-	// remove first and last child if they are empty text nodes
-	const nodes = dom.childNodes;
-	for (let i = 0; i < 2; i++) {
-		if (!nodes[i]) continue;
-		if (nodes[i].nodeType === 3 && nodes[i].textContent.trim() === "") {
-			dom.removeChild(nodes[i]);
-		}
-	}
-	return dom;
-}
-
-function newDivInnerHTML(markup) {
-	const markupContent = document.createElement("div");
-	markupContent.innerHTML = markup;
-	return markupContent;
-}
-
-function wrapInTemplate(markup) {
-	const asHTMLTemplate = document.createElement("template");
-	asHTMLTemplate.content.append(...markup.childNodes);
-	return asHTMLTemplate;
-}
-
-export function placer(what, where) {
-	if (typeof where === "object") return where.replaceWith(what);
-	const placeTarget = document.querySelector(`ph[${where}]`);
-	if (placeTarget) placeTarget.replaceWith(what);
-	else throw new Error(where, "not found");
-}
-
-function defaultObject(obj, key) {
-	if (!obj.hasOwnProperty(key)) obj[key] = {};
 }
