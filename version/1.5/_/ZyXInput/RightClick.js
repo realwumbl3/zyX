@@ -1,5 +1,5 @@
 // #region [Imports] Copyright wumbl3 ©️ 2023 - No copying / redistribution / modification unless strictly allowed.
-import zyX, { pointerEventPathContains } from "zyX";
+import zyX, { pointerEventPathContains } from "../../";
 // #endregion
 export default function RightClick(
     element,

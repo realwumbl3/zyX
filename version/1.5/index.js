@@ -1,4 +1,4 @@
-export const __BASEDIR__ = "https://zyx.wumbl3.xyz/v:1.5/" // import.meta.path (w/o webpack)
+export const __BASEDIR__ = import.meta.url // import.meta.path (w/o webpack)
 export const __VERSION__ = __BASEDIR__.split("/").slice(-2)[0]
 console.log("[ZyX] Version:", __VERSION__, "BaseDir:", __BASEDIR__);
 /*
@@ -11,6 +11,8 @@ console.log("[ZyX] Version:", __VERSION__, "BaseDir:", __BASEDIR__);
 	}
 	</script>
 */
+
+import ZyXInput from "./_/zyX-Input.js";
 
 import { css, zyxcss } from "./_/zyX-CSS.js";
 
@@ -110,6 +112,7 @@ export {
 	ZyXDomArray,
 	ZyXArray,
 	ZyXEvents,
+	ZyXInput,
 	ZyXAudio,
 	ZyXio,
 	//

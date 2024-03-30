@@ -1,4 +1,4 @@
-import zyX, { zyxcss, html } from "../zyX.js";
+import zyX, { zyxcss, html } from "../";
 
 // <ph splash-intro></ph>
 zyxcss.l("https://zyx.wumbl3.xyz/v:1.5/_/Splash/zyX-Splash.css");
