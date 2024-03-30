@@ -1,4 +1,4 @@
-import zyX, { css, html } from "../";
+import zyX, { css, html } from "../zyX";
 
 // <ph splash-intro></ph>
 css`@import url(https://zyx.wumbl3.xyz/v:1.5/_/Splash/zyX-Splash.css)`;

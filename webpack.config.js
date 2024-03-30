@@ -1,11 +1,11 @@
 const path = require('path');
 
 module.exports = {
-    entry: './zyX.js',
+    entry: './version/1.5/zyX.js',
     output: {
         libraryTarget: 'module',
-        path: path.resolve(__dirname, 'dist'),
-        filename: 'zyXbundle.js'
+        path: path.resolve(__dirname, 'version/1.5/dist'),
+        filename: 'bundle.js'
     },
     experiments: {
         outputModule: true
