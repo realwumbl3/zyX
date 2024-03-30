@@ -1,6 +1,6 @@
 import { html } from "./zyX-HTML.js";
 
-export default class zyXCssManager {
+export default class ZyXCssManager {
 	constructor({ root } = {}) {
 		html`
 			<styles this=styles></styles>
@@ -36,12 +36,12 @@ export default class zyXCssManager {
 	}
 
 	cloneType(root) {
-		return new zyXCssManager({ root })
+		return new ZyXCssManager({ root })
 	}
 
 }
 
-export const zyxcss = new zyXCssManager({
+export const zyxcss = new ZyXCssManager({
 	root: typeof document !== "undefined" && document.head
 });
 

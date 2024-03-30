@@ -1,10 +1,11 @@
-import zyX, { css, html } from "../";
+import zyX, { css, html, getBaseMeta } from "../";
 
-// <ph splash-intro></ph>
-css`@import url(https://zyx.wumbl3.xyz/v:1.5/_/Splash/zyX-Splash.css)`;
+const root = getBaseMeta().root;
 
 export default class Splash {
 	constructor({ version = "alpha 0.1", title = document.title } = {}) {
+		css`@import url(${root}_/Splash/zyX-Splash.css);`;
+
 		html`
 			<div this="main" class="Splash-Overlay noTapHighlight">
 				<div id="Splash-Overlay-Dismisser" this="autoplay_tap">
@@ -32,8 +33,6 @@ export default class Splash {
 						</div>
 					</div>
 				</div>
-
-
 			</div>
 		`
 			.bind(this)

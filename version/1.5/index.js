@@ -1,6 +1,5 @@
-export const __BASEDIR__ = import.meta.url // import.meta.path (w/o webpack)
-export const __VERSION__ = __BASEDIR__.split("/").slice(-2)[0]
-console.log("[ZyX] Version:", __VERSION__, "BaseDir:", __BASEDIR__);
+export const { root, version } = getBaseMeta()
+console.log("[ZyX] Version:", root, "BaseDir:", version);
 /*
 	<script type="importmap">
 	{
@@ -12,13 +11,17 @@ console.log("[ZyX] Version:", __VERSION__, "BaseDir:", __BASEDIR__);
 	</script>
 */
 
+export function getBaseMeta() {
+	return { root: import.meta.url, version: import.meta.url.split("/").slice(-2)[0] }
+}
+
 import ZyXInput from "./_/zyX-Input.js";
 
 import { css, zyxcss } from "./_/zyX-CSS.js";
 
-css`@import url(${__BASEDIR__}_/@css/zyX-Attr.css);`;
-
 import { ZyXHtml, html } from "./_/zyX-HTML.js";
+
+css`@import url(${root}_/@css/zyX-Attr.css);`;
 
 import { zyXPost, zyXGet, getImageBlob } from "./_/zyX-Fetch.js";
 

@@ -6,7 +6,7 @@ export class AsyncWorker {
 	constructor({ url, type = "module" } = {}) {
 		this.sW = new Worker(url, { type });
 		this.serviceWorkerTasks = {};
-		this.sW.onmessage = this.serviceWorkerResponse;
+		this.sW.onmessage = this.serviceWorkerResponse.bind(this);
 		this.callbacks = {};
 	}
 
@@ -21,7 +21,7 @@ export class AsyncWorker {
 		for (const cb of callbacks) cb(data.data);
 	}
 
-	serviceWorkerResponse = (response) => {
+	serviceWorkerResponse(response) {
 		if ("event" in response.data) {
 			return this.callCallback(response.data);
 		}
@@ -54,4 +54,46 @@ export class AsynConstructor {
 			console.warn("you are using a (new AsynConstructor()) class without an async asynConstructor method.");
 		}
 	}
+}
+
+
+export class AsyncWorkerB {
+	constructor({ url, type = "module" } = {}) {
+		this.sW = new Worker(url, { type });
+		this.serviceWorkerTasks = {};
+		this.sW.onmessage = this.serviceWorkerResponse.bind(this);
+	}
+
+	serviceWorkerResponse(response) {
+		const { taskID, reject } = response.data;
+		const serviceTask = this.serviceWorkerTasks[taskID];
+		delete this.serviceWorkerTasks[taskID];
+		if (reject) return serviceTask.reject(reject);
+		serviceTask?.resolve(response.data);
+	};
+
+	call(data) {
+		return new Promise((resolve, reject) => {
+			const taskID = Math.random().toString(36).slice(2, 10);
+			this.serviceWorkerTasks[taskID] = { data, taskID, resolve, reject };;
+			this.sW.postMessage({ data, taskID });
+		});
+	}
+}
+
+export class AsyncWorkerBWorker {
+	constructor() {
+		onmessage = this.onmessage.bind(this);
+	}
+
+	onmessage = async (taskData) => {
+		const { task, data, taskID } = taskData.data;
+		if (!(task in methods) || typeof methods[task] !== "function") console.error("service worker", task, "not a task method");
+		try {
+			const resolve = await methods[task](data);
+			postMessage({ taskID, resolve });
+		} catch (reject) {
+			postMessage({ taskID, reject });
+		}
+	};
 }
