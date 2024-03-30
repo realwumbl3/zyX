@@ -1,6 +1,6 @@
 import { io } from "../_/Cdn/socket.io.esm.min.js";
 
-import { html, css } from "https://zyx.wumbl3.xyz/v:1.5/";
+import { html, css } from "../";
 
 css`
 .zyXServerDebugAlert {

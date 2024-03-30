@@ -1,0 +1,30 @@
+{
+  "name": "zyx",
+  "version": "1.5.0",
+  "description": "zyX framework",
+  "main": "zyX.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/realwumbl3/zyX.git"
+  },
+  "keywords": [
+    "js",
+    "framework"
+  ],
+  "author": "wumbl3",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/realwumbl3/zyX/issues"
+  },
+  "homepage": "https://github.com/realwumbl3/zyX#readme",
+  "devDependencies": {
+    "@babel/core": "^7.24.3",
+    "@babel/preset-env": "^7.24.3",
+    "babel-loader": "^9.1.3",
+    "webpack": "^5.91.0",
+    "webpack-cli": "^5.1.4"
+  }
+}

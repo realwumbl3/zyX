@@ -1,4 +1,4 @@
-export const __BASEDIR__ = import.meta.url.split("zyX.js")[0]
+export const __BASEDIR__ = "https://zyx.wumbl3.xyz/v:1.5/" // import.neta.path (w/o webpack)
 export const __VERSION__ = __BASEDIR__.split("/").slice(-2)[0]
 console.log("[ZyX] Version:", __VERSION__, "BaseDir:", __BASEDIR__);
 /*
@@ -14,7 +14,7 @@ console.log("[ZyX] Version:", __VERSION__, "BaseDir:", __BASEDIR__);
 
 import { css, zyxcss } from "./_/zyX-CSS.js";
 
-css`url(${__BASEDIR__}_/@css/zyX-Attr.css);`;
+css`@import url(${__BASEDIR__}_/@css/zyX-Attr.css);`;
 
 import { ZyXHtml, html } from "./_/zyX-HTML.js";
 

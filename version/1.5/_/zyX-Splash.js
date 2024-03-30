@@ -1,7 +1,7 @@
 import zyX, { css, html } from "../";
 
 // <ph splash-intro></ph>
-css`url(https://zyx.wumbl3.xyz/v:1.5/_/Splash/zyX-Splash.css)`;
+css`@import url(https://zyx.wumbl3.xyz/v:1.5/_/Splash/zyX-Splash.css)`;
 
 export default class Splash {
 	constructor({ version = "alpha 0.1", title = document.title } = {}) {
