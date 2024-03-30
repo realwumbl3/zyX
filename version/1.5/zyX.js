@@ -1,4 +1,4 @@
-export const __BASEDIR__ = "https://zyx.wumbl3.xyz/v:1.5/" // import.neta.path (w/o webpack)
+export const __BASEDIR__ = "https://zyx.wumbl3.xyz/v:1.5/" // import.meta.path (w/o webpack)
 export const __VERSION__ = __BASEDIR__.split("/").slice(-2)[0]
 console.log("[ZyX] Version:", __VERSION__, "BaseDir:", __BASEDIR__);
 /*
