@@ -4,8 +4,8 @@ console.log("[ZyX] Version:", version, "BaseDir:", root);
 	<script type="importmap">
 	{
 		"imports": {
-			"zyX": "https://zyx.wumbl3.xyz/v:1.5/",
-			"zyX/": "https://zyx.wumbl3.xyz/v:1.5/"
+			"zyX": "https://zyxx.wumbl3.xyz/v:1.5/",
+			"zyX/": "https://zyxx.wumbl3.xyz/v:1.5/"
 		}
 	}
 	</script>

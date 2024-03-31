@@ -1,6 +1,6 @@
 import { io } from "../_/dependencies/socket.io.esm.min.js";
 
-import { html, css } from "https://zyx.wumbl3.xyz/v:1.4/";
+import { html, css } from "https://zyxx.wumbl3.xyz/v:1.4/";
 
 css`
 	.auto-reload_alert {
