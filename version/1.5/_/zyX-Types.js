@@ -3,41 +3,24 @@ export class WeakRefSet extends Set {
         super.add(new WeakRef(ref));
     }
 
-    push(ref) {
-        super.add(new WeakRef(ref));
-    }
-
     forEach(callback) {
-        for (const ref of this.get()) {
-            callback(ref);
-        }
+        for (const ref of this.get()) callback(ref);
     }
 
-    removeRef(_ref) {
-        for (const ref of [...this.values()]) {
-            if (ref.deref() === _ref) {
-                this.delete(ref);
-                return true;
-            }
+    delete(ref) {
+        for (const weakRef of [...super.values()]) {
+            if (weakRef.deref() === ref) return super.delete(weakRef);
         }
+        return false;
     }
 
     get() {
-        const values = [...this.values()]
-        return values
+        return [...super.values()]
             .map((weakRef) => {
                 const obj = weakRef.deref();
-                if (obj !== undefined) return obj;
-                else return this.delete(weakRef) || false;
+                if (obj === undefined) return !super.delete(weakRef);
+                return obj;
             })
             .filter((_) => _);
     }
-
-    getRefs = this.get;
-    delete = this.removeRef;
-
-    clear() {
-        super.clear();
-    }
-
 }

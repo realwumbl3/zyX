@@ -43,7 +43,6 @@ import {
 	timeoutLimiter,
 	events,
 	forQuery,
-	pathContains,
 	setProps,
 	pointerEventPathContains
 } from "./_/zyX-Toolbox.js";
@@ -62,7 +61,6 @@ import calculateDominantColor from "./_/zyX-HUE.js";
 const zyXMethods = {
 	forQuery,
 	setProps,
-	pathContains,
 	events,
 	delay,
 	clearDelay,
@@ -124,7 +122,6 @@ export {
 	//
 	forQuery,
 	setProps,
-	pathContains,
 	pointerEventPathContains,
 	calculateDominantColor,
 	// 

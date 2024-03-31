@@ -13,7 +13,7 @@ export class FocusController {
         const module = this.focused_module_ref?.deref();
         if (!module) return null;
         if (!module?.__focusable__ instanceof Focusable) {
-            raise("Module THAT IS FOCUSED is not focusable class.");
+            raise("Module is not binded with focusable class.");
             return null;
         }
         return module;

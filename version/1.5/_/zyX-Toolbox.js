@@ -55,15 +55,6 @@ export function timeoutLimiter({ cooldown = 60, last } = {}) {
 	};
 }
 
-export function pathContains(e, match) {
-	for (let element of (e.composedPath && e.composedPath())) {
-		if (element === document) return false;
-		if (typeof match === "string" && element.matches(match)) return element;
-		else if (element === match) return element;
-	}
-	return false;
-}
-
 export function pointerEventPathContains(e, cssSelector) {
 	return (e.composedPath && e.composedPath()).some(e => e.matches?.(cssSelector))
 }
