@@ -1,5 +1,5 @@
 import { ZyXHtml } from "./zyX-HTML.js";
-import { WeakRefSet } from "./zyX-Toolbox.js";
+import { WeakRefSet } from "./zyX-Types.js";
 
 export class ZyXDomArray {
     /**
@@ -41,7 +41,8 @@ export class ZyXDomArray {
         this.update();
     }
 
-    arrayModified = () => {
+    arrayModified = (array, method, ...elements) => {
+        console.log({ array, method, elements });
         if (this.#debounce <= 0) return this.update();
         if (this.#pending_update) clearTimeout(this.#pending_update);
         this.#pending_update = setTimeout(() => {

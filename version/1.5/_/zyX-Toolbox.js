@@ -36,29 +36,15 @@ export function raf({ env, func, goal, logging, start = false, callback, after_c
 }
 
 export function forQuery(that, query, cbfn) {
-	try {
-		[...that.querySelectorAll(query)].forEach((_) => cbfn(_));
-	} catch (err) {
-		console.error(err);
-		throw err;
-	}
+	return [...that.querySelectorAll(query)].forEach((_) => cbfn(_));
 }
 
 export function setProps(that, props) {
-	try {
-		for (let [property_name, property] of Object.entries(props)) {
-			that.style.setProperty(property_name, property);
-		}
-	} catch (err) {
-		console.error(err);
-		throw err;
-	}
+	Object.entries(props).forEach(([prop, val]) => that.style.setProperty(prop, val))
 }
 
-export function events(that, _events, callbackfn) {
-	for (let event of _events.split(" ")) {
-		that.addEventListener(event, callbackfn);
-	}
+export function events(that, events, cb) {
+	events.split(" ").forEach((event) => that.addEventListener(event, cb))
 }
 
 export function timeoutLimiter({ cooldown = 60, last } = {}) {
@@ -69,13 +55,8 @@ export function timeoutLimiter({ cooldown = 60, last } = {}) {
 	};
 }
 
-export function rightClick(element, func) {
-	zyX(element).events("contextmenu", (_) => func(_));
-}
-
 export function pathContains(e, match) {
-	let path = e.path || (e.composedPath && e.composedPath());
-	for (let element of path) {
+	for (let element of (e.composedPath && e.composedPath())) {
 		if (element === document) return false;
 		if (typeof match === "string" && element.matches(match)) return element;
 		else if (element === match) return element;
@@ -84,84 +65,5 @@ export function pathContains(e, match) {
 }
 
 export function pointerEventPathContains(e, cssSelector) {
-	const path = e.path || (e.composedPath && e.composedPath());
-	return path.some(e => e.matches?.(cssSelector))
-}
-
-export function pointerDrag(node, callback) {
-	const state = {
-		active: null,
-	};
-	node.addEventListener("pointerup", (_) => (state.active = false));
-	node.addEventListener("pointerdown", (_) => {
-		state.active = true;
-		callback(_);
-	});
-	node.addEventListener("pointermove", (_) => {
-		if (!state.active) return;
-		callback(_);
-	});
-}
-
-export function pointerDragGlobal(node, callback) {
-	const state = {
-		active: null,
-	};
-	node.addEventListener("pointerdown", (_) => {
-		state.active = true;
-		callback(_);
-	});
-	window.addEventListener("pointermove", (_) => {
-		if (!state.active) return;
-		callback(_);
-	});
-	window.addEventListener("pointerup", (_) => (state.active = false));
-}
-
-export class WeakRefSet extends Set {
-	add(ref) {
-		super.add(new WeakRef(ref));
-	}
-
-	push(ref) {
-		super.add(new WeakRef(ref));
-	}
-
-	forEach(callback) {
-		for (const ref of this.get()) {
-			callback(ref);
-		}
-	}
-
-	removeRef(_ref) {
-		for (const ref of [...this.values()]) {
-			if (ref.deref() === _ref) {
-				this.delete(ref);
-				return true;
-			}
-		}
-	}
-
-	get() {
-		const values = [...this.values()]
-		return values
-			.map((weakRef) => {
-				const obj = weakRef.deref();
-				if (obj !== undefined) {
-					return obj;
-				} else {
-					this.delete(weakRef);
-					return false;
-				}
-			})
-			.filter((_) => _);
-	}
-
-	getRefs = this.get;
-	delete = this.removeRef;
-
-	clear() {
-		super.clear();
-	}
-
+	return (e.composedPath && e.composedPath()).some(e => e.matches?.(cssSelector))
 }
