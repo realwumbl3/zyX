@@ -1,14 +1,17 @@
 // #region [Imports] Copyright wumbl3 ©️ 2023 - No copying / redistribution / modification unless strictly allowed.
+import ZyXInput, { returnFuse } from "../zyX-Input.js";
 // #endregion
-export default function ClickOne(element, arg, opts) {
-    let {
-        onClick = typeof arg === "function" ? arg : null,
-        onDown = null,
-        once = false,
-        capture = false,
-        stopPropagation = false,
-        stopImmediatePropagation = false,
-    } = opts || arg;
+
+/** * @this {ZyXInput} */
+export default function ClickOne(element, {
+    onClick = null,
+    onDown = null,
+    once = false,
+    capture = false,
+    stopPropagation = false,
+    stopImmediatePropagation = false,
+    label = "click"
+}) {
     const func = (dwn_e) => {
 
         stopPropagation && dwn_e.stopPropagation()
@@ -23,15 +26,15 @@ export default function ClickOne(element, arg, opts) {
 
         const { clientX, clientY, target } = dwn_e;
 
-        const event_fuse = this.returnFuse(true)
+        const eventFuse = returnFuse(true, { label })
 
-        this.activeEvents.push(event_fuse);
+        this.activeEvents.add(eventFuse);
 
         const { check } = this.moveTripper({ startX: clientX, startY: clientY });
 
         element.addEventListener("pointerup", (up_e) => {
-            if (!check(up_e) && event_fuse.true && up_e.target === target) {
-                this.kingOfTheStack(event_fuse)
+            if (!check(up_e) && eventFuse.true && up_e.target === target) {
+                this.kingOfTheStack(eventFuse)
                 onClick({ dwn_e, up_e, down_return }, b4);
             }
         }, { once: true })
@@ -42,4 +45,14 @@ export default function ClickOne(element, arg, opts) {
     return {
         unbind: _ => element.removeEventListener("pointerdown", func, { capture })
     }
+}
+
+/** * @this {ZyXInput} */
+export function Click(element, callback) {
+    element.setAttribute("click-enabled", "");
+    element.addEventListener("pointerdown", (e) => {
+        const b4 = this.beforePointerEvent("custom-click", e);
+        if (!b4) return nullifyEvent(e);
+        element.addEventListener("click", callback, { once: true })
+    })
 }

@@ -1,6 +1,7 @@
 // #region [Imports] Copyright wumbl3 ©️ 2023 - No copying / redistribution / modification unless strictly allowed.
-import zyX, { html, isMobile } from "../../";
+import zyX, { html, isMobile, WeakRefSet } from "../../";
 // #endregion
+
 export default class BackHandler {
 	constructor() {
 		this.tapsToExit = 3;
@@ -17,11 +18,11 @@ export default class BackHandler {
 		`
 			.bind(this)
 
-		this.onBack = [];
+		this.onBack = new WeakRefSet();
 	}
 
 	handleBackButton() {
-		const sorted_by_weigth = this.onBack.sort((a, b) => (a.weigth > b.weigth ? 1 : -1));
+		const sorted_by_weigth = this.onBack.get().sort((a, b) => (a.weigth > b.weigth ? 1 : -1));
 
 		for (const cb of sorted_by_weigth) {
 			if (cb.cb()) {
@@ -52,7 +53,11 @@ export default class BackHandler {
 	}
 
 	on(cb, args) {
-		this.onBack.push({ cb, weigth: 0, ...args });
+		this.onBack.add({ cb, weigth: 0, ...args });
 	}
 
+}
+
+function ss(int) {
+	return (int > 1 ? "s" : "")
 }

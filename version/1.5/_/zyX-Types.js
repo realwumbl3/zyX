@@ -4,14 +4,16 @@ export class WeakRefSet extends Set {
     }
 
     forEach(callback) {
-        for (const ref of this.get()) callback(ref);
+        for (const ref of this.get()) callback(ref)
     }
 
     delete(ref) {
-        for (const weakRef of [...super.values()]) {
-            if (weakRef.deref() === ref) return super.delete(weakRef);
-        }
+        for (const weakRef of [...super.values()]) if (weakRef.deref() === ref) return super.delete(weakRef);
         return false;
+    }
+
+    singleize(ref) {
+        for (const weakRef of [...super.values()]) if (weakRef.deref() !== ref) super.delete(weakRef);
     }
 
     get() {

@@ -1,10 +1,10 @@
 // #region [Imports] Copyright wumbl3 ©️ 2023 - No copying / redistribution / modification unless strictly allowed.
 import zyX, { pointerEventPathContains } from "../../";
-
+import ZyXInput, { returnFuse } from "../zyX-Input.js";
 import { angleToDirection, calculateAngle, calculateFourAngleSnap } from "./Functions.js";
-
 // #endregion
 
+/** * @this {ZyXInput} */
 export default function PointerDownMoveUp(element, {
     onDown,
     onStartMove,
@@ -20,24 +20,28 @@ export default function PointerDownMoveUp(element, {
     stopMovePropagation = false,
     stopImmediateMovePropagation = false,
     movePrecision = 1,
+    label = "pointerdownmoveup"
 } = {}) {
 
     const down_func = (dwn_e) => {
 
         deadzone = deadzone || this.moveTripperDist;
 
-        const b4 = this.beforePointerEvent("pointerdownmoveup", dwn_e);
-        if (!b4) return false
+        if (!this.beforePointerEvent("pointerdownmoveup", dwn_e)) return false
 
         const {
-            event_fuse = this.returnFuse(true),
-            pointerDown = this.returnFuse(true),
-            startX, startY
-        } = { startX: dwn_e.clientX, startY: dwn_e.clientY }
+            eventFuse = returnFuse(true, { label }),
+            pointerDown = returnFuse(true, { label }),
+            startX,
+            startY
+        } = {
+            startX: dwn_e.clientX,
+            startY: dwn_e.clientY
+        }
 
-        this.activeEvents.push(event_fuse);
+        this.activeEvents.add(eventFuse);
 
-        const { move_fuse, check } = this.simpleMoveTripper({ startX, startY, deadzone });
+        const { moveFuse, check } = this.simpleMoveTripper({ startX, startY, deadzone });
 
         stopPropagation && dwn_e.stopPropagation()
         stopImmediatePropagation && dwn_e.stopImmediatePropagation()
@@ -46,16 +50,16 @@ export default function PointerDownMoveUp(element, {
             startAngle = null,
             moveCalledOnce = false,
             latest_move_e = null,
-            startMove
+            startMove,
+            pixels_moved = 0
         } = {}
 
         const down_return = onDown({
             dwn_e,
-            b4,
-            move_fuse,
+            moveFuse,
             pointerDown,
-            event_fuse,
-            kingOfTheStack: _ => this.kingOfTheStack(event_fuse),
+            eventFuse,
+            kingOfTheStack: _ => this.kingOfTheStack(eventFuse),
             pathContains: (selector) => pointerEventPathContains(dwn_e, selector)
         });
 
@@ -69,16 +73,12 @@ export default function PointerDownMoveUp(element, {
 
         const fourAngleSnap = (e) => calculateFourAngleSnap(angleFromStart(e));
 
-        let pixels_moved = 0;
-
         const move_wrapped = (mv_e) => {
             try {
 
-                if (event_fuse.false) {
-                    verbose && console.log({ element }, "event_fuse.false, returning")
-
+                if (eventFuse.false) {
+                    verbose && console.log({ element }, "eventFuse.false, returning")
                     return unbind();
-
                 }
 
                 pixels_moved++;
@@ -105,9 +105,9 @@ export default function PointerDownMoveUp(element, {
                     movementY: mv_e.movementY,
                     stop: unbind,
                     up: canceled_or_up,
-                    move_fuse,
+                    moveFuse,
                     startMove,
-                    kingOfTheStack: _ => this.kingOfTheStack(event_fuse),
+                    kingOfTheStack: _ => this.kingOfTheStack(eventFuse),
                     clearAllSelections: () => this.clearAllSelections(),
                     fourAngleSnap: () => fourAngleSnap(mv_e),
                     angleFromStart: () => angleFromStart(mv_e),
@@ -129,19 +129,12 @@ export default function PointerDownMoveUp(element, {
                     }
                 }
 
-                this.kingOfTheStack(event_fuse);
+                this.kingOfTheStack(eventFuse);
 
                 moveCalledOnce = true;
 
             } catch (e) {
-                console.error(e, {
-                    element,
-                    onDown,
-                    onStartMove,
-                    onMove,
-                    onUp,
-                    once,
-                })
+                console.error(e)
             }
         }
 
@@ -156,7 +149,7 @@ export default function PointerDownMoveUp(element, {
                 startY,
                 startAngle,
                 startMove,
-                move_fuse,
+                moveFuse,
                 onStartMove,
                 fourAngleSnap: () => fourAngleSnap(up_e),
                 angleFromStart: () => angleFromStart(up_e),

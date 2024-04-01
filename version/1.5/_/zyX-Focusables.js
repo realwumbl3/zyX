@@ -5,10 +5,6 @@ export class FocusController {
         this.options = { redirect: null };
     }
 
-    setApp(app) {
-        this.app = app;
-    }
-
     getFocusedModule() {
         const module = this.focused_module_ref?.deref();
         if (!module) return null;

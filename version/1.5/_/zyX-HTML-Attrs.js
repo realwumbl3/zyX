@@ -63,7 +63,6 @@ zyxBindAttributes["zyx-click-pop"] = ({ node, data }) => {
 		`.const()
 			.appendTo(node)
 			.pass(_ => {
-				console.log("touch", _);
 				_.circle.style.left = xPer + "px";
 				_.circle.style.top = yPer + "px";
 				_.circle.addEventListener("animationend", function () {
