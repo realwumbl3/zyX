@@ -23,7 +23,6 @@ import { ZyXHtml, html } from "./_/zyX-HTML.js";
 
 css`@import url(${root}_/@css/zyX-Attr.css);`;
 
-import { zyXPost, zyXGet, getImageBlob } from "./_/zyX-Fetch.js";
 
 import { offset, offsetLimit } from "./_/zyX-Math.js";
 
@@ -44,7 +43,10 @@ import {
 	events,
 	forQuery,
 	setProps,
-	pointerEventPathContains
+	pointerEventPathContains,
+	hexToRGB,
+	hexToHSL,
+	exposeToWindow, ss, clamp, ceilClamp, minMax, seedShuffle, seedRandom
 } from "./_/zyX-Toolbox.js";
 
 import zyXCookie from "./_/zyX-Cookie.js";
@@ -90,6 +92,9 @@ export default function zyX(that) {
 
 export function isMobile() { return navigator.maxTouchPoints > 0; }
 
+import { zyXPost, zyXGet, zyXFormPost, zyXFetchBlob, resizeImageToCanvas, urlSplitExt } from "./_/zyX-Fetch.js";
+import ScrollTo from "./_/zyX-ScrollTo.js";
+
 /////// \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 export {
 	//
@@ -111,18 +116,32 @@ export {
 	AsynConstructor,
 	//
 	zyXCookie,
-	zyXPost,
 	zyXGet,
-	getImageBlob,
+	zyXFetchBlob,
+	zyXPost,
+	zyXFormPost,
+	urlSplitExt,
 	//
+	resizeImageToCanvas,
+	calculateDominantColor,
+	//
+	exposeToWindow,
+	ss,
 	offset,
 	offsetLimit,
+	clamp,
+	ceilClamp,
+	minMax,
+	seedShuffle,
+	seedRandom,
 	functions,
+	hexToRGB,
+	hexToHSL,
 	//
 	forQuery,
 	setProps,
 	pointerEventPathContains,
-	calculateDominantColor,
+	ScrollTo,
 	// 
 	delay,
 	clearDelay,

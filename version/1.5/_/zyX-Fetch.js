@@ -1,9 +1,9 @@
-export function zyXPost(url, _) {
+export function zyXPost(url, data) {
     return fetch(url, {
         headers: new Headers({ "Content-Type": "application/json" }),
         method: "POST",
         credentials: 'include',
-        body: JSON.stringify(_)
+        body: JSON.stringify(data)
     })
 }
 
@@ -15,18 +15,56 @@ export function zyXGet(url) {
     })
 }
 
-export function getImageBlob(url) {
+export function zyXFormPost(url, data) {
+    const formData = new FormData();
+    Object.entries(data).forEach(formData.append);
+    return fetch(url,
+        { method: "POST", body: formData }
+    )
+}
+
+export async function zyXFetchBlob(url) {
+    const response = await fetch(url);
+    if (response.ok) {
+        const blob = await response.blob();
+        const objectURL = URL.createObjectURL(blob);
+        return { blob, objectURL };
+    } else {
+        throw new Error("blobFetch failed");
+    }
+}
+
+async function loadImg(url) {
     return new Promise((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.open("GET", url, true);
-        xhr.responseType = "blob";
-        xhr.onload = () => {
-            if (xhr.status === 200) {
-                resolve(xhr.response);
-            } else {
-                reject(new Error("Image loading error"));
-            }
-        };
-        xhr.send();
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = url;
     });
 }
+
+export async function resizeImageToCanvas(url, maxSide) {
+    const image = await loadImg(url);
+    maxSide = maxSide || 512;
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    const [width, height] = resizeImage(image.width, image.height, maxSide);
+    canvas.width = width;
+    canvas.height = height;
+    ctx.drawImage(image, 0, 0, width, height);
+    return canvas
+}
+
+function resizeImage(width, height, maxSize) {
+    if (width > maxSize || height > maxSize) {
+        const ratio = maxSize / Math.max(width, height);
+        return [width * ratio, height * ratio]
+    }
+    return [width, height];
+}
+
+export function urlSplitExt(url) {
+    const filename = url.replace(/^.*[\\\/]/, "").split("?")[0];
+    return { filename, ext: filename.split(".").pop() };
+}
+
