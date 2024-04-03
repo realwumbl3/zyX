@@ -52,9 +52,11 @@ import {
 
 import zyXCookie from "./_/zyX-Cookie.js";
 
+
 import ZyXEvents from "./_/zyX-Event.js";
 import ZyXAudio from "./_/zyX-Audio.js";
 import ZyXInput, { functions } from "./_/zyX-Input.js";
+import { Focusable, FocusController } from "./_/zyX-Focusables.js";
 
 import calculateDominantColor from "./_/zyX-HUE.js";
 
@@ -113,6 +115,9 @@ export {
 	ZyXEvents,
 	ZyXInput,
 	ZyXAudio,
+	//
+	Focusable,
+	FocusController,
 	//
 	AsyncWorker,
 	AsynConstructor,
