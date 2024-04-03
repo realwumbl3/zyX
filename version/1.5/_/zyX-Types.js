@@ -26,3 +26,38 @@ export class WeakRefSet extends Set {
             .filter((_) => _);
     }
 }
+
+export class Fuze {
+    #data;
+    #randomId;
+    constructor(state, data) {
+        this.true = state;
+        this.false = !state;
+        this.#data = data;
+        this.#randomId = Math.random().toString(36).substring(7);
+    }
+
+    reset(callback) {
+        this.true = false;
+        this.false = true;
+        typeof callback === "function" && callback()
+        return this
+    }
+
+    falseTrue(_false, _true, ...args) {
+        this.true ? _true(...args) : _false(...args)
+        return this
+    }
+
+    setTrue() {
+        this.true = true
+        this.false = false
+        return this
+    }
+
+    setFalse() {
+        this.true = false
+        this.false = true
+        return this
+    }
+}

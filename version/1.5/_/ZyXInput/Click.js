@@ -1,5 +1,7 @@
 // #region [Imports] Copyright wumbl3 ©️ 2023 - No copying / redistribution / modification unless strictly allowed.
-import ZyXInput, { returnFuse } from "../zyX-Input.js";
+import ZyXInput from "../zyX-Input.js";
+import { Fuze } from "../../";
+
 // #endregion
 
 /** * @this {ZyXInput} */
@@ -26,7 +28,7 @@ export default function ClickOne(element, {
 
         const { clientX, clientY, target } = dwn_e;
 
-        const eventFuse = returnFuse(true, { label })
+        const eventFuse = new Fuze(true, { label })
 
         this.activeEvents.add(eventFuse);
 

@@ -1,5 +1,5 @@
-import ZyXInput, { returnFuse } from "../zyX-Input.js";
-import zyX from "../../";
+import ZyXInput from "../zyX-Input.js";
+import zyX, { Fuze } from "../../";
 
 import clickOne, { Click as click } from "./Click.js";
 import rightClick from "./RightClick.js";
@@ -26,8 +26,8 @@ export function clickOrTwo(element, {
     label = "click-or-two",
     preventDefault = true
 } = {}, {
-    active_fuse = returnFuse(),
-    db_fuse = returnFuse()
+    active_fuse = new Fuze(),
+    db_fuse = new Fuze()
 } = {}) {
     this.on(element).clickOne({
         preventDefault,
@@ -35,7 +35,7 @@ export function clickOrTwo(element, {
         onClick: ({ dwn_e, up_e }) => {
             if (cooldown) return;
 
-            if (active_fuse.true) return db_fuse.True();
+            if (active_fuse.true) return db_fuse.setTrue();
 
             zyX({}).delay("click", doubleWait || this.clickOrTwoWindowMs, () => {
                 active_fuse.reset()
@@ -49,7 +49,7 @@ export function clickOrTwo(element, {
                 db_fuse.reset()
             })
 
-            active_fuse.True();
+            active_fuse.setTrue();
         }
     })
 }

@@ -1,5 +1,5 @@
 // #region [Imports] Copyright wumbl3 ©️ 2023 - No copying / redistribution / modification unless strictly allowed.
-import zyX, { pointerEventPathContains, WeakRefSet } from "../";
+import zyX, { pointerEventPathContains, WeakRefSet, Fuze } from "../";
 
 import * as functions from "./ZyXInput/Functions.js";
 export { functions }
@@ -153,18 +153,18 @@ export default class ZyXInput {
     }
 
     moveTripper({ startX, startY, deadzone } = {}) {
-        const { moveFuse, check } = this.simpleMoveTripper({ startX, startY, deadzone });
+        const { moveFuse, check } = this.deadzone({ startX, startY, deadzone });
         document.addEventListener("pointermove", check);
         document.addEventListener("pointerup", () => document.removeEventListener("pointermove", check), { once: true })
         return { moveFuse, check }
     }
 
-    simpleMoveTripper({
-        startX, startY, deadzone = this.moveTripperDist, moveFuse = returnFuse()
+    deadzone({
+        startX, startY, deadzone = this.moveTripperDist, moveFuse = new Fuze()
     } = {}) {
         return {
             moveFuse, check: (e) => {
-                Math.hypot(e.clientX - startX, e.clientY - startY) > deadzone && moveFuse.True()
+                Math.hypot(e.clientX - startX, e.clientY - startY) > deadzone && moveFuse.setTrue()
                 return moveFuse.true
             }
         }
@@ -211,32 +211,4 @@ export function nullifyEvent(e) {
     e.stopImmediatePropagation();
     e.preventDefault();
     return false;
-}
-
-export function returnFuse(init_state, data) {
-    return {
-        data,
-        randomId: Math.random().toString(36).substring(7),
-        true: init_state ? true : false,
-        false: init_state ? false : true,
-        True: function () {
-            this.true = true
-            this.false = false
-            return this
-        },
-        False: function () {
-            this.true = false
-            this.false = true
-            return this
-        },
-        reset: function (callback) {
-            this.true = false;
-            typeof callback === "function" && callback()
-            return this
-        },
-        falseTrue: function (_false, _true, ...args) {
-            this.true ? _true(...args) : _false(...args)
-            return this
-        }
-    };
 }

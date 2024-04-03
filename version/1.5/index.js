@@ -36,7 +36,7 @@ import {
 	debounce
 } from "./_/zyX-Delay.js";
 
-import { WeakRefSet } from "./_/zyX-Types.js";
+import { WeakRefSet, Fuze } from "./_/zyX-Types.js";
 
 import {
 	timeoutLimiter,
@@ -100,6 +100,7 @@ import ScrollTo from "./_/zyX-ScrollTo.js";
 export {
 	//
 	WeakRefSet,
+	Fuze,
 	//
 	ZyXDomArray,
 	ZyXArray,

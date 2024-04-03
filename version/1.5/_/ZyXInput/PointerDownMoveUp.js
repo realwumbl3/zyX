@@ -1,6 +1,6 @@
 // #region [Imports] Copyright wumbl3 ©️ 2023 - No copying / redistribution / modification unless strictly allowed.
-import zyX, { pointerEventPathContains } from "../../";
-import ZyXInput, { returnFuse } from "../zyX-Input.js";
+import zyX, { pointerEventPathContains, Fuze} from "../../";
+import ZyXInput from "../zyX-Input.js";
 import { angleToDirection, calculateAngle, calculateFourAngleSnap } from "./Functions.js";
 // #endregion
 
@@ -30,8 +30,8 @@ export default function PointerDownMoveUp(element, {
         if (!this.beforePointerEvent("pointerDownMoveUp", dwn_e)) return false
 
         const {
-            eventFuse = returnFuse(true, { label }),
-            pointerDown = returnFuse(true, { label }),
+            eventFuse = new Fuze(true, { label }),
+            pointerDown = new Fuze(true, { label }),
             startX,
             startY
         } = {
@@ -41,7 +41,7 @@ export default function PointerDownMoveUp(element, {
 
         this.activeEvents.add(eventFuse);
 
-        const { moveFuse, check } = this.simpleMoveTripper({ startX, startY, deadzone });
+        const { moveFuse, check } = this.deadzone({ startX, startY, deadzone });
 
         stopPropagation && dwn_e.stopPropagation()
         stopImmediatePropagation && dwn_e.stopImmediatePropagation()
@@ -139,7 +139,7 @@ export default function PointerDownMoveUp(element, {
         }
 
         const canceled_or_up = (up_e) => {
-            pointerDown.False();
+            pointerDown.setFalse();
             unbind();
             const call = {
                 dwn_e,
