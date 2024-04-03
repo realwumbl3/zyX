@@ -18,14 +18,18 @@ export default class BackHandler {
 		`
 			.bind(this)
 
-		this.onBack = new WeakRefSet();
+		this.onBack = [];
 	}
 
 	handleBackButton() {
-		const sorted_by_weigth = this.onBack.get().sort((a, b) => (a.weigth > b.weigth ? 1 : -1));
-
-		for (const cb of sorted_by_weigth) {
-			if (cb.cb()) {
+		const sortedByWeight = this.onBack.sort((a, b) => (a.weight > b.weight ? 1 : -1));
+		for (const bind of sortedByWeight) {
+			const callback = bind.cb.deref();
+			if (!callback) {
+				this.onBack.splice(this.onBack.indexOf(bind), 1);
+				continue;
+			}
+			if (callback()) {
 				window.history.pushState({}, "");
 				return;
 			}
@@ -53,7 +57,7 @@ export default class BackHandler {
 	}
 
 	on(cb, args) {
-		this.onBack.add({ cb, weigth: 0, ...args });
+		this.onBack.push({ cb: new WeakRef(cb), weight: 0, ...args });
 	}
 
 }

@@ -1,8 +1,7 @@
 export class FocusController {
-    constructor() {
-        this.default_focusuable = null;
+    constructor(default_focusable) {
+        this.default_focusable = default_focusable;
         this.focused_module_ref = null;
-        this.options = { redirect: null };
     }
 
     getFocusedModule() {
@@ -15,16 +14,19 @@ export class FocusController {
         return module;
     }
 
-    setRedirection(module) {
-        this.options.redirect = module;
+    setDefaultFocusable(module) {
+        if (!module.__focusable__ instanceof Focusable) {
+            throw new Error("Module is not focusable class.");
+        }
+        this.default_focusable = module;
     }
 
     setFocus(module) {
         //// Module is already focused, call its unfocus method first.
         const prevModule = this.getFocusedModule();
         if (prevModule) prevModule.__unFocus__?.();
-        //// setting null focus resets focus back to main default_focusuable.
-        if (module === null) module = this.default_focusuable;
+        //// setting null focus resets focus back to default_focusable.
+        if (module === null) module = this.default_focusable;
         //// If module asks to redirect to another module as its focus, do it.
         if (!module.__focusable__) {
             throw new Error("Module is not focusable class.");
