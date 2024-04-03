@@ -13,7 +13,9 @@ import { XboxControllerMap } from "./ZyXInput/Functions.js";
 // #endregion
 
 export default class ZyXInput {
-    constructor({ customQueryFunc, customClearSelections } = {}) {
+    constructor({ customQueryFunc, customClearSelections, onKeyPress = null } = {}) {
+        this.onKeyPress = onKeyPress;
+
         this.customQueryFunc = customQueryFunc;
         this.customClearSelections = customClearSelections
 
@@ -83,8 +85,8 @@ export default class ZyXInput {
 
     }
 
-    setupMomentumScroll(container) {
-        return new MomentumScroll(this, container);
+    bindMomentumScroll(container, opts) {
+        return new MomentumScroll(this, container, opts);
     }
 
     queryApplication(query) {
@@ -178,6 +180,8 @@ export default class ZyXInput {
                 e.metaKey ||
                 this.queryApplication("input:focus,textarea:focus").length > 0
             ) return false;
+
+            this?.onKeyPress?.(event, e);
 
             const module = this.focus.getFocusedModule();
             if (typeof module?.keyEvent !== "function") return false;
