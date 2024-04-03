@@ -101,6 +101,8 @@ export class ZyXHtml {
 		if (this.#isTemplate) this.#dom = this.#dom.content;
 		else this.#dom = this.#dom.firstElementChild;
 
+		this.#oven = null;
+		this.#data = null;
 		this.#constructed = true;
 		return this;
 	}

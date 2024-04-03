@@ -42,11 +42,12 @@ import {
 	timeoutLimiter,
 	events,
 	forQuery,
+	placeSafely,
 	setProps,
 	pointerEventPathContains,
 	hexToRGB,
 	hexToHSL,
-	exposeToWindow, ss, clamp, ceilClamp, minMax, seedShuffle, seedRandom
+	exposeToWindow, ss, clamp, ceilClamp, minMax, seedShuffle, seedRandom,
 } from "./_/zyX-Toolbox.js";
 
 import zyXCookie from "./_/zyX-Cookie.js";
@@ -138,6 +139,7 @@ export {
 	hexToRGB,
 	hexToHSL,
 	//
+	placeSafely,
 	forQuery,
 	setProps,
 	pointerEventPathContains,

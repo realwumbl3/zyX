@@ -10,10 +10,10 @@ export default function ClickOne(element, {
     capture = false,
     stopPropagation = false,
     stopImmediatePropagation = false,
+    preventDefault = true,
     label = "click"
 }) {
     const func = (dwn_e) => {
-
         stopPropagation && dwn_e.stopPropagation()
         stopImmediatePropagation && dwn_e.stopImmediatePropagation()
 
@@ -41,18 +41,28 @@ export default function ClickOne(element, {
     }
 
     element.addEventListener("pointerdown", func, { once, capture })
+    if (preventDefault) element.addEventListener("click", e => e.preventDefault(), { once, capture })
 
     return {
-        unbind: _ => element.removeEventListener("pointerdown", func, { capture })
+        unbind: _ => {
+            element.removeEventListener("pointerdown", func, { capture })
+            element.removeEventListener("click", e => e.preventDefault(), { capture })
+        }
     }
 }
 
 /** * @this {ZyXInput} */
 export function Click(element, callback) {
+    console.log("bind click")
     element.setAttribute("click-enabled", "");
     element.addEventListener("pointerdown", (e) => {
+        console.log("pointerdown")
         const b4 = this.beforePointerEvent("custom-click", e);
+        console.log("caa", b4)
         if (!b4) return nullifyEvent(e);
-        element.addEventListener("click", callback, { once: true })
+        element.addEventListener("click", () => {
+            console.log("lick")
+            callback()
+        }, { once: true })
     })
 }

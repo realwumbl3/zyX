@@ -38,7 +38,7 @@ export class MomentumScroll {
             this.wheel(e)
         }, { capture: true, passive: false });
 
-        input_binder.on(this.container).pointerdownmoveup({
+        input_binder.on(this.container).pointerDownMoveUp({
             capture: true,
             captureMove: true,
             onDown: () => {

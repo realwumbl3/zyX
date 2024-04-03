@@ -1,9 +1,24 @@
+import { sleep } from "./zyX-Async.js";
+
 export function forQuery(that, query, cbfn) {
 	return [...that.querySelectorAll(query)].forEach((_) => cbfn(_));
 }
 
 export function setProps(that, props) {
 	Object.entries(props).forEach(([prop, val]) => that.style.setProperty(prop, val))
+}
+
+export async function placeSafely(target, container, x, y) {
+	container.appendChild(target);
+	target.style[y >= 0 ? "top" : "bottom"] = Math.abs(y) + "em";
+	target.style[x >= 0 ? "left" : "right"] = Math.abs(x) + "em";
+	await sleep(1)
+	const { offsetWidth: targetWidth, offsetHeight: targetHeight } = target;
+	const { offsetWidth: containerWidth, offsetHeight: containerHeight } = container;
+	const { left, top, bottom, right } = target.getBoundingClientRect();
+	if (!(left < 0 || top < 0 || bottom > containerHeight || right > containerWidth)) return
+	bottom > containerHeight && (target.style.top = `${containerHeight - targetHeight}px`)
+	right > containerWidth && (target.style.left = `${containerWidth - targetWidth}px`)
 }
 
 export function events(that, events, cb, options = {}) {

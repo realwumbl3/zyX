@@ -1,34 +1,17 @@
 // #region [Imports] Copyright wumbl3 ©️ 2023 - No copying / redistribution / modification unless strictly allowed.
 import zyX, { pointerEventPathContains, WeakRefSet } from "../";
 
-import ClickOne, { Click } from "./ZyXInput/Click.js";
-import ClickOrTwo from "./ZyXInput/ClickOrTwo.js";
-import RightClick from "./ZyXInput/RightClick.js";
-import PointerDownMoveUp from "./ZyXInput/PointerDownMoveUp.js";
-import Wheel from "./ZyXInput/Wheel.js";
-
 import * as functions from "./ZyXInput/Functions.js";
 export { functions }
+
+import * as presets from "./ZyXInput/Presets.js";
 
 import { MomentumScroll } from "./ZyXInput/Scrolling.js";
 import BackHandler from "./ZyXInput/Back.js";
 import { Focusable, FocusController } from "./zyX-Focusables.js";
 import { XboxControllerMap } from "./ZyXInput/Functions.js";
 // #endregion
-const inputTypes = {
-    Click,
-    ClickOne,
-    ClickOrTwo,
-    RightClick,
-    PointerDownMoveUp,
-    Wheel,
-    click: Click,
-    clickOne: ClickOne,
-    clickOrTwo: ClickOrTwo,
-    rightClick: RightClick,
-    pointerDownMoveUp: PointerDownMoveUp,
-    wheel: Wheel
-}
+
 export default class ZyXInput {
     constructor({ customQueryFunc, customClearSelections } = {}) {
         this.customQueryFunc = customQueryFunc;
@@ -74,38 +57,28 @@ export default class ZyXInput {
         }, { weight: 1000 })
     }
 
-
     /**
      * 
      * @param {*} element 
-     * @returns {inputTypes}
+     * @returns {presets}
      */
     on(element) {
-        return new Proxy(inputTypes, { get: (o, k) => this.customEventHandlers(element, k) });
+        return new Proxy(presets, { get: (o, k) => this.customEventHandlers(element, k) });
     }
 
-    customEventHandlers(element, event_keyname) {
-        switch (event_keyname.toLowerCase()) {
-            case "click":
-                return (callback) => Click.bind(this)(element, callback)
-            case "clickone":
-                return (...args) => ClickOne.bind(this)(element, ...args)
-            case "clickortwo":
-                return (...args) => ClickOrTwo.bind(this)(element, ...args)
-            case "rightclick":
-                return (...args) => RightClick.bind(this)(element, ...args)
-            case "pointerdownmoveup":
-                return (...args) => PointerDownMoveUp.bind(this)(element, ...args)
-            case "wheel":
-                return (...args) => Wheel.bind(this)(element, ...args)
+    customEventHandlers(element, funcname) {
+        if (presets[funcname]) {
+            return (...args) => presets[funcname].bind(this)(element, ...args);
+        }
+        switch (funcname) {
             case "pointerdown":
             case "pointerup":
             case "dragstart":
                 return (callback) => {
-                    element.addEventListener(event_keyname, (e) => { const b4 = this.beforePointerEvent(event_keyname, e); callback(e, b4) });
+                    element.addEventListener(funcname, (e) => { const b4 = this.beforePointerEvent(funcname, e); callback(e, b4) });
                 }
             default:
-                throw new Error(`Event ${event_keyname} not found in ZyXInput`);
+                throw new Error(`Event function ${funcname}(elem, ...args) not found in ZyXInput.presets`);
         }
 
     }
@@ -133,7 +106,7 @@ export default class ZyXInput {
     }
 
     beforePointerEvent(event, e) {
-        const isButton = e.target?.matches("input[type=checkbox] , input[type=radio] , button , [click-enabled]");
+        const isButton = e.target?.matches("input[type=checkbox] , input[type=radio] , button");
         if (isButton) {
             e.stopPropagation();
             e.stopImmediatePropagation();
@@ -142,10 +115,11 @@ export default class ZyXInput {
         switch (event) {
             case "default-click":
                 if (!e.pointerType) return true;
+                if (e.target?.matches("[click-enabled]")) return false;
             case "pointerdown":
             case "dragstart":
                 if (e.target?.matches("a, [click-enabled]")) return false;
-            case "pointerdownmoveup":
+            case "pointerDownMoveUp":
             case "pointerdown":
             case "dragstart":
             case "custom-click":

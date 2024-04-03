@@ -20,14 +20,14 @@ export default function PointerDownMoveUp(element, {
     stopMovePropagation = false,
     stopImmediateMovePropagation = false,
     movePrecision = 1,
-    label = "pointerdownmoveup"
+    label = "pointerDownMoveUp"
 } = {}) {
 
     const down_func = (dwn_e) => {
 
         deadzone = deadzone || this.moveTripperDist;
 
-        if (!this.beforePointerEvent("pointerdownmoveup", dwn_e)) return false
+        if (!this.beforePointerEvent("pointerDownMoveUp", dwn_e)) return false
 
         const {
             eventFuse = returnFuse(true, { label }),

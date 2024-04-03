@@ -1,21 +1,36 @@
-// #region [Imports] Copyright wumbl3 ©️ 2023 - No copying / redistribution / modification unless strictly allowed.
-import zyX from "../../";
 import ZyXInput, { returnFuse } from "../zyX-Input.js";
-// #endregion
+import zyX from "../../";
+
+import clickOne, { Click as click } from "./Click.js";
+import rightClick from "./RightClick.js";
+import pointerDownMoveUp from "./PointerDownMoveUp.js";
+import wheel from "./Wheel.js";
+
+export { clickOne, click, rightClick, pointerDownMoveUp, wheel };
 
 /** * @this {ZyXInput} */
-export default function ClickOrTwo(element, {
+export function hrefDoubleClick(ele, ...args) {
+    this.on(ele).clickOrTwo({
+        single: (se) => window.open(ele.href, "_blank"),
+        double: (dbe) => window.open(ele.href, "_blank", ["height=1400", "width=1000", "top=10", "left=10"].join(","))
+    });
+}
+
+/** * @this {ZyXInput} */
+export function clickOrTwo(element, {
     single,
     double,
     doubleWait = false,
     cooldown,
     cooldownDuration = 350,
-    label = "click-or-two"
+    label = "click-or-two",
+    preventDefault = true
 } = {}, {
     active_fuse = returnFuse(),
     db_fuse = returnFuse()
 } = {}) {
     this.on(element).clickOne({
+        preventDefault,
         label,
         onClick: ({ dwn_e, up_e }) => {
             if (cooldown) return;
