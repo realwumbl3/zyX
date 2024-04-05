@@ -1,5 +1,3 @@
-export const { root, version } = getBaseMeta()
-console.log("[ZyX] Version:", version, "BaseDir:", root);
 /*
 	<script type="importmap">
 	{
@@ -11,18 +9,13 @@ console.log("[ZyX] Version:", version, "BaseDir:", root);
 	</script>
 */
 
-export function getBaseMeta() {
-	return { root: import.meta.url, version: import.meta.url.split("/").slice(-2)[0] }
-}
-
 import { ZyXDomArray, ZyXArray } from "./_/zyX-Reactive.js";
 
 import { css, zyxcss } from "./_/zyX-CSS.js";
 
 import { ZyXHtml, html } from "./_/zyX-HTML.js";
 
-css`@import url(${root}_/@css/zyX-Attr.css);`;
-
+import "./_/zyX-Init.js";
 
 import { offset, offsetLimit } from "./_/zyX-Math.js";
 
