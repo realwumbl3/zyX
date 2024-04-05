@@ -71,11 +71,7 @@ const zyXMethods = {
 	delayChain,
 	breakDelayChain,
 	debounce,
-	of: (times, markup) => Array(times).fill().map(_ => {
-		const out = markup()
-		if (out instanceof ZyXHtml) out.const();
-		return out;
-	})
+	of: (times, call) => Array(times).fill().map((_, index) => call(index))
 }
 
 export default function zyX(that) {
