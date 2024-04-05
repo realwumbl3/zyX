@@ -83,8 +83,7 @@ export default function zyX(that) {
 					return (...args) => func(that, ...args);
 				}
 				throw new Error(`zyX().${key} is not a function`);
-			},
-			set: () => { },
+			}
 		}
 	);
 }
