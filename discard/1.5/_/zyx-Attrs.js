@@ -46,7 +46,7 @@ const POPUP_PARAMS = [
 ].join(",");
 
 
-ZYXATTR.add("click-pop", (element, arg) => {
+ZYXATTR.add("clickpop", (element, arg) => {
 	const func = (e) => {
 		const elementBounds = element.getBoundingClientRect();
 		const xPer = elementBounds.width * ((e.clientX - elementBounds.x) / elementBounds.width);
