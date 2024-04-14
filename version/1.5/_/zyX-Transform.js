@@ -50,7 +50,7 @@ TODO:
 - Caching current transforms instead of deconstructing on .set()
 
 */
-export function zyxTransform(element) {
+export default function zyxTransform(element) {
 	const snapshots = {};
 	let transforms = {};
 	function snapshot(name) {

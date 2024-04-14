@@ -25,7 +25,14 @@ export function events(that, events, cb, options = {}) {
 	events.split(" ").forEach((event) => that.addEventListener(event, cb, options))
 }
 
-export function timeoutLimiter({ cooldown = 60, last } = {}) {
+/**
+	 * @param {Number} cooldown - The cooldown in milliseconds
+	 * @returns {Function} - Returns true if the cooldown has passed
+
+ */
+export function timeoutLimiter(cooldown) {
+	let last = 0;
+	cooldown = cooldown || 60;
 	return () => {
 		if (performance.now() - last < cooldown) return false;
 		last = performance.now();

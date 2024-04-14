@@ -52,6 +52,7 @@ import ZyXInput, { functions } from "./_/zyX-Input.js";
 import { Focusable, FocusController } from "./_/zyX-Focusables.js";
 
 import calculateDominantColor from "./_/zyX-HUE.js";
+import zyXTransform from "./_/zyX-Transform.js";
 
 ///// wumbl3.xyz 2023 ///// //// /// // 7
 
@@ -119,6 +120,7 @@ export {
 	//
 	resizeImageToCanvas,
 	calculateDominantColor,
+	zyXTransform,
 	//
 	exposeToWindow,
 	ss,

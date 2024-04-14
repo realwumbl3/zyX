@@ -10,6 +10,9 @@ import { MomentumScroll } from "./ZyXInput/Scrolling.js";
 import BackHandler from "./ZyXInput/Back.js";
 import { Focusable, FocusController } from "./zyX-Focusables.js";
 import { XboxControllerMap } from "./ZyXInput/Functions.js";
+import { timeoutLimiter } from "../zyX-Toolbox.js";
+
+
 // #endregion
 
 export default class ZyXInput {
@@ -26,6 +29,8 @@ export default class ZyXInput {
         document.addEventListener("keypress", (e) => this.keyEvent("keypress", e));
         document.addEventListener("keydown", (e) => this.keyEvent("keydown", e));
         document.addEventListener("keyup", (e) => this.keyEvent("keyup", e));
+
+        this.keyCooldown = timeoutLimiter(100);
 
         this.activeEvents = new WeakRefSet();
         this.openModals = new WeakRefSet();
@@ -175,6 +180,8 @@ export default class ZyXInput {
     // KEYBOARD / CONTROLLER INPUTS
     async keyEvent(event, e) {
         try {
+            if (!this.keyCooldown() || !("key" in e)) return;
+
             if (
                 e.ctrlKey ||
                 e.metaKey ||
