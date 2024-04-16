@@ -23,6 +23,21 @@ export function zyXFormPost(url, data) {
     )
 }
 
+export function zyXFetchCSS(url) {
+    return new Promise((res, rej) => {
+        const link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.type = "text/css";
+        link.onload = () => {
+            link.remove();
+            res({ link, remove: () => link.remove() });
+        }
+        link.onerror = rej;
+        link.href = url;
+        document.head.appendChild(link);
+    })
+}
+
 export async function zyXFetchBlob(url) {
     const response = await fetch(url);
     if (response.ok) {

@@ -1,5 +1,7 @@
 import { html } from "./zyX-HTML.js";
 
+import { zyXFetchCSS } from "./zyX-Fetch.js";
+
 export default class ZyXCssManager {
 	constructor({ root } = {}) {
 		html`
@@ -8,15 +10,10 @@ export default class ZyXCssManager {
 		if (root) this.appendTo(root)
 	}
 
-	loadUrl(url) {
-		return new Promise((res, rej) => {
-			html`<link rel="stylesheet" type="text/css" this=link href="${url}">`
-				.appendTo(this.styles)
-				.pass(({ link } = {}) => {
-					link.onload = () => res({ link, cleanuUp: () => link.remove() })
-					link.onerror = rej
-				})
-		})
+	async loadUrl(url) {
+		const { link, remove } = await zyXFetchCSS(url)
+		this.styles.appendChild(link)
+		return { link, remove }
 	}
 
 	async str(raw, ..._) {
@@ -27,12 +24,8 @@ export default class ZyXCssManager {
 			return
 		}
 		return html`
-			<style this=style></style>
-		`
-			.appendTo(this.styles)
-			.pass(({ style } = {}) => {
-				style.innerHTML = strcss
-			})
+			<style this=style>${strcss}</style>
+		`.appendTo(this.styles)
 	}
 
 	cloneType(root) {

@@ -1,6 +1,8 @@
 import { html } from "../zyX-HTML.js";
+import { zyXFetchCSS } from "../zyX-Fetch.js";
 
-export function ClickPop({ node, data }) {
+
+export function ClickPop({ node }) {
     const func = (e) => {
         const elementBounds = node.getBoundingClientRect();
         const xPer = elementBounds.width * ((e.clientX - elementBounds.x) / elementBounds.width);
@@ -71,4 +73,21 @@ export function Uplate({ node, data }) {
             template: node.innerHTML,
         })
         .flash(data);
+}
+
+export function ShadowRoot({ node }) {
+    node.shadow = node.attachShadow({ mode: "open" });
+    node.shadow.append(...node.childNodes);
+    node.gate = (callback) => {
+        callback(node.shadow);
+        callback(node);
+    }
+    node.loadCSS = async (p) => {
+        if (Array.isArray(p)) {
+            for (const css of p) await node.loadCSS(css);
+            return
+        }
+        const { link } = await zyXFetchCSS(p);
+        node.shadow.append(link);
+    }
 }

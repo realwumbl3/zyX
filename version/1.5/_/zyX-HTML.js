@@ -66,10 +66,6 @@ export class ZyXHtml {
 	const() {
 		if (this.#constructed) return this;
 
-		zyXAttrProcess(this.#oven, this.#data);
-
-		processPlaceholders(this.#oven, this.#data);
-
 		[...this.#oven.querySelectorAll("ph")].forEach((node) => {
 			const firstKey = [...node.attributes][0].nodeName;
 			node.setAttribute("ph", firstKey);
@@ -95,6 +91,10 @@ export class ZyXHtml {
 			this.pushAssigner(node, node.getAttribute("push"));
 			node.removeAttribute("push");
 		});
+
+		zyXAttrProcess(this.#oven, this.#data);
+
+		processPlaceholders(this.#oven, this.#data);
 
 		this.#dom = this.#oven.childNodes.length > 1 ? wrapInTemplate(this.#oven) : this.#oven;
 		this.#isTemplate = this.#dom instanceof HTMLTemplateElement;
