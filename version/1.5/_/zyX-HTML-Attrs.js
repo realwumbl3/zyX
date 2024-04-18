@@ -65,7 +65,7 @@ const zyxBindAttributes = {
 const zyxBindAttributespattern = `[${Object.keys(zyxBindAttributes).join("],[")}]`
 
 export function zyXAttrProcess(oven, data) {
-	[...new Set(oven.querySelectorAll(zyxBindAttributespattern))].forEach((node) => {
+	new Set(oven.querySelectorAll(zyxBindAttributespattern)).forEach((node) => {
 		const attributes = [...node.attributes].filter((_) => _.name.startsWith("zyx-"));
 		const zyXBinds = attributes.filter((_) => _.name in zyxBindAttributes);
 		for (const attr of zyXBinds) {

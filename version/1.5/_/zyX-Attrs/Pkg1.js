@@ -78,10 +78,6 @@ export function Uplate({ node, data }) {
 export function ShadowRoot({ node }) {
     node.shadow = node.attachShadow({ mode: "open" });
     node.shadow.append(...node.childNodes);
-    node.gate = (callback) => {
-        callback(node.shadow);
-        callback(node);
-    }
     node.loadCSS = async (p) => {
         if (Array.isArray(p)) {
             for (const css of p) await node.loadCSS(css);
