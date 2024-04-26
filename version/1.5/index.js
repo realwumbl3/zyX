@@ -54,6 +54,8 @@ import { Focusable, FocusController } from "./_/zyX-Focusables.js";
 import calculateDominantColor from "./_/zyX-HUE.js";
 import zyXTransform from "./_/zyX-Transform.js";
 
+import { getAllShadowRoots, clearAllSelections, forEachShadowRoot, queryAllRoots } from "./_/zyX-ShadowRoot.js";
+
 ///// wumbl3.xyz 2023 ///// //// /// // 7
 
 const zyXMethods = {
@@ -107,6 +109,8 @@ export {
 	//
 	Focusable,
 	FocusController,
+	//
+	getAllShadowRoots, clearAllSelections, forEachShadowRoot, queryAllRoots,
 	//
 	AsyncWorker,
 	AsynConstructor,
