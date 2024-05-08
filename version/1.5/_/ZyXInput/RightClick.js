@@ -1,5 +1,5 @@
 // #region [Imports] Copyright wumbl3 ©️ 2023 - No copying / redistribution / modification unless strictly allowed.
-import zyX, { pointerEventPathContains } from "../../";
+import zyX, { pointerEventPathContains, pointerEventPathContainsMatching } from "../../";
 import ZyXInput from "../zyX-Input.js";
 // #endregion
 

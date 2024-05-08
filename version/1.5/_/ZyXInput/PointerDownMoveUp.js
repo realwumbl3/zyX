@@ -1,5 +1,5 @@
 // #region [Imports] Copyright wumbl3 ©️ 2023 - No copying / redistribution / modification unless strictly allowed.
-import zyX, { pointerEventPathContains, Fuze} from "../../";
+import zyX, { pointerEventPathContains, pointerEventPathContainsMatching, Fuze } from "../../";
 import ZyXInput from "../zyX-Input.js";
 import { angleToDirection, calculateAngle, calculateFourAngleSnap } from "./Functions.js";
 // #endregion
@@ -60,7 +60,8 @@ export default function PointerDownMoveUp(element, {
             pointerDown,
             eventFuse,
             kingOfTheStack: _ => this.kingOfTheStack(eventFuse),
-            pathContains: (selector) => pointerEventPathContains(dwn_e, selector)
+            pathContains: (selector) => pointerEventPathContains(dwn_e, selector),
+            pathContainsMatching: (selector) => pointerEventPathContainsMatching(dwn_e, selector)
         });
 
         if (!down_return) {

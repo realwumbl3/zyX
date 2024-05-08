@@ -1,5 +1,5 @@
 // #region [Imports] Copyright wumbl3 ©️ 2023 - No copying / redistribution / modification unless strictly allowed.
-import zyX, { pointerEventPathContains, WeakRefSet, Fuze } from "../";
+import zyX, { pointerEventPathContainsMatching, WeakRefSet, Fuze } from "../";
 
 import * as functions from "./ZyXInput/Functions.js";
 export { functions }
@@ -45,7 +45,7 @@ export default class ZyXInput {
         document.addEventListener("pointerleave", e => this.mouse.pointerDown = false)
 
         document.addEventListener("contextmenu", e => {
-            if (e.shiftKey || pointerEventPathContains(e, "[context-menuable]")) return false
+            if (e.shiftKey || pointerEventPathContainsMatching(e, "[context-menuable]")) return false
             nullifyEvent(e)
         })
 
@@ -142,7 +142,7 @@ export default class ZyXInput {
         const modals = this.openModals.get();
         if (modals.length < 0) return true;
         if (modals.length > 0) {
-            if (e && pointerEventPathContains(e, "[zyx-input-modal]")) return false;
+            if (e && pointerEventPathContainsMatching(e, "[zyx-input-modal]")) return false;
             modals.forEach(modal => modal.clickedOutside(modal))
             this.nullAllEvents();
             e.stopPropagation();

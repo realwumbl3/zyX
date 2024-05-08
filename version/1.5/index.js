@@ -38,6 +38,7 @@ import {
 	placeSafely,
 	setProps,
 	pointerEventPathContains,
+	pointerEventPathContainsMatching,
 	hexToRGB,
 	hexToHSL,
 	exposeToWindow, ss, clamp, ceilClamp, minMax, seedShuffle, seedRandom,
@@ -143,6 +144,7 @@ export {
 	forQuery,
 	setProps,
 	pointerEventPathContains,
+	pointerEventPathContainsMatching,
 	ScrollTo,
 	// 
 	delay,

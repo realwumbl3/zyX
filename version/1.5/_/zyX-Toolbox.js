@@ -40,7 +40,11 @@ export function timeoutLimiter(cooldown) {
 	};
 }
 
-export function pointerEventPathContains(e, cssSelector) {
+export function pointerEventPathContains(e, elem) {
+	return (e.composedPath && e.composedPath()).some(e => e === elem)
+}
+
+export function pointerEventPathContainsMatching(e, cssSelector) {
 	return (e.composedPath && e.composedPath()).some(e => e.matches?.(cssSelector))
 }
 
