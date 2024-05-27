@@ -31,11 +31,15 @@ export function events(that, events, cb, options = {}) {
 
  */
 export function timeoutLimiter(cooldown) {
-	let last = 0;
+	const last = { ago: 0, key: null };
 	cooldown = cooldown || 60;
-	return () => {
-		if (performance.now() - last < cooldown) return false;
-		last = performance.now();
+	return (key) => {
+		if (key && key !== last.key) {
+			last.key = key;
+			return true;
+		}
+		if (performance.now() - last.ago < cooldown) return false;
+		last.ago = performance.now();
 		return true;
 	};
 }
@@ -45,7 +49,7 @@ export function pointerEventPathContains(e, elem) {
 }
 
 export function pointerEventPathContainsMatching(e, cssSelector) {
-	return (e.composedPath && e.composedPath()).some(e => e.matches?.(cssSelector))
+	return (e.composedPath && e.composedPath()).find(e => e.matches?.(cssSelector))
 }
 
 export function hslCssKeys({ h = 0, s = 0, l = 0 } = {}) {

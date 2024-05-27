@@ -8,7 +8,7 @@ module.exports = {
         path: path.resolve(__dirname, 'version/1.5/dist'),
         libraryTarget: 'umd',
         library: 'zyX', 
-        filename: 'bundle.js'
+        filename: 'zyX.umd.js'
     },
     module: {
         parser: {

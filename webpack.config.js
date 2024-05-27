@@ -7,7 +7,7 @@ module.exports = {
     output: {
         libraryTarget: 'module',
         path: path.resolve(__dirname, 'version/1.5/dist'),
-        filename: 'bundle.js'
+        filename: 'zyX-es6.js'
     },
     experiments: {
         outputModule: true

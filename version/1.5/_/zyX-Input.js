@@ -10,7 +10,7 @@ import { MomentumScroll } from "./ZyXInput/Scrolling.js";
 import BackHandler from "./ZyXInput/Back.js";
 import { Focusable, FocusController } from "./zyX-Focusables.js";
 import { XboxControllerMap } from "./ZyXInput/Functions.js";
-import { timeoutLimiter } from "../zyX-Toolbox.js";
+import { timeoutLimiter } from "./zyX-Toolbox.js";
 
 
 // #endregion
