@@ -6,12 +6,12 @@ const NOSATURATION_HUE_DEFAULT = 200;
 const CTX = CANVAS.getContext("2d", { willReadFrequently: true });
 
 
-export default function calculateDominantColor(img_url) {
+export default function calculateDominantColor(img_url, crossOriginAnonymous = true) {
 	return new Promise((resolve, reject) => {
 		const Img = new Image(),
 			blockSize = 30; // only visit every x pixels,
 
-		Img.crossOrigin = "Anonymous";
+		crossOriginAnonymous && (Img.crossOrigin = "Anonymous");
 
 		let data,
 			i = -4,
