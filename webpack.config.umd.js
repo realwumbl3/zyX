@@ -39,3 +39,4 @@ https://github.com/realwumbl3/zyX/
     ]
 };
 
+// npx webpack --config /home/wumbl3vps/Dev-23/zyX/webpack.config.umd.js
