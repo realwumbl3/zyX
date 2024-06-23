@@ -113,7 +113,7 @@ export class ZyXDomArray {
             let element = this.#arrayMap.get(item);
             if (element) {
                 const inDom = domItems.includes(item);
-                if (!inDom) this.#container.appendChild(element);
+                if (!inDom) this.appendToContainer(element, item);
                 return { item, element, index }
             }
             const zyXHtml = this.createCompose(item);
@@ -121,11 +121,20 @@ export class ZyXDomArray {
             if (element instanceof HTMLTemplateElement || element instanceof DocumentFragment) {
                 throw Error("cannot associate reactive object with a template element")
             }
-            this.#container.appendChild(element);
+            this.appendToContainer(element, zyXHtml);
             this.#arrayMap.set(element, item);
             if (typeof item === "symbol" || typeof item === "object") this.#arrayMap.set(item, element);
             return { item, index, element }
         });
+    }
+
+    appendToContainer(element, item) {
+        this.#container.appendChild(element);
+        try {
+            item.onConnected?.(element);
+        } catch (e) {
+            console.error("item.onConnected error", e);
+        }
     }
 
     update() {
