@@ -179,14 +179,11 @@ function processLiteralData(string_data) {
 	for (const [key, value] of Object.entries(string_data)) {
 		const type = typeof value;
 		const content = !(type === "string" || type === "number");
-		if (value === "" || !value) {
-			output[key] = { placeholder: "" }
-			continue;
-		}
 		output[key] = {
 			type,
 			value,
-			placeholder: content ? strPlaceholder(key) : value,
+			content,
+			placeholder: strPlaceholder(key),
 		}
 	}
 	return output
@@ -195,12 +192,14 @@ function processLiteralData(string_data) {
 
 function processPlaceholders(markup, templateData) {
 	try {
+		console.log("processPlaceholders", { markup: markup.innerHTML, templateData })
 		let placeholders = markup.querySelectorAll(placeholdTag);
 		while (placeholders.length > 0) {
 			const placeholder = placeholders[0]; // Always take the first element in the NodeList
 			placeholder.replaceWith(makePlaceable(templateData[placeholder.id].value));
 			placeholders = markup.querySelectorAll(placeholdTag); // Refresh the NodeList
 		}
+
 		const regex = new RegExp(`(${strPlaceholder("\\d+")})`, 'g');
 		const nontree_placeholders = markup.innerHTML.match(regex);
 		if (nontree_placeholders) {
@@ -210,6 +209,7 @@ function processPlaceholders(markup, templateData) {
 				markup.innerHTML = markup.innerHTML.replace(placeholder, value);
 			}
 		}
+
 	} catch (e) {
 		console.log({ markup, templateData })
 		throw e;
