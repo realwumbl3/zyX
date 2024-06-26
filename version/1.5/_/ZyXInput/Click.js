@@ -1,6 +1,5 @@
 // #region [Imports] Copyright wumbl3 ©️ 2023 - No copying / redistribution / modification unless strictly allowed.
-import ZyXInput from "../zyX-Input.js";
-import { Fuze } from "../../";
+import ZyXInput,  { Fuze }  from "../zyX-Input.js";
 
 // #endregion
 

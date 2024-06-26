@@ -9,7 +9,7 @@
 	</script>
 */
 
-import { ZyXDomArray, ZyXArray } from "./_/zyX-Reactive.js";
+import { ZyXDomArray, ZyXArray, getDomArray } from "./_/zyX-Reactive.js";
 
 import { css, zyxcss } from "./_/zyX-CSS.js";
 
@@ -29,7 +29,7 @@ import {
 	debounce
 } from "./_/zyX-Delay.js";
 
-import { WeakRefSet, Fuze } from "./_/zyX-Types.js";
+import { WeakRefSet } from "./_/zyX-Types.js";
 
 import {
 	timeoutLimiter,
@@ -93,11 +93,11 @@ import ScrollTo from "./_/zyX-ScrollTo.js";
 export {
 	//
 	WeakRefSet,
-	Fuze,
 	//
-	ZyXDomArray,
-	ZyXArray,
 	ZyXHtml,
+	ZyXArray,
+	ZyXDomArray,
+	getDomArray,
 	//
 	html,
 	css,

@@ -1,6 +1,6 @@
 // #region [Imports] Copyright wumbl3 ©️ 2023 - No copying / redistribution / modification unless strictly allowed.
-import zyX, { pointerEventPathContains, pointerEventPathContainsMatching, Fuze } from "../../";
-import ZyXInput from "../zyX-Input.js";
+import zyX, { pointerEventPathContains, pointerEventPathContainsMatching } from "../../";
+import ZyXInput, { Fuze }  from "../zyX-Input.js";
 import { angleToDirection, calculateAngle, calculateFourAngleSnap } from "./Functions.js";
 // #endregion
 

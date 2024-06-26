@@ -1,5 +1,5 @@
 // #region [Imports] Copyright wumbl3 ©️ 2023 - No copying / redistribution / modification unless strictly allowed.
-import zyX, { pointerEventPathContainsMatching, WeakRefSet, Fuze } from "../";
+import zyX, { pointerEventPathContainsMatching, WeakRefSet } from "../";
 
 import * as functions from "./ZyXInput/Functions.js";
 export { functions }
@@ -107,9 +107,7 @@ export default class ZyXInput {
     }
 
     kingOfTheStack(kingevent) {
-        // console.log(kingevent.randomId, "King of the stack b4", this.activeEvents.get());
         this.activeEvents.singleize(kingevent);
-        // console.log(kingevent.randomId, "King of the stack 4t", this.activeEvents.get());
     }
 
     beforePointerEvent(event, e) {
@@ -222,4 +220,35 @@ export function nullifyEvent(e) {
     e.stopImmediatePropagation();
     e.preventDefault();
     return false;
+}
+
+export class Fuze {
+    constructor(state) {
+        this.true = state;
+        this.false = !state;
+    }
+
+    reset(callback) {
+        this.true = false;
+        this.false = true;
+        typeof callback === "function" && callback()
+        return this
+    }
+
+    falseTrue(_false, _true, ...args) {
+        this.true ? _true(...args) : _false(...args)
+        return this
+    }
+
+    setTrue() {
+        this.true = true
+        this.false = false
+        return this
+    }
+
+    setFalse() {
+        this.true = false
+        this.false = true
+        return this
+    }
 }

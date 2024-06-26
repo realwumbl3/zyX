@@ -4,60 +4,79 @@ export class WeakRefSet extends Set {
     }
 
     forEach(callback) {
-        for (const ref of this.get()) callback(ref)
+        for (const weakRef of super.values()) {
+            const ref = weakRef.deref();
+            if (ref !== undefined) callback(ref);
+        }
     }
 
     delete(ref) {
-        for (const weakRef of [...super.values()]) if (weakRef.deref() === ref) return super.delete(weakRef);
+        for (const weakRef of super.values()) {
+            if (weakRef.deref() === ref) {
+                return super.delete(weakRef);
+            }
+        }
         return false;
     }
 
     singleize(ref) {
-        for (const weakRef of [...super.values()]) if (weakRef.deref() !== ref) super.delete(weakRef);
+        for (const weakRef of super.values()) {
+            if (weakRef.deref() !== ref) {
+                super.delete(weakRef);
+            }
+        }
     }
 
     get() {
-        return [...super.values()]
-            .map((weakRef) => {
-                const obj = weakRef.deref();
-                if (obj === undefined) return !super.delete(weakRef);
-                return obj;
-            })
-            .filter((_) => _);
+        const refs = [];
+        for (const weakRef of super.values()) {
+            const obj = weakRef.deref();
+            if (obj === undefined) {
+                super.delete(weakRef);
+            } else {
+                refs.push(obj);
+            }
+        }
+        return refs;
     }
 }
 
-export class Fuze {
-    #data;
-    #randomId;
-    constructor(state, data) {
-        this.true = state;
-        this.false = !state;
-        this.#data = data;
-        this.#randomId = Math.random().toString(36).substring(7);
+
+export class Deque extends Array {
+    constructor(limit) {
+        super();
+        this.limit = limit;
     }
 
-    reset(callback) {
-        this.true = false;
-        this.false = true;
-        typeof callback === "function" && callback()
-        return this
+    // Add an element to the front of the deque
+    prepend(item) {
+        if (this.length >= this.limit) {
+            this.pop(); // Remove the last item if the limit is reached
+        }
+        this.unshift(item);
     }
 
-    falseTrue(_false, _true, ...args) {
-        this.true ? _true(...args) : _false(...args)
-        return this
+    // Add an element to the end of the deque
+    append(item) {
+        if (this.length >= this.limit) {
+            this.shift(); // Remove the first item if the limit is reached
+        }
+        this.push(item);
     }
 
-    setTrue() {
-        this.true = true
-        this.false = false
-        return this
+    // Remove and return the first element from the deque
+    popleft() {
+        if (this.length === 0) {
+            throw new Error("Deque is empty");
+        }
+        return this.shift();
     }
 
-    setFalse() {
-        this.true = false
-        this.false = true
-        return this
+    // Remove and return the last element from the deque
+    popright() {
+        if (this.length === 0) {
+            throw new Error("Deque is empty");
+        }
+        return this.pop();
     }
 }

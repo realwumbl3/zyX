@@ -63,6 +63,13 @@ export class ZyXHtml {
 		return this.const();
 	}
 
+	join(target) {
+		this.#mutable = target;
+		const existingZyXHtml = target.__ZyXHtml__;
+		if (existingZyXHtml) Object.assign(this, existingZyXHtml);
+		return this;
+	}
+
 	const() {
 		if (this.#constructed) return this;
 

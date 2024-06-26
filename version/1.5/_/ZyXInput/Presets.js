@@ -1,5 +1,5 @@
-import ZyXInput from "../zyX-Input.js";
-import zyX, { Fuze } from "../../";
+import ZyXInput, { Fuze } from "../zyX-Input.js";
+import zyX from "../../";
 
 import clickOne, { Click as click } from "./Click.js";
 import rightClick from "./RightClick.js";

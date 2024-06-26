@@ -1,24 +1,51 @@
 import { ZyXHtml } from "./zyX-HTML.js";
-import { WeakRefSet } from "./zyX-Types.js";
+import { WeakRefSet, Deque } from "./zyX-Types.js";
 
 import { debugCheckpoint, debugStart, debugLog } from "./zyX-Debugger.js";
 
+const zyXDomArrays = new WeakMap();
+
+export function getDomArray(container) {
+    return zyXDomArrays.get(container);
+}
+
 export class ZyXDomArray {
     /**
-     *  @type {HTMLElement}
+    * map between dom elements and reactive objects
+    */
+    #arrayMap = new WeakMap();
+    /**
+     *  @type {HTMLElement} - container element
      */
     #container;
     /**
-     *  @type {ZyXArray}
+     *  @type {ZyXArray} - reactive array
      */
     #array;
+    /**
+    * @type {Function} - compose function
+    */
     #compose;
-    #after;
-    #arrayMap = new WeakMap();
-    #debounce;
-
-    // either null, or a range [start, end]
+    /**
+    * @type {Number} - how many elements to cache in the memoize
+    */
+    #memoize;
+    /**
+    * @type {Deque<HTMLElement>} - memoized elements
+    */
+    #memoized;
+    /**
+    * @type {Array<Number, Number>} - range of elements to display
+    */
     #range;
+    /**
+    * @type {Number} - debounce time
+    */
+    #debounce;
+    /**
+    * @type {Function} - callback after update  
+    */
+    #after;
 
     #pending_update = null;
     constructor({
@@ -28,13 +55,13 @@ export class ZyXDomArray {
         debounce = 1,
         range = null,
         after = null,
+        memoize = 0
     } = {}) {
-        console.log({ container, array, compose, debounce, range, after });
-
         if (!(array instanceof ZyXArray)) throw new Error("zyXDomArray target must be zyXArray");
 
         this.#container = container;
-        container.__zyXArray__ = this;
+
+        zyXDomArrays.set(container, this);
 
         this.#compose = compose;
         this.#after = after;
@@ -42,6 +69,9 @@ export class ZyXDomArray {
         this.#array = array;
         this.#range = range;
         this.#debounce = debounce;
+
+        this.#memoize = memoize;
+        this.#memoized = new Deque(memoize);
 
         this.#array.addListener(this.arrayModified);
 
@@ -243,8 +273,8 @@ export class ZyXArray extends Array {
         return this;
     }
 
-    sort(cb) {
-        super.sort(cb);
+    sort(scb) {
+        super.sort(scb);
         this.getEventListeners().forEach((cb) => cb(this, "sort"));
         return this;
     }
