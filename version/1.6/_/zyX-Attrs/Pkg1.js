@@ -77,4 +77,5 @@ export function ShadowRoot({ node }) {
         const { link } = await zyXFetchCSS(p);
         node.shadow.append(link);
     }
+    node.removeAttribute("zyx-shadowroot");
 }

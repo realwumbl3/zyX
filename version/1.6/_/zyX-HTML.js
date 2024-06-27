@@ -30,6 +30,7 @@ export class ZyXHtml {
 	#proxscope = {};
 	#mutable;
 	#proxy;
+	#verbose = false;
 	constructor(raw, ...literal_data) {
 		bench && debugStart("html", "html`<...>` called");
 		// process the literal data.
@@ -53,6 +54,11 @@ export class ZyXHtml {
 		bench && debugLog("html", { min: 0, dump: { zyXHtml: this } });
 	}
 
+	enableVerbose() {
+		this.#verbose = true;
+		return this;
+	}
+
 	bind(any) {
 		this.#mutable = any;
 		any.proxy = this.#proxy;
@@ -67,50 +73,6 @@ export class ZyXHtml {
 		this.#mutable = target;
 		const existingZyXHtml = target.__ZyXHtml__;
 		if (existingZyXHtml) Object.assign(this, existingZyXHtml);
-		return this;
-	}
-
-	const() {
-		if (this.#constructed) return this;
-
-		[...this.#oven.querySelectorAll("ph")].forEach((node) => {
-			const firstKey = [...node.attributes][0].nodeName;
-			node.setAttribute("ph", firstKey);
-			this.thisAssigner(node, firstKey);
-		});
-
-		[...this.#oven.querySelectorAll("[pr0x]")].forEach((node) => {
-			node.__key__ = node.getAttribute("pr0x");
-			this.#proxscope[node.__key__] = new typeProxy(node.__key__, "string", node);
-		});
-
-		// try depractating (in projects first, then here)
-		[...this.#oven.querySelectorAll("[zyx-proxy]")].forEach((node) => {
-			node.proxy = this.#proxy;
-		});
-
-		[...this.#oven.querySelectorAll("[this]")].forEach((node) => {
-			this.thisAssigner(node, node.getAttribute("this"));
-			node.removeAttribute("this");
-		});
-
-		[...this.#oven.querySelectorAll("[push]")].forEach((node) => {
-			this.pushAssigner(node, node.getAttribute("push"));
-			node.removeAttribute("push");
-		});
-
-		zyXAttrProcess(this.#oven, this.#data);
-
-		processPlaceholders(this.#oven, this.#data);
-
-		this.#dom = this.#oven.childNodes.length > 1 ? wrapInTemplate(this.#oven) : this.#oven;
-		this.#isTemplate = this.#dom instanceof HTMLTemplateElement;
-		if (this.#isTemplate) this.#dom = this.#dom.content;
-		else this.#dom = this.#dom.firstElementChild;
-
-		this.#oven = null;
-		this.#data = null;
-		this.#constructed = true;
 		return this;
 	}
 
@@ -143,6 +105,95 @@ export class ZyXHtml {
 		return this;
 	}
 
+	const() {
+		if (this.#constructed) return this;
+
+		this.processPlaceholders();
+
+		[...this.#oven.querySelectorAll("ph")].forEach((node) => {
+			const firstKey = [...node.attributes][0].nodeName;
+			node.setAttribute("ph", firstKey);
+			this.thisAssigner(node, firstKey);
+		});
+
+		[...this.#oven.querySelectorAll("[pr0x]")].forEach((node) => {
+			node.__key__ = node.getAttribute("pr0x");
+			this.#proxscope[node.__key__] = new typeProxy(node.__key__, "string", node);
+		});
+
+		// try depractating (in projects first, then here)
+		[...this.#oven.querySelectorAll("[zyx-proxy]")].forEach((node) => {
+			node.proxy = this.#proxy;
+		});
+
+		[...this.#oven.querySelectorAll("[this]")].forEach((node) => {
+			this.thisAssigner(node, node.getAttribute("this"));
+			node.removeAttribute("this");
+		});
+
+		[...this.#oven.querySelectorAll("[push]")].forEach((node) => {
+			this.pushAssigner(node, node.getAttribute("push"));
+			node.removeAttribute("push");
+		});
+
+		zyXAttrProcess(this, this.#oven, this.#data);
+
+		this.#dom = this.#oven.childNodes.length > 1 ? wrapInTemplate(this.#oven) : this.#oven;
+		this.#isTemplate = this.#dom instanceof HTMLTemplateElement;
+		if (this.#isTemplate) this.#dom = this.#dom.content;
+		else this.#dom = this.#dom.firstElementChild;
+
+		this.#oven = null;
+		this.#data = null;
+		this.#constructed = true;
+		return this;
+	}
+
+	log(...args) {
+		this.#verbose && console.log(...args);
+		return this;
+	}
+
+	getPlaceMapping() {
+		const clone = this.#oven.cloneNode(true);
+		const places = [];
+		[...clone.querySelectorAll(placeholdTag)]
+			.forEach((node) => { places[node.id] = { node, id: node.id, value: this.#data[node.id].value } })
+		const regex = new RegExp(`(${strPlaceholder("\\d+")})`, 'g');
+		const nontree_placeholders = this.#oven.innerHTML.match(regex);
+		nontree_placeholders && nontree_placeholders.forEach((_) => {
+			const id = getPlaceholderID(_);
+			places[id] = { id, placeholder: _, value: this.#data[id].value }
+		})
+		this.log("places", places)
+		return places;
+	}
+
+
+	processPlaceholders() {
+		try {
+			// this.getPlaceMapping();
+			const regex = new RegExp(`(${strPlaceholder("\\d+")})`, 'g');
+			const nontree_placeholders = this.#oven.innerHTML.match(regex);
+			if (nontree_placeholders) for (const str_placeholder of nontree_placeholders) {
+				const string_placeholder_id = getPlaceholderID(str_placeholder);
+				this.log("string_placeholder_id", string_placeholder_id)
+				const { placeholder, value } = this.#data[string_placeholder_id];
+				const isContent = typeof value === "string" || typeof value === "number";
+				this.#oven.innerHTML = this.#oven.innerHTML.replace(placeholder, isContent ? value : str_placeholder);
+			}
+			const lastStringModified = [...this.#oven.querySelectorAll(placeholdTag)]
+			this.log("lastStringModified", lastStringModified)
+			for (const placeholder of lastStringModified) {
+				placeholder.replaceWith(makePlaceable(this.#data[placeholder.id].value));
+			}
+
+		} catch (e) {
+			console.log(this)
+			throw e;
+		}
+	}
+
 	thisAssigner(node, keyname) {
 		const splitNames = keyname.split(" ");
 		if (splitNames.length === 1) {
@@ -171,49 +222,18 @@ export class ZyXHtml {
 		node.__key__ = keyname;
 		this[keyname].push(node);
 	}
-
 }
 
 function processLiteralData(string_data) {
 	const output = {}
 	for (const [key, value] of Object.entries(string_data)) {
-		const type = typeof value;
-		const content = !(type === "string" || type === "number");
 		output[key] = {
-			type,
+			type: typeof value,
 			value,
-			content,
 			placeholder: strPlaceholder(key),
 		}
 	}
 	return output
-}
-
-
-function processPlaceholders(markup, templateData) {
-	try {
-		console.log("processPlaceholders", { markup: markup.innerHTML, templateData })
-		let placeholders = markup.querySelectorAll(placeholdTag);
-		while (placeholders.length > 0) {
-			const placeholder = placeholders[0]; // Always take the first element in the NodeList
-			placeholder.replaceWith(makePlaceable(templateData[placeholder.id].value));
-			placeholders = markup.querySelectorAll(placeholdTag); // Refresh the NodeList
-		}
-
-		const regex = new RegExp(`(${strPlaceholder("\\d+")})`, 'g');
-		const nontree_placeholders = markup.innerHTML.match(regex);
-		if (nontree_placeholders) {
-			for (const str_placeholder of nontree_placeholders) {
-				const string_placeholder_id = getPlaceholderID(str_placeholder);
-				const { placeholder, value } = templateData[string_placeholder_id];
-				markup.innerHTML = markup.innerHTML.replace(placeholder, value);
-			}
-		}
-
-	} catch (e) {
-		console.log({ markup, templateData })
-		throw e;
-	}
 }
 
 function makePlaceable(object) {
