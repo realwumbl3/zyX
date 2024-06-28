@@ -230,7 +230,7 @@ export class ZyXHtml {
 }
 
 function makePlaceable(object) {
-	if (object === null || object === undefined) return "";
+	if (object === false || object === null || object === undefined) return "";
 	if (Array.isArray(object)) return templateFromPlaceables(object).content;
 	if (typeof object === "function") return makePlaceable(object());
 	if (object?.__zyXHTML__ instanceof ZyXHtml) return object.__zyXHTML__.markup();
