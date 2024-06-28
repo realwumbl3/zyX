@@ -1,4 +1,4 @@
-import { ZyXHtml } from "./zyX-HTML.js";
+import { getZyXMarkup } from "./zyX-HTML.js";
 import { WeakRefSet, Deque } from "./zyX-Types.js";
 
 import { debugCheckpoint, debugStart, debugLog } from "./zyX-Debugger.js";
@@ -177,13 +177,6 @@ export class ZyXDomArray {
 
 }
 
-function getZyXMarkup(composed) {
-    if (composed instanceof ZyXHtml) {
-        return composed.markup();
-    } else if (composed?.__ZyXHtml__) {
-        return composed.__ZyXHtml__.markup();
-    }
-}
 
 const EVENTLISTENERS = new WeakMap();
 

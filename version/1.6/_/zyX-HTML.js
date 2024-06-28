@@ -4,22 +4,30 @@ import { typeProxy } from "./zyX-Prox.js";
 
 import { zyXAttrProcess } from "./zyX-HTML-Attrs.js";
 
+import {
+	defaultObject,
+	placeholdTag,
+	getPlaceholderID,
+	innerHTML,
+	placer,
+	strPlaceholder,
+	placeholderRegex,
+	trimTextNodes,
+	wrapInTemplate
+} from "./html.js";
+
 const bench = false;
 
 export function html(raw, ...data) {
 	return new ZyXHtml(raw, ...data)
 }
 
-import {
-	defaultObject,
-	placeholdTag,
-	getPlaceholderID,
-	newDivInnerHTML,
-	placer,
-	strPlaceholder,
-	trimTextNodes,
-	wrapInTemplate
-} from "./html.js";
+function preProcess(raw, data) {
+	const output = {}
+	output.data = data.map((_, i) => { return { value: _, placeholder: strPlaceholder(i) } })
+	output.markup = trimTextNodes(innerHTML(String.raw({ raw }, ...Object.values(output.data).map((_) => _.placeholder))));
+	return output;
+}
 
 export class ZyXHtml {
 	#constructed = false;
@@ -31,15 +39,13 @@ export class ZyXHtml {
 	#mutable;
 	#proxy;
 	#verbose = false;
-	constructor(raw, ...literal_data) {
+	#garbageCollect = true;
+	#logMap = false;
+	constructor(raw, ...tagData) {
 		bench && debugStart("html", "html`<...>` called");
-		// process the literal data.
-		this.#data = processLiteralData(literal_data);
-		// place the placeholders in the markup.
-		const markup = String.raw({ raw }, ...Object.values(this.#data).map((_) => _.placeholder))
-		// put inside div to make it a valid html, this div is the oven where processing happens.
-		this.#oven = newDivInnerHTML(markup);
-		trimTextNodes(this.#oven);
+		const { markup, data } = preProcess(raw, tagData);
+		this.#data = data;
+		this.#oven = markup;
 		this.#proxy = new Proxy(this, {
 			get: (obj, key) => {
 				if (this.hasOwnProperty(key)) return this[key];
@@ -54,15 +60,31 @@ export class ZyXHtml {
 		bench && debugLog("html", { min: 0, dump: { zyXHtml: this } });
 	}
 
+	log(...args) {
+		this.#verbose && console.log(...args);
+		return this;
+	}
+
 	enableVerbose() {
 		this.#verbose = true;
 		return this;
 	}
 
+	disableGC() {
+		console.warn("Garbage collection disabled. This may cause memory leaks.");
+		this.#garbageCollect = false;
+		return this;
+	}
+
+	logMap() {
+		this.#logMap = true;
+		return this
+	}
+
 	bind(any) {
 		this.#mutable = any;
 		any.proxy = this.#proxy;
-		any.__ZyXHtml__ = this;
+		any.__zyXHTML__ = this;
 		any.appendTo = (container) => this.appendTo(container);
 		any.prependTo = (container) => this.prependTo(container);
 		any.place = (place) => this.place(place);
@@ -71,8 +93,7 @@ export class ZyXHtml {
 
 	join(target) {
 		this.#mutable = target;
-		const existingZyXHtml = target.__ZyXHtml__;
-		if (existingZyXHtml) Object.assign(this, existingZyXHtml);
+		if (target?.__zyXHTML__) Object.assign(this, target.__zyXHTML__);
 		return this;
 	}
 
@@ -107,8 +128,11 @@ export class ZyXHtml {
 
 	const() {
 		if (this.#constructed) return this;
+		if (this.#logMap) console.log(this.getMap());
 
-		this.processPlaceholders();
+		this.dryPlaceholders();
+
+		this.placeReferencedPlaceholders();
 
 		[...this.#oven.querySelectorAll("ph")].forEach((node) => {
 			const firstKey = [...node.attributes][0].nodeName;
@@ -121,7 +145,6 @@ export class ZyXHtml {
 			this.#proxscope[node.__key__] = new typeProxy(node.__key__, "string", node);
 		});
 
-		// try depractating (in projects first, then here)
 		[...this.#oven.querySelectorAll("[zyx-proxy]")].forEach((node) => {
 			node.proxy = this.#proxy;
 		});
@@ -143,55 +166,37 @@ export class ZyXHtml {
 		if (this.#isTemplate) this.#dom = this.#dom.content;
 		else this.#dom = this.#dom.firstElementChild;
 
-		this.#oven = null;
-		this.#data = null;
+		if (this.#garbageCollect) {
+			this.#oven = null;
+			this.#data = null;
+		}
+
 		this.#constructed = true;
 		return this;
 	}
 
-	log(...args) {
-		this.#verbose && console.log(...args);
-		return this;
-	}
-
-	getPlaceMapping() {
-		const clone = this.#oven.cloneNode(true);
+	getMap() {
 		const places = [];
-		[...clone.querySelectorAll(placeholdTag)]
-			.forEach((node) => { places[node.id] = { node, id: node.id, value: this.#data[node.id].value } })
-		const regex = new RegExp(`(${strPlaceholder("\\d+")})`, 'g');
-		const nontree_placeholders = this.#oven.innerHTML.match(regex);
-		nontree_placeholders && nontree_placeholders.forEach((_) => {
+		[...this.#oven.cloneNode(true).querySelectorAll(placeholdTag)]
+			.forEach((node) => { places[node.id] = { id: node.id, type: "node", ph: node, value: this.#data[node.id].value } })
+		this.#oven.innerHTML.match(placeholderRegex)?.forEach((_) => {
 			const id = getPlaceholderID(_);
-			places[id] = { id, placeholder: _, value: this.#data[id].value }
+			places[id] = { id, type: "attr", ph: _, value: this.#data[id].value }
 		})
-		this.log("places", places)
 		return places;
 	}
 
-
-	processPlaceholders() {
-		try {
-			// this.getPlaceMapping();
-			const regex = new RegExp(`(${strPlaceholder("\\d+")})`, 'g');
-			const nontree_placeholders = this.#oven.innerHTML.match(regex);
-			if (nontree_placeholders) for (const str_placeholder of nontree_placeholders) {
-				const string_placeholder_id = getPlaceholderID(str_placeholder);
-				this.log("string_placeholder_id", string_placeholder_id)
-				const { placeholder, value } = this.#data[string_placeholder_id];
-				const isContent = typeof value === "string" || typeof value === "number";
-				this.#oven.innerHTML = this.#oven.innerHTML.replace(placeholder, isContent ? value : str_placeholder);
-			}
-			const lastStringModified = [...this.#oven.querySelectorAll(placeholdTag)]
-			this.log("lastStringModified", lastStringModified)
-			for (const placeholder of lastStringModified) {
-				placeholder.replaceWith(makePlaceable(this.#data[placeholder.id].value));
-			}
-
-		} catch (e) {
-			console.log(this)
-			throw e;
+	dryPlaceholders() {
+		const nontree_placeholders = this.#oven.innerHTML.match(placeholderRegex);
+		if (nontree_placeholders) for (const str_placeholder of nontree_placeholders) {
+			const { placeholder, value } = this.#data[getPlaceholderID(str_placeholder)];
+			const objectPlaceholder = value !== null && (typeof value === "object" || typeof value === "function");
+			this.#oven.innerHTML = this.#oven.innerHTML.replace(placeholder, objectPlaceholder ? placeholder : value);
 		}
+	}
+
+	placeReferencedPlaceholders() {
+		for (const ph of [...this.#oven.querySelectorAll(placeholdTag)]) ph.replaceWith(makePlaceable(this.#data[ph.id].value));
 	}
 
 	thisAssigner(node, keyname) {
@@ -224,34 +229,23 @@ export class ZyXHtml {
 	}
 }
 
-function processLiteralData(string_data) {
-	const output = {}
-	for (const [key, value] of Object.entries(string_data)) {
-		output[key] = {
-			type: typeof value,
-			value,
-			placeholder: strPlaceholder(key),
-		}
-	}
-	return output
-}
-
 function makePlaceable(object) {
-	if (!object) return "";
+	if (object === null || object === undefined) return "";
 	if (Array.isArray(object)) return templateFromPlaceables(object).content;
 	if (typeof object === "function") return makePlaceable(object());
-	if (object?.__ZyXHtml__) return object.__ZyXHtml__.markup();
+	if (object?.__zyXHTML__ instanceof ZyXHtml) return object.__zyXHTML__.markup();
 	if (object instanceof ZyXHtml) return object.markup();
 	if (object instanceof HTMLTemplateElement) return object.content;
-	return object
+	return object;
 }
 
 function templateFromPlaceables(placeables) {
 	const fragment = document.createElement("template");
-	fragment.content.append(...spreadPlaceables(placeables));
+	fragment.content.append(...placeables.map(makePlaceable));
 	return fragment;
 }
 
-function spreadPlaceables(array) {
-	return array.map(makePlaceable)
+export function getZyXMarkup(composed) {
+	if (composed instanceof ZyXHtml) return composed.markup();
+	else if (composed?.__zyXHTML__) return composed.__zyXHTML__.markup();
 }

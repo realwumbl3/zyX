@@ -10,7 +10,7 @@ export function trimTextNodes(dom) {
     return dom;
 }
 
-export function newDivInnerHTML(markup) {
+export function innerHTML(markup) {
     const markupContent = document.createElement("div");
     markupContent.innerHTML = markup;
     return markupContent;
@@ -38,6 +38,8 @@ export const placeholdTag = "x0k8-zyxph-a9n3";
 export function strPlaceholder(key) {
     return `<${placeholdTag} id='${key}'></${placeholdTag}>`;
 }
+
+export const placeholderRegex = new RegExp(`(${strPlaceholder("\\d+")})`, 'g');
 
 export function getPlaceholderID(markup) {
     const match = markup.match(/id='(.*?)'/)

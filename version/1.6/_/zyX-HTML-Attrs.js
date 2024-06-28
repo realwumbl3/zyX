@@ -54,7 +54,11 @@ const BrowserDefaultEvents = [
 ]
 
 const pgk1Remap = Object.fromEntries(Object.entries(Pkg1).map(([funcname, func]) => [`zyx-${funcname.toLowerCase()}`, func]));
-const browserDefaultEvents = Object.fromEntries(BrowserDefaultEvents.map((_) => ([`zyx-${_}`, ({ node, data }) => node.addEventListener([_], data.value)])));
+
+const browserDefaultEvents = Object.fromEntries(BrowserDefaultEvents.map((_) => ([`zyx-${_}`,
+({ node, data }) => {
+	node.addEventListener([_], data);
+}])));
 
 const zyxBindAttributes = {
 	"zyx-array": ({ node, data }) => new ZyXDomArray({ container: node, ...data }),
@@ -72,7 +76,8 @@ export function zyXAttrProcess(zyxhtml, oven, data) {
 		for (const attr of zyXBinds) {
 			const placeholder = getPlaceholderID(attr.value);
 			if (placeholder) {
-				zyxBindAttributes[attr.name]({ node, data: data[placeholder].value })
+				const phdata = data[placeholder].value
+				zyxBindAttributes[attr.name]({ node, data: phdata })
 				node.removeAttribute(attr.name);
 			} else {
 				zyxBindAttributes[attr.name]({ node, data: attr.value })
