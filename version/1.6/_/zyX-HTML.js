@@ -42,8 +42,9 @@ export class ZyXHtml {
 	#garbageCollect = true;
 	#logMap = false;
 	constructor(raw, ...tagData) {
-		bench && debugStart("html", "html`<...>` called");
+		bench && debugStart(this, "ZyXHtml");
 		const { markup, data } = preProcess(raw, tagData);
+		bench && debugCheckpoint(this, "preProcess");
 		this.#data = data;
 		this.#oven = markup;
 		this.#proxy = new Proxy(this, {
@@ -57,7 +58,6 @@ export class ZyXHtml {
 				return (obj[key] = val);
 			},
 		});
-		bench && debugLog("html", { min: 0, dump: { zyXHtml: this } });
 	}
 
 	log(...args) {
@@ -170,6 +170,8 @@ export class ZyXHtml {
 			this.#oven = null;
 			this.#data = null;
 		}
+
+		bench && debugLog(this, { label: "constructed", min: 100, dump: { zyXHtml: this } });
 
 		this.#constructed = true;
 		return this;
