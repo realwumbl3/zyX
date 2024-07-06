@@ -1,5 +1,5 @@
 import { ZyXHtml } from "./zyX-HTML.js";
-import { WeakRefSet, Deque } from "./zyX-Types.js";
+import { WeakRefSet, ZyXDeque } from "./zyX-Types.js";
 
 import { debugCheckpoint, debugStart, debugLog } from "./zyX-Debugger.js";
 
@@ -31,7 +31,7 @@ export class ZyXDomArray {
     */
     #memoize;
     /**
-    * @type {Deque<HTMLElement>} - memoized elements
+    * @type {ZyXDeque<HTMLElement>} - memoized elements
     */
     #memoized;
     /**
@@ -71,7 +71,7 @@ export class ZyXDomArray {
         this.#debounce = debounce;
 
         this.#memoize = memoize;
-        this.#memoized = new Deque(memoize);
+        this.#memoized = new ZyXDeque(memoize);
 
         this.#array.addListener(this.arrayModified);
 

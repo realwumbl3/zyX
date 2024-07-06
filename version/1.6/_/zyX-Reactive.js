@@ -1,5 +1,5 @@
 import { getZyXMarkup } from "./zyX-HTML.js";
-import { WeakRefSet, Deque } from "./zyX-Types.js";
+import { WeakRefSet, ZyXDeque } from "./zyX-Types.js";
 
 import { debugCheckpoint, debugStart, debugLog } from "./zyX-Debugger.js";
 
@@ -19,9 +19,9 @@ export class ZyXDomArray {
      */
     #container;
     /**
-     *  @type {ZyXArray} - reactive array
+     *  @type {ZyXArray} - reactive zyxactive object
      */
-    #array;
+    #zyxactive;
     /**
     * @type {Function} - compose function
     */
@@ -31,7 +31,7 @@ export class ZyXDomArray {
     */
     #memoize;
     /**
-    * @type {Deque<HTMLElement>} - memoized elements
+    * @type {ZyXDeque<HTMLElement>} - memoized elements
     */
     #memoized;
     /**
@@ -50,14 +50,14 @@ export class ZyXDomArray {
     #pending_update = null;
     constructor({
         container = container,
-        array = null,
+        zyxactive = null,
         compose = null,
         debounce = 1,
         range = null,
         after = null,
         memoize = 0
     } = {}) {
-        if (!(array instanceof ZyXArray)) throw new Error("zyXDomArray target must be zyXArray");
+        if (!(zyxactive instanceof ZyXArray || zyxactive instanceof ZyXObject)) throw new Error("zyxactive must be an instance of either ZyXArray or ZyXObject");
 
         this.#container = container;
 
@@ -66,14 +66,14 @@ export class ZyXDomArray {
         this.#compose = compose;
         this.#after = after;
 
-        this.#array = array;
+        this.#zyxactive = zyxactive;
         this.#range = range;
         this.#debounce = debounce;
 
         this.#memoize = memoize;
-        this.#memoized = new Deque(memoize);
+        this.#memoized = new ZyXDeque(memoize);
 
-        this.#array.addListener(this.arrayModified);
+        this.#zyxactive.addListener(this.arrayModified);
 
         this.update();
     }
@@ -112,7 +112,7 @@ export class ZyXDomArray {
     }
 
     getTarget() {
-        const target_content = Object.values(this.#array)
+        const target_content = Object.values(this.#zyxactive)
         if (this.#range === null) return target_content;
         const slice = target_content.slice(this.#range[0], this.#range[1]);
         return slice;
@@ -285,3 +285,68 @@ export class ZyXArray extends Array {
     }
 
 }
+
+
+// TODO: ZyXObject
+export class ZyXObject extends Object {
+    constructor(...args) {
+        super(...args);
+        EVENTLISTENERS.set(this, new WeakRefSet());
+    }
+
+    getProxy() {
+        return new Proxy(this, {
+            set: (target, property, value, receiver) => {
+                const result = Reflect.set(target, property, value, receiver);
+                if (typeof property === 'string' && !isNaN(property)) {
+                    const eventListeners = EVENTLISTENERS.get(target);
+                    eventListeners.forEach((cb) => cb(this, "set", property, value));
+                }
+                return result;
+            },
+            get: (target, property, receiver) => {
+                const result = Reflect.get(target, property, receiver);
+                if (typeof result === 'function') return result.bind(target);
+                return result;
+            }
+        });
+    }
+
+    // event listeners
+    getEventListeners() {
+        return EVENTLISTENERS.get(this);
+    }
+
+    addListener(cb) {
+        this.getEventListeners().add(cb);
+    }
+
+    removeListener(cb) {
+        this.getEventListeners().delete(cb);
+    }
+
+    // object methods
+    set(key, value) {
+        super.set(key, value);
+        this.getEventListeners().forEach((cb) => cb(this, "set", key, value));
+        return this;
+    }
+
+    delete(key) {
+        super.delete(key);
+        this.getEventListeners().forEach((cb) => cb(this, "delete", key));
+        return this;
+    }
+
+    clear() {
+        super.clear();
+        this.getEventListeners().forEach((cb) => cb(this, "clear"));
+        return this;
+    }
+
+    update() {
+        this.getEventListeners().forEach((cb) => cb(this, "update"));
+        return this;
+    }
+}
+

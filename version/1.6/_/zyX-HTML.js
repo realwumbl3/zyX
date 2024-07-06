@@ -18,16 +18,7 @@ import {
 
 const bench = false;
 
-export function html(raw, ...data) {
-	return new ZyXHtml(raw, ...data)
-}
-
-function preProcess(raw, data) {
-	const output = {}
-	output.data = data.map((_, i) => { return { value: _, placeholder: strPlaceholder(i) } })
-	output.markup = trimTextNodes(innerHTML(String.raw({ raw }, ...Object.values(output.data).map((_) => _.placeholder))));
-	return output;
-}
+export const html = (...args) => new ZyXHtml(...args)
 
 export class ZyXHtml {
 	#constructed = false;
@@ -131,7 +122,6 @@ export class ZyXHtml {
 		if (this.#logMap) console.log(this.getMap());
 
 		this.dryPlaceholders();
-
 		this.placeReferencedPlaceholders();
 
 		[...this.#oven.querySelectorAll("ph")].forEach((node) => {
@@ -189,9 +179,9 @@ export class ZyXHtml {
 	}
 
 	dryPlaceholders() {
-		const nontree_placeholders = this.#oven.innerHTML.match(placeholderRegex);
-		if (nontree_placeholders) for (const str_placeholder of nontree_placeholders) {
-			const { placeholder, value } = this.#data[getPlaceholderID(str_placeholder)];
+		const placeholders = this.#oven.innerHTML.match(placeholderRegex);
+		if (placeholders) for (const ph of placeholders) {
+			const { placeholder, value } = this.#data[getPlaceholderID(ph)];
 			const objectPlaceholder = value !== null && (typeof value === "object" || typeof value === "function");
 			this.#oven.innerHTML = this.#oven.innerHTML.replace(placeholder, objectPlaceholder ? placeholder : value);
 		}
@@ -229,6 +219,13 @@ export class ZyXHtml {
 		node.__key__ = keyname;
 		this[keyname].push(node);
 	}
+}
+
+function preProcess(raw, data) {
+	const output = {}
+	output.data = data.map((_, i) => { return { value: _, placeholder: strPlaceholder(i) } })
+	output.markup = trimTextNodes(innerHTML(String.raw({ raw }, ...Object.values(output.data).map((_) => _.placeholder))));
+	return output;
 }
 
 function makePlaceable(object) {

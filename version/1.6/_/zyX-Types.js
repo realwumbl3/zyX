@@ -42,7 +42,7 @@ export class WeakRefSet extends Set {
 }
 
 
-export class Deque extends Array {
+export class ZyXDeque extends Array {
     constructor(limit) {
         super();
         this.limit = limit;
@@ -80,3 +80,9 @@ export class Deque extends Array {
         return this.pop();
     }
 }
+
+export class ZyXSlots {
+    constructor({ container, zyxreactive }) {}
+
+}
+

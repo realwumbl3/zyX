@@ -9,7 +9,7 @@
 	</script>
 */
 
-import { ZyXDomArray, ZyXArray, getDomArray } from "./_/zyX-Reactive.js";
+import { ZyXDomArray, ZyXArray, ZyXObject, getDomArray } from "./_/zyX-Reactive.js";
 
 import { css, zyxcss } from "./_/zyX-CSS.js";
 
@@ -29,7 +29,7 @@ import {
 	debounce
 } from "./_/zyX-Delay.js";
 
-import { WeakRefSet } from "./_/zyX-Types.js";
+import { WeakRefSet, ZyXSlots, ZyXDeque } from "./_/zyX-Types.js";
 
 import {
 	timeoutLimiter,
@@ -96,7 +96,11 @@ export {
 	//
 	ZyXHtml,
 	ZyXArray,
+	ZyXObject,
 	ZyXDomArray,
+	ZyXSlots,
+	ZyXDeque,
+	//
 	getDomArray,
 	//
 	html,
