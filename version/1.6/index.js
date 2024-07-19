@@ -9,8 +9,8 @@
 	</script>
 */
 
-import { ZyXDomArray, ZyXArray, ZyXObject, getDomArray } from "./_/zyX-Reactive.js";
-
+import { ZyXDomArray, getDomArray } from "./_/zyX-Reactive.js";
+import { ZyXArray, ZyXObject } from "./_/zyX-Types.js";
 import { css, zyxcss } from "./_/zyX-CSS.js";
 
 import { ZyXHtml, html } from "./_/zyX-HTML.js";
@@ -26,7 +26,7 @@ import {
 	breakDelayChain,
 	clearDelay,
 	delay,
-	debounce
+	debounce,
 } from "./_/zyX-Delay.js";
 
 import { WeakRefSet, ZyXSlots, ZyXDeque } from "./_/zyX-Types.js";
@@ -41,7 +41,13 @@ import {
 	pointerEventPathContainsMatching,
 	hexToRGB,
 	hexToHSL,
-	exposeToWindow, ss, clamp, ceilClamp, minMax, seedShuffle, seedRandom,
+	exposeToWindow,
+	ss,
+	clamp,
+	ceilClamp,
+	minMax,
+	seedShuffle,
+	seedRandom,
 } from "./_/zyX-Toolbox.js";
 
 import zyXCookie from "./_/zyX-Cookie.js";
@@ -54,7 +60,12 @@ import { Focusable, FocusController } from "./_/zyX-Focusables.js";
 import calculateDominantColor from "./_/zyX-HUE.js";
 import zyXTransform from "./_/zyX-Transform.js";
 
-import { getAllShadowRoots, clearAllSelections, forEachShadowRoot, queryAllRoots } from "./_/zyX-ShadowRoot.js";
+import {
+	getAllShadowRoots,
+	clearAllSelections,
+	forEachShadowRoot,
+	queryAllRoots,
+} from "./_/zyX-ShadowRoot.js";
 
 ///// wumbl3.xyz 2023 ///// //// /// // 7
 
@@ -67,26 +78,36 @@ const zyXMethods = {
 	delayChain,
 	breakDelayChain,
 	debounce,
-	of: (times, call) => Array(times).fill().map((_, index) => call(index))
-}
+	of: (times, call) =>
+		Array(times)
+			.fill()
+			.map((_, index) => call(index)),
+};
 
 export default function zyX(that) {
-	return new Proxy(zyXMethods,
-		{
-			get: (obj, key) => {
-				if (obj.hasOwnProperty(key)) {
-					const func = obj[key];
-					return (...args) => func(that, ...args);
-				}
-				throw new Error(`zyX().${key} is not a function`);
+	return new Proxy(zyXMethods, {
+		get: (obj, key) => {
+			if (obj.hasOwnProperty(key)) {
+				const func = obj[key];
+				return (...args) => func(that, ...args);
 			}
-		}
-	);
+			throw new Error(`zyX().${key} is not a function`);
+		},
+	});
 }
 
-export function isMobile() { return navigator.maxTouchPoints > 0; }
+export function isMobile() {
+	return navigator.maxTouchPoints > 0;
+}
 
-import { zyXPost, zyXGet, zyXFormPost, zyXFetchBlob, resizeImageToCanvas, urlSplitExt } from "./_/zyX-Fetch.js";
+import {
+	zyXPost,
+	zyXGet,
+	zyXFormPost,
+	zyXFetchBlob,
+	resizeImageToCanvas,
+	urlSplitExt,
+} from "./_/zyX-Fetch.js";
 import ScrollTo from "./_/zyX-ScrollTo.js";
 
 /////// \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
@@ -114,7 +135,10 @@ export {
 	Focusable,
 	FocusController,
 	//
-	getAllShadowRoots, clearAllSelections, forEachShadowRoot, queryAllRoots,
+	getAllShadowRoots,
+	clearAllSelections,
+	forEachShadowRoot,
+	queryAllRoots,
 	//
 	AsyncWorker,
 	AsynConstructor,
@@ -149,7 +173,7 @@ export {
 	pointerEventPathContains,
 	pointerEventPathContainsMatching,
 	ScrollTo,
-	// 
+	//
 	delay,
 	clearDelay,
 	delayChain,

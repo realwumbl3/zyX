@@ -5,24 +5,25 @@ export function forQuery(that, query, cbfn) {
 }
 
 export function setProps(that, props) {
-	Object.entries(props).forEach(([prop, val]) => that.style.setProperty(prop, val))
+	Object.entries(props).forEach(([prop, val]) => that.style.setProperty(prop, val));
 }
 
-export async function placeSafely(target, container, x, y) {
+export async function placeSafely(target, container, x, y, unit = "em") {
 	container.appendChild(target);
-	target.style[y >= 0 ? "top" : "bottom"] = Math.abs(y) + "em";
-	target.style[x >= 0 ? "left" : "right"] = Math.abs(x) + "em";
-	await sleep(1)
+	target.style[y >= 0 ? "top" : "bottom"] = Math.abs(y) + unit;
+	target.style[x >= 0 ? "left" : "right"] = Math.abs(x) + unit;
+	await sleep(1);
 	const { offsetWidth: targetWidth, offsetHeight: targetHeight } = target;
 	const { offsetWidth: containerWidth, offsetHeight: containerHeight } = container;
 	const { left, top, bottom, right } = target.getBoundingClientRect();
-	if (!(left < 0 || top < 0 || bottom > containerHeight || right > containerWidth)) return
-	bottom > containerHeight && (target.style.top = `${containerHeight - targetHeight}px`)
-	right > containerWidth && (target.style.left = `${containerWidth - targetWidth}px`)
+	if (!(left < 0 || top < 0 || bottom > containerHeight || right > containerWidth))
+		return;
+	bottom > containerHeight && (target.style.top = `${containerHeight - targetHeight}px`);
+	right > containerWidth && (target.style.left = `${containerWidth - targetWidth}px`);
 }
 
 export function events(that, events, cb, options = {}) {
-	events.split(" ").forEach((event) => that.addEventListener(event, cb, options))
+	events.split(" ").forEach((event) => that.addEventListener(event, cb, options));
 }
 
 /**
@@ -45,11 +46,11 @@ export function timeoutLimiter(cooldown) {
 }
 
 export function pointerEventPathContains(e, elem) {
-	return (e.composedPath && e.composedPath()).some(e => e === elem)
+	return (e.composedPath && e.composedPath()).some((e) => e === elem);
 }
 
 export function pointerEventPathContainsMatching(e, cssSelector) {
-	return (e.composedPath && e.composedPath()).find(e => e.matches?.(cssSelector))
+	return (e.composedPath && e.composedPath()).find((e) => e.matches?.(cssSelector));
 }
 
 export function hslCssKeys({ h = 0, s = 0, l = 0 } = {}) {
@@ -70,7 +71,8 @@ export function hexToHSL(hex) {
 	const min = Math.min(r, g, b);
 	const l = (max + min) / 2;
 	let s = 0;
-	if (max !== min) s = l > 0.5 ? (max - min) / (2 - max - min) : (max - min) / (max + min);
+	if (max !== min)
+		s = l > 0.5 ? (max - min) / (2 - max - min) : (max - min) / (max + min);
 	let h = 0;
 	if (max !== min) {
 		if (max === r) {
@@ -92,10 +94,10 @@ export function hexToHSL(hex) {
 
 export function exposeToWindow(modules) {
 	for (const [key, val] of Object.entries(modules)) window[key] = val;
-};
+}
 
 export function ss(int) {
-	return (int > 1 ? "s" : "")
+	return int > 1 ? "s" : "";
 }
 
 export function clamp(val, min, max) {

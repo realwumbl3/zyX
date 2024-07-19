@@ -151,6 +151,11 @@ export class ZyXHtml {
 
 		zyXAttrProcess(this, this.#oven, this.#data);
 
+		[...this.#oven.querySelectorAll("[zyx-this]")].forEach((node) => {
+			this.thisAssigner(node, node.getAttribute("zyx-this"));
+			// node.removeAttribute("zyx-this");
+		});
+
 		this.#dom = this.#oven.childNodes.length > 1 ? wrapInTemplate(this.#oven) : this.#oven;
 		this.#isTemplate = this.#dom instanceof HTMLTemplateElement;
 		if (this.#isTemplate) this.#dom = this.#dom.content;
@@ -228,7 +233,7 @@ function preProcess(raw, data) {
 	return output;
 }
 
-function makePlaceable(object) {
+export function makePlaceable(object) {
 	if (object === false || object === null || object === undefined) return "";
 	if (Array.isArray(object)) return templateFromPlaceables(object).content;
 	if (typeof object === "function") return makePlaceable(object());

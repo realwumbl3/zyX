@@ -1,3 +1,20 @@
+const EVENTLISTENERS = new WeakMap();
+
+export class EventHandlerMapObject {
+    constructor() {
+        EVENTLISTENERS.set(this, new WeakRefSet());
+    }
+    getEventListeners() {
+        return EVENTLISTENERS.get(this);
+    }
+    addListener(cb) {
+        this.getEventListeners().add(cb);
+    }
+    removeListener(cb) {
+        this.getEventListeners().delete(cb);
+    }
+}
+
 export class WeakRefSet extends Set {
     add(ref) {
         super.add(new WeakRef(ref));
@@ -81,8 +98,123 @@ export class ZyXDeque extends Array {
     }
 }
 
-export class ZyXSlots {
-    constructor({ container, zyxreactive }) {}
+
+
+export class ZyXArray extends Array {
+    constructor(...args) {
+        super(...args);
+        EVENTLISTENERS.set(this, new WeakRefSet());
+    }
+
+    getProxy() {
+        return new Proxy(this, {
+            set: (target, property, value, receiver) => {
+                const result = Reflect.set(target, property, value, receiver);
+                if (typeof property === 'string' && !isNaN(property)) {
+                    const eventListeners = EVENTLISTENERS.get(target);
+                    eventListeners.forEach((cb) => cb(this, "set", property, value));
+                }
+                return result;
+            },
+            get: (target, property, receiver) => {
+                const result = Reflect.get(target, property, receiver);
+                if (typeof result === 'function') return result.bind(target);
+                return result;
+            }
+        });
+    }
+
+    // event listeners
+    getEventListeners() {
+        return EVENTLISTENERS.get(this);
+    }
+
+    addListener(cb) {
+        this.getEventListeners().add(cb);
+    }
+
+    removeListener(cb) {
+        this.getEventListeners().delete(cb);
+    }
+
+    callListeners(method, ...args) {
+        this.getEventListeners().forEach((cb) => cb(this, method, ...args));
+        return this;
+    }
+
+    // array methods
+    push(...args) {
+        super.push(...args);
+        this.callListeners("push", ...args);
+        return this;
+    }
+
+    pop(...args) {
+        super.pop(...args);
+        this.callListeners("pop", ...args);
+        return this;
+    }
+
+    shift(...args) {
+        super.shift(...args);
+        this.callListeners("shift", ...args);
+        return this;
+    }
+
+    unshift(...args) {
+        super.unshift(...args);
+        this.callListeners("unshift", ...args);
+        return this;
+    }
+
+    splice(...args) {
+        super.splice(...args);
+        this.callListeners("splice", ...args);
+        return this;
+    }
+
+    // extra methods
+    update() {
+        this.callListeners("update");
+        return this
+    }
+
+    clear() {
+        super.splice(0, this.length);
+        this.callListeners("clear");
+        return this;
+    }
+
+    remove(item) {
+        const index = this.indexOf(item);
+        if (index !== -1) this.splice(index, 1);
+        return this;
+    }
+
+    sort(scb) {
+        super.sort(scb);
+        this.callListeners("sort", scb);
+        return this;
+    }
+
+    swap(array) {
+        if (!(array instanceof Array)) throw new Error("zyXArray.swap() requires an array");
+        this.clear();
+        this.push(...array);
+        return this;
+    }
+
+    insert(index, ...items) {
+        this.splice(index, 0, ...items);
+        return this;
+    }
+}
+
+// TODO: ZyXObject
+export class ZyXObject extends Object { }
+
+export class ZyXSlots extends EventHandlerMapObject {
+    constructor({ container, zyxreactive }) { }
 
 }
 
