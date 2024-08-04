@@ -69,10 +69,10 @@ export function delay(that, keyname, ms, func) {
 	// console.log(keyname, "delay", that);
 	return new Promise((res, rej) => {
 		const map = GlobalGet(that, "delays");
-		if (keyname in map) clearTimeout(map[keyname]);
+		if (keyname in map) clearTimeout(map[keyname].timeout);
 		ms = ms || 0;
-		if (func) map[keyname] = setTimeout(() => res(func()), ms);
-		else map[keyname] = setTimeout(res, ms);
+		if (func) map[keyname] = { func, timeout: setTimeout(() => res(func()), ms) };
+		else map[keyname] = { func, timeout: setTimeout(res, ms) };
 	});
 }
 
@@ -80,10 +80,19 @@ export function clearDelay(that, ...keynames) {
 	const map = GlobalGet(that, "delays");
 	if (keynames.length > 1) {
 		for (const keyname in keynames) {
-			if (keyname in map) clearTimeout(map[keyname]);
+			if (keyname in map) clearTimeout(map[keyname].timeout);
 		}
 	} else {
-		clearTimeout(map[keynames[0]]);
+		clearTimeout(map[keynames[0]].timeout);
+	}
+}
+
+// call an existing delay and clear it
+export function instant(that, keyname) {
+	const map = GlobalGet(that, "delays");
+	if (keyname in map) {
+		clearTimeout(map[keyname].timeout);
+		map[keyname].func();
 	}
 }
 

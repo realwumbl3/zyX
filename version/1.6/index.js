@@ -27,6 +27,7 @@ import {
 	clearDelay,
 	delay,
 	debounce,
+	instant,
 } from "./_/zyX-Delay.js";
 
 import { WeakRefSet, ZyXSlots, ZyXDeque } from "./_/zyX-Types.js";
@@ -74,6 +75,7 @@ const zyXMethods = {
 	setProps,
 	events,
 	delay,
+	instant,
 	clearDelay,
 	delayChain,
 	breakDelayChain,
@@ -175,6 +177,7 @@ export {
 	ScrollTo,
 	//
 	delay,
+	instant,
 	clearDelay,
 	delayChain,
 	breakDelayChain,
