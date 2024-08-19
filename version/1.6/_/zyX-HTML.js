@@ -151,6 +151,10 @@ export class ZyXHtml {
 			node.removeAttribute("this");
 		});
 
+		[...this.#oven.querySelectorAll("[id]")].forEach((node) => {
+			this.thisAssigner(node, node.id);
+		});
+
 		[...this.#oven.querySelectorAll("[push]")].forEach((node) => {
 			this.pushAssigner(node, node.getAttribute("push"));
 			node.removeAttribute("push");

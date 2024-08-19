@@ -80,10 +80,10 @@ export function clearDelay(that, ...keynames) {
 	const map = GlobalGet(that, "delays");
 	if (keynames.length > 1) {
 		for (const keyname in keynames) {
-			if (keyname in map) clearTimeout(map[keyname].timeout);
+			if (keyname in map) clearTimeout(map[keyname]?.timeout);
 		}
 	} else {
-		clearTimeout(map[keynames[0]].timeout);
+		clearTimeout(map[keynames[0]]?.timeout);
 	}
 }
 

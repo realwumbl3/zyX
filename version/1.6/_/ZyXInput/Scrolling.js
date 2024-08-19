@@ -50,6 +50,7 @@ export class MomentumScroll {
                 const dir = direction()
                 if (dir === "left" || dir === "right") return stop();
                 clearAllSelections();
+                this.container.requestPointerLock();
                 return true
             },
             onMove: ({ mv_e, movementY } = {}, { } = {}) => {
@@ -65,6 +66,7 @@ export class MomentumScroll {
             },
             onUp: () => {
                 this.container.classList.remove("Scrolling")
+                document.exitPointerLock();
                 this.pointerDown = false;
             }
         });
