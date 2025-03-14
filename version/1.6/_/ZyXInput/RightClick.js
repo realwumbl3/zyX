@@ -15,19 +15,21 @@ export default function RightClick(
     } = {}) {
     this.on(element).pointerDownMoveUp({
         label,
-        onDown: ({ dwn_e, b4, moveFuse, pointerDown, eventFuse } = {}) => {
-            onDown?.({ dwn_e, b4 });
+        onDown: (args) => {
+            const { moveFuse, pointerDown, eventFuse } = args
+            onDown && onDown(args);
             zyX(element).delay("pointer-down", this.mobilePressHoldDelay, () => {
                 if (moveFuse.true || pointerDown.false || eventFuse.false) return;
                 this.kingOfTheStack(eventFuse)
-                onUp({ dwn_e });
+                onUp(args);
             })
             return true;
         },
-        onUp: ({ up_e, dwn_e, moveFuse }) => {
+        onUp: (args) => {
+            const { up_e, moveFuse } = args
             if (up_e.pointerType === "mouse" && up_e.button === 2) {
                 if (moveFuse.true) return;
-                onUp({ up_e, dwn_e });
+                onUp(args);
             }
         },
         once,

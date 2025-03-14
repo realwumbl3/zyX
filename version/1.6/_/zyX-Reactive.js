@@ -1,6 +1,8 @@
 import { getZyXMarkup } from "./zyX-HTML.js";
 import { WeakRefSet, ZyXDeque, ZyXArray, ZyXObject } from "./zyX-Types.js";
 
+import { html } from "./zyX-HTML.js";
+
 import { debugCheckpoint, debugStart, debugLog } from "./zyX-Debugger.js";
 
 const zyXDomArrays = new WeakMap();
@@ -104,11 +106,15 @@ export class ZyXDomArray {
     }
 
     orderedEntires() {
-        return Array.from(this.#container.children, (dom_element) => [dom_element, this.#arrayMap.get(dom_element)]).sort(([a], [b]) => a.style.order - b.style.order);
+        return Array.from(this.orderedDomItems(), (dom_element) => [dom_element, this.#arrayMap.get(dom_element)]);
     }
 
     domItems() {
         return Array.from(this.#container.children, (dom_element) => this.#arrayMap.get(dom_element));
+    }
+
+    orderedDomItems() {
+        return Array.from(this.#container.children).sort((a, b) => a.style.order - b.style.order);
     }
 
     get(obj) {
@@ -131,6 +137,15 @@ export class ZyXDomArray {
 
     getRange() {
         return { start: Math.max(0, this.#range[0] + this.#offset), end: Math.min(this.#zyxactive.length, this.#range[1] + this.#offset) };
+    }
+
+    getRangeHalf() {
+        const range = this.getRange();
+        return (range.start + range.end) / 2;
+    }
+
+    getRangeLength() {
+        return this.getRange().end - this.getRange().start;
     }
 
     updateRange(cb) {
@@ -181,6 +196,8 @@ export class ZyXDomArray {
     }
 
     appendToContainer(element, item) {
+        if (this.pauseScrolling) clearTimeout(this.pauseScrolling);
+        this.pauseScrolling = setTimeout(() => (this.pauseScrolling = null), 20);
         this.#container.appendChild(element);
         if (this.infiniteScrolling) this.infiniteScrolling.mutationObserver.observe(element);
         try {
@@ -199,36 +216,100 @@ export class ZyXDomArray {
     }
 
     setupInfiniteScrolling() {
+        const TOP_UP = 1;
+        const BOT_DOWN = 2;
+        const context = {
+            direction: null,
+            scrollTop: 0
+        }
+        this.#container.addEventListener("scroll", () => {
+            context.direction = this.#container.scrollTop > context.scrollTop ? BOT_DOWN : TOP_UP;
+            context.scrollTop = this.#container.scrollTop;
+        });
         const mutationObserver = new IntersectionObserver((intersections) => {
-            if (this.#zyxactive.length < this.#range[1]) return;
+            // debugIntersections(intersections);
 
-            if (
-                !intersections[0].isIntersecting ||
-                this.pauseScrolling
-            ) return;
-            const topOrBottom = intersections[0].boundingClientRect.top < 0 ? "top" : "bottom";
-            const count = intersections.filter((intersections) => intersections.isIntersecting).length;
-            const orderedEntries = this.orderedEntires();
-            if (topOrBottom === "top") {
-                const firstRow = orderedEntries.slice(0, count);
-                if (!firstRow.find(([dom_element, item]) => intersections[0].target === dom_element)) return console.log("not in first row");
-                console.log("first row", firstRow);
-            } else {
-                const lastRow = orderedEntries.slice(-count);
-                if (!lastRow.find(([dom_element, item]) => intersections[0].target === dom_element)) return console.log("not in last row");
-                console.log("last row", lastRow);
+            const icount = intersections.length;
+            if (icount >= this.#range[1]) return console.log("range intersection reached");
+            const intersectings = intersections.filter((intersection) => intersection.isIntersecting);
+            if (intersectings.length === 0) return;
+            const count = intersectings.length;
+            const topOrBottom = intersections[0].boundingClientRect.top > 0 ? BOT_DOWN : TOP_UP;
+            const orderedItems = this.orderedDomItems();
+            const rangeHalf = this.#container.children.length / 2;
+            const targetItem = topOrBottom === BOT_DOWN ? intersections[0].target : intersections[count - 1].target;
+            const targetItemIndex = orderedItems.indexOf(targetItem);
+            // console.log({
+            //     count,
+            //     topOrBottom: topOrBottom === BOT_DOWN ? "down" : "up",
+            //     rangeHalf,
+            //     targetItem,
+            //     targetItemIndex
+            // });
+            if (topOrBottom === BOT_DOWN && targetItemIndex >= rangeHalf) {
+                this.updateOffset((offset) => offset + count);
             }
-            console.log({ topOrBottom, count });
-            this.updateOffset((offset) => {
-                if (topOrBottom === "top") return offset - count;
-                else return offset + count;
-            });
+            if (topOrBottom === TOP_UP && targetItemIndex <= rangeHalf) {
+                this.updateOffset((offset) => offset - count);
+            }
         }, {
+            rootMargin: "0px",
             root: this.#container,
             threshold: 0.5
         });
-        this.infiniteScrolling = { mutationObserver }
+        this.infiniteScrolling = { mutationObserver, context }
         return this.infiniteScrolling;
     }
 
+    setupScrollEventListener() {
+        const TOP_UP = 1;
+        const BOT_DOWN = 2;
+        const context = {
+            direction: null,
+            scrollTop: 0
+        }
+        this.#container.addEventListener("scroll", () => {
+            context.direction = this.#container.scrollTop > context.scrollTop ? BOT_DOWN : TOP_UP;
+            context.scrollTop = this.#container.scrollTop;
+            context.scrollBottom = this.#container.scrollTop + this.#container.clientHeight;
+
+
+        });
+
+        return;
+    }
+
+}
+
+
+function debugIntersections(intersections) {
+    for (const intersection of intersections) {
+        for (const item of [...intersection.target.querySelectorAll(".intersectionData")]) item.remove();
+        html`
+                    <div class="intersectionData">
+                        <div>isIntersecting: ${intersection.isIntersecting || "false"}</div>
+                        <div>intersectionRatio: ${intersection.intersectionRatio}</div>
+                        <div>time: ${intersection.time}</div>
+                        <div class="Row">
+                            <div>boundingClientRect:</div>
+                            <div>top: ${intersection.boundingClientRect.top}</div>
+                            <div>bottom: ${intersection.boundingClientRect.bottom}</div>
+                            <div>left: ${intersection.boundingClientRect.left}</div>    
+                            <div>right: ${intersection.boundingClientRect.right}</div>      
+                            <div>width: ${intersection.boundingClientRect.width}</div>      
+                            <div>height: ${intersection.boundingClientRect.height}</div>            
+                        </div>
+                        <div class="Row">
+                            <div>intersectionRect:</div>
+                            <div>top: ${intersection.intersectionRect.top}</div>
+                            <div>bottom: ${intersection.intersectionRect.bottom}</div>
+                            <div>left: ${intersection.intersectionRect.left}</div>    
+                            <div>right: ${intersection.intersectionRect.right}</div>      
+                            <div>width: ${intersection.intersectionRect.width}</div>      
+                            <div>height: ${intersection.intersectionRect.height}</div>
+                        </div>
+                    </div>
+                    `.const()
+            .appendTo(intersection.target);
+    }
 }

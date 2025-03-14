@@ -13,7 +13,7 @@ import { ZyXDomArray, getDomArray } from "./_/zyX-Reactive.js";
 import { ZyXArray, ZyXObject } from "./_/zyX-Types.js";
 import { css, zyxcss } from "./_/zyX-CSS.js";
 
-import { ZyXHtml, html } from "./_/zyX-HTML.js";
+import { ZyXHtml, html, makePlaceable, getTopLevelElements } from "./_/zyX-HTML.js";
 
 import "./_/zyX-Init.js";
 
@@ -129,6 +129,8 @@ export {
 	html,
 	css,
 	zyxcss,
+	makePlaceable,
+	getTopLevelElements,
 	//
 	ZyXEvents,
 	ZyXInput,

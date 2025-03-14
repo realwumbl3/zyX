@@ -1,6 +1,6 @@
 // #region [Imports] Copyright wumbl3 ©️ 2023 - No copying / redistribution / modification unless strictly allowed.
 import zyX, { pointerEventPathContains, pointerEventPathContainsMatching } from "../../";
-import ZyXInput, { Fuze }  from "../zyX-Input.js";
+import ZyXInput, { Fuze } from "../zyX-Input.js";
 import { angleToDirection, calculateAngle, calculateFourAngleSnap } from "./Functions.js";
 // #endregion
 
@@ -46,6 +46,8 @@ export default function PointerDownMoveUp(element, {
         stopPropagation && dwn_e.stopPropagation()
         stopImmediatePropagation && dwn_e.stopImmediatePropagation()
 
+        const composedPath = dwn_e.composedPath()
+
         let {
             startAngle = null,
             moveCalledOnce = false,
@@ -55,6 +57,7 @@ export default function PointerDownMoveUp(element, {
         } = {}
 
         const down_return = onDown({
+            composedPath,
             dwn_e,
             moveFuse,
             pointerDown,
@@ -145,6 +148,7 @@ export default function PointerDownMoveUp(element, {
             const call = {
                 dwn_e,
                 up_e,
+                composedPath,
                 mv_e: latest_move_e,
                 startX,
                 startY,
