@@ -16,7 +16,7 @@
   <div id="app"></div>
 
   <script type="module">
-    import { html, dynamic, DynamicList } from "../../../v:1.8/";
+    import { html, dynamicVar } from "../../";
 
     class TestParentClass {
       constructor() {
@@ -41,30 +41,29 @@
 
     const testzyXHTML = html`<h1>Test ZyXHTML</h1>`;
 
-    const testTag = "h1";
+    const testTag = "div";
     const testAttributeName = "test-attribute";
     const testAttributeValue = "test-value";
 
     class App {
       constructor() {
-        this.testDynamic = dynamic("initial value");
+        this.testDynamic = dynamicVar("initial value");
+
         html`
-          <div id="apptest">
+          <div id="apptest">    
 
-            <${testTag} ${testAttributeName}=${testAttributeValue}> </${testTag}>
-
-            <h1 test-attribute="test-value"> </h1>
+            <${testTag} ${testAttributeName}=${testAttributeValue}>:3</${testTag}>
 
             <h1 this="h1"
-            negative-return=${-1}
-            zero-return="${0}"
-            false-return="${false}"
-            true-return="${true}"
-            null-return="${null}"
-            undefined-return="${undefined}"
-            empty-return="${""}"
-            okstring-return="${"ok"}"
-            returned-value-return="${this.testDynamic}"
+                negative-return=${-1}
+                zero-return="${0}"
+                false-return="${false}"
+                true-return="${true}"
+                null-return="${null}"
+                undefined-return="${undefined}"
+                empty-return="${""}"
+                okstring-return="${"ok"}"
+                returned-value-return="${this.testDynamic}"
             ></h1>
             
             <div>negative-return{${-1}}</div>
@@ -80,16 +79,17 @@
             ${() => "returned value"} ${div} ${testChild} ${testzyXHTML}
             
             <button zyx-click="${(z) => console.log(z)}">Click Me</button>
+
             </div>
-            `
-          .bind(this)
+        `
+          .bind(this, { keepRaw: true, keepMarkup: true, keepData: true })
           .place(document.getElementById("app"));
 
         setInterval(() => {
           this.testDynamic.set(`new value ${Math.random()}`);
         }, 500);
 
-        console.log(this.__zyXHTML__);
+        console.log(this);
       }
     }
 

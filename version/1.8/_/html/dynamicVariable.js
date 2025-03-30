@@ -1,7 +1,7 @@
 // Dynamic value system for zyX HTML
 // Provides reactive values that update DOM when modified
 
-export function dynamic(initialValue) {
+export function dynamicVar(initialValue) {
   // Store subscribers that will be updated when the value changes
   const subscribers = new Set();
 
@@ -32,7 +32,7 @@ export function dynamic(initialValue) {
 }
 
 // Process reactive values in attributes and content
-export function processReactiveValues(zyxhtml, node, attrName, reactive) {
+export function processDynamicVarAttributes(zyxhtml, node, attrName, reactive) {
   if (!reactive || typeof reactive !== "object" || !("subscribe" in reactive)) {
     return; // Not a reactive value
   }

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>zyX Conditional Tests</title>
+  </head>
+</html>
+<style>
+  body {
+    background-color: #0e0e0e;
+    color: #f1f1f1;
+    font-family: "Courier New", Courier, monospace;
+    padding: 20px;
+  }
+  button {
+    margin: 5px;
+    padding: 8px 16px;
+    background-color: #333;
+    color: white;
+    border: 1px solid #555;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  button:hover {
+    background-color: #444;
+  }
+  .condition-demo {
+    margin: 20px 0;
+    padding: 15px;
+    border: 1px solid #444;
+    border-radius: 4px;
+  }
+  .value-display {
+    font-size: 24px;
+    margin: 10px 0;
+  }
+  .condition-block {
+    padding: 10px;
+    border: 1px solid var(--color);
+    border-radius: 4px;
+    margin: 5px;
+    color: var(--color);
+  }
+</style>
+
+<body>
+  <div id="app"></div>
+
+  <script type="module">
+    import { html, dynamicVar } from "../../";
+
+    class ConditionalDemo {
+      constructor() {
+        // Create a dynamic value for testing conditions
+        this.count = dynamicVar(3);
+
+        html`
+          <div class="condition-demo">
+            <h1>zyX Conditional Rendering Test</h1>
+
+            <div class="value-display">Current value: ${this.count}</div>
+
+            <div>
+              <button zyx-click="${() => this.count.set(this.count.value - 1)}">Decrement</button>
+              <button zyx-click="${() => this.count.set(this.count.value + 1)}">Increment</button>
+              <button zyx-click="${() => this.count.set(3)}">Reset to 3</button>
+            </div>
+
+            <h2>Conditional Blocks:</h2>
+
+            <div class="condition-blocks">
+              <div zyx-if=${[this.count, (v) => v > 3]} style="--color: green;" class="condition-block">
+                This block is shown when value is greater than 3 (current: ${this.count})
+              </div>
+
+              <div zyx-elif=${[this.count, (v) => v == 3]} style="--color: blue;" class="condition-block">
+                This block is shown when value is equal to 3 (current: ${this.count})
+              </div>
+
+              <div zyx-else style="--color: red;" class="condition-block">
+                This block is shown when value is less than 3 (current: ${this.count})
+              </div>
+            </div>
+
+            <h2>Multiple Conditional Examples:</h2>
+
+            <div class="condition-blocks">
+              <div zyx-if=${[this.count, (v) => v % 2 === 0]} style="--color: purple;" class="condition-block">
+                This value is even: ${this.count}
+              </div>
+
+              <div zyx-else style="--color: orange;" class="condition-block">This value is odd: ${this.count}</div>
+            </div>
+          </div>
+        `
+          .bind(this)
+          .place(document.getElementById("app"));
+      }
+    }
+
+    const demo = new ConditionalDemo();
+  </script>
+</body>

@@ -9,11 +9,13 @@ import {
   trimTextNodes,
 } from "./html.js";
 
-import { processReactiveValues } from "./dynamic.js";
+const IDENTIFIER_KEY = "###";
+const CONTENT_CONTEXT = "content";
+const TAG_CONTEXT = "tag";
+const UNQUOTED_VALUE_CONTEXT = "unquoted-value";
+const QUOTED_VALUE_CONTEXT = "quoted-value";
 
-const IDENTIFIER_KEY = "__zyXHTML__";
-
-import DynamicListDOM from "./dynamicList.js";
+import { processDynamicVarAttributes } from "./dynamicVariable.js";
 
 export class ZyXHtml {
   #constructed = false;
@@ -35,26 +37,26 @@ export class ZyXHtml {
       scanned += rawParts.shift();
 
       // We need to analyze the full string before the placeholder to determine context
-      let context = "content"; // Default - between tags
+      let context = CONTENT_CONTEXT; // Default - between tags
       let needsQuotes = false;
 
       // Check if we're in a tag name position by looking for < followed by optional whitespace
       if (/<\s*$/.test(scanned)) {
-        context = "tag-name";
+        context = TAG_CONTEXT;
       }
       // Check if we're in an attribute-value by looking for = pattern
       else if (/=\s*$/.test(scanned)) {
         // Attribute value without quotes
         needsQuotes = true;
-        context = "unquoted-value";
+        context = UNQUOTED_VALUE_CONTEXT;
       } else if (/=\s*["']\s*$/.test(scanned)) {
         // Attribute value with quotes
         needsQuotes = false;
-        context = "quoted-value";
+        context = QUOTED_VALUE_CONTEXT;
       }
       // Check for closing tag name
       else if (/<\/\s*$/.test(scanned)) {
-        context = "tag-name";
+        context = TAG_CONTEXT;
       }
 
       const placeholder = strPlaceholder(i);
@@ -65,7 +67,7 @@ export class ZyXHtml {
 
       return {
         value,
-        replacement: !needsObjectPlaceholder || context === "tag-name" ? value : placeholderQuoteFix,
+        replacement: !needsObjectPlaceholder || context === "tag" ? value : placeholderQuoteFix,
         needsObjectPlaceholder,
         context,
         needsQuotes,
@@ -83,6 +85,8 @@ export class ZyXHtml {
     // Store the raw HTML string and tag data
     this.#raw = raw;
     this.#tagData = tagData;
+    this.#data = null;
+    this.#markup = null;
 
     // Process the tag data and generate placeholders
     this.processTagData();
@@ -105,7 +109,7 @@ export class ZyXHtml {
   replaceInnerHTMLPlaceholders() {
     const placeholders = this.#markup.innerHTML.match(placeholderRegex);
     placeholders?.forEach((ph) => {
-      const { placeholder, value, context, needsQuotes, needsObjectPlaceholder } = this.#data[getPlaceholderID(ph)];
+      const { placeholder, value, needsObjectPlaceholder } = this.#data[getPlaceholderID(ph)];
       this.#markup.innerHTML = this.#markup.innerHTML.replace(
         placeholder,
         needsObjectPlaceholder ? placeholder : value
@@ -119,14 +123,14 @@ export class ZyXHtml {
       const dataValue = this.#data[ph.id].value;
       // Check if this is a dynamic/reactive value
       if (dataValue && typeof dataValue === "object" && "subscribe" in dataValue) {
-        processReactiveValues(this, ph, null, dataValue);
+        processDynamicVarAttributes(this, ph, null, dataValue);
       } else {
         ph.replaceWith(makePlaceable(dataValue));
       }
     }
   }
 
-  const({ keepRaw = false, keepMarkup = false } = {}) {
+  const({ keepRaw = false, keepMarkup = false, keepData = false } = {}) {
     if (this.#constructed) return this;
 
     // Replace RAW placeholders with actual values
@@ -166,6 +170,10 @@ export class ZyXHtml {
 
     if (!keepMarkup) this.#markup = null;
     if (!keepRaw) this.#raw = null;
+    if (!keepData) {
+      this.#data = null;
+      this.#tagData = null;
+    }
 
     this.#constructed = true;
     return this;
@@ -215,7 +223,7 @@ export class ZyXHtml {
           const dataValue = this.#data[placeholder].value;
           // Check if this is a dynamic/reactive value
           if (dataValue && typeof dataValue === "object" && "subscribe" in dataValue) {
-            processReactiveValues(this, node, attr.name, dataValue);
+            processDynamicVarAttributes(this, node, attr.name, dataValue);
             node.removeAttribute(attr.name);
           }
         }
@@ -242,14 +250,14 @@ export class ZyXHtml {
     return this;
   }
 
-  bind(any) {
+  bind(any, opts = {}) {
     this.#mutable = any;
     any.proxy = this.#proxy;
     any[IDENTIFIER_KEY] = this;
     any.appendTo = (container) => this.appendTo(container);
     any.prependTo = (container) => this.prependTo(container);
     any.place = (place) => this.place(place);
-    return this.const();
+    return this.const(opts);
   }
 
   join(target) {
@@ -275,56 +283,14 @@ export function templateFromPlaceables(placeables) {
   return fragment;
 }
 
-const defaultBrowserEventListeners = [
-  "click",
-  "dblclick",
-  "mousedown",
-  "mouseup",
-  "mouseover",
-  "mousemove",
-  "mouseout",
-  "mouseenter",
-  "mouseleave",
-  "keydown",
-  "keypress",
-  "keyup",
-  "focus",
-  "blur",
-  "submit",
-  "load",
-  "error",
-  "input",
-  "change",
-  "scroll",
-];
-
-const browserDefaultEvents = Object.fromEntries(
-  defaultBrowserEventListeners.map((_) => [
-    `zyx-${_}`,
-    ({ node, data, zyxhtml }) => {
-      // Create a wrapper function that uses a proxy
-      const eventHandler = (originalEvent) => {
-        // Create a proxy that combines the original event and the ZyXHTML object
-        const eventProxy = new Proxy(originalEvent, {
-          get: (target, prop) => {
-            if (prop === "e" || prop === "event") return originalEvent;
-            if (prop in zyxhtml) return zyxhtml[prop];
-            return undefined;
-          },
-        });
-
-        // Call the original handler with our proxy
-        return data(eventProxy);
-      };
-
-      node.addEventListener(_, eventHandler);
-    },
-  ])
-);
+import { defaultEvents } from "./defaultevents.js";
+import { conditionalAttributes } from "./if-elif-else.js";
+import { processDynamicDomListAttributes } from "./dynamicDomList.js";
 
 const zyxAttributes = {
-  ...browserDefaultEvents,
-  "zyx-dynamic-list": ({ node, data }) => new DynamicListDOM({ container: node, ...data }),
+  ...defaultEvents,
+  ...conditionalAttributes,
+  ...processDynamicDomListAttributes,
 };
 
 export const html = (...args) => new ZyXHtml(...args);

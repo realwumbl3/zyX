@@ -1,5 +1,5 @@
 import { ZyXHtml, html } from "./_/html/zyX-HTML.js";
-import { dynamic } from "./_/html/dynamic.js";
+import { dynamicVar } from "./_/html/dynamicVariable.js";
 import { DynamicList } from "./_/html/dynamicList.js";
-    
-export { ZyXHtml, html, dynamic, DynamicList };
+
+export { ZyXHtml, html, dynamicVar, DynamicList };
