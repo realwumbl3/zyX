@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>zyX Tests</title>
+  </head>
+</html>
+<style>
+  body {
+    background-color: #0e0e0e;
+    color: #f1f1f1;
+    font-family: "Courier New", Courier, monospace;
+  }
+</style>
+
+<body>
+  <div id="app"></div>
+
+  <script type="module">
+    import { html, dynamic, DynamicList } from "../../../v:1.8/";
+
+    class TestParentClass {
+      constructor() {
+        html`
+          <h2>Test ZyX Binded Parent Class</h2>
+          <div this="testcontainer" style="border: 1px solid red; padding: 10px;" test-container></div>
+        `.bind(this);
+      }
+    }
+
+    class TestChildClass extends TestParentClass {
+      constructor() {
+        super();
+        html` <h2>Test ZyX Joined Child Class</h2> `.join(this).appendTo(this.testcontainer);
+      }
+    }
+
+    const div = document.createElement("div");
+    div.id = "test";
+
+    const testChild = new TestChildClass();
+
+    const testzyXHTML = html`<h1>Test ZyXHTML</h1>`;
+
+    const testTag = "h1";
+    const testAttributeName = "test-attribute";
+    const testAttributeValue = "test-value";
+
+    class App {
+      constructor() {
+        this.testDynamic = dynamic("initial value");
+        html`
+          <div id="apptest">
+
+            <${testTag} ${testAttributeName}=${testAttributeValue}> </${testTag}>
+
+            <h1 test-attribute="test-value"> </h1>
+
+            <h1 this="h1"
+            negative-return=${-1}
+            zero-return="${0}"
+            false-return="${false}"
+            true-return="${true}"
+            null-return="${null}"
+            undefined-return="${undefined}"
+            empty-return="${""}"
+            okstring-return="${"ok"}"
+            returned-value-return="${this.testDynamic}"
+            ></h1>
+            
+            <div>negative-return{${-1}}</div>
+            <div>zero-return{${0}}</div>
+            <div>false-return{${false}}</div>
+            <div>true-return{${true}}</div>
+            <div>null-return{${null}}</div>
+            <div>undefined-return{${undefined}}</div>
+            <div>empty-return{${""}}</div>
+            <div>okstring-return{${"ok"}}</div>
+            <div>returned-value-return{${this.testDynamic}}</div>
+    
+            ${() => "returned value"} ${div} ${testChild} ${testzyXHTML}
+            
+            <button zyx-click="${(z) => console.log(z)}">Click Me</button>
+            </div>
+            `
+          .bind(this)
+          .place(document.getElementById("app"));
+
+        setInterval(() => {
+          this.testDynamic.set(`new value ${Math.random()}`);
+        }, 500);
+
+        console.log(this.__zyXHTML__);
+      }
+    }
+
+    const app = new App();
+  </script>
+</body>

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>zyX Tests</title>
+  </head>
+</html>
+<style>
+  body {
+    background-color: #0e0e0e;
+    color: #f1f1f1;
+    font-family: "Courier New", Courier, monospace;
+  }
+</style>
+
+<body>
+  <div id="app"></div>
+
+  <script type="module">
+    import { html, dynamic, DynamicList } from "../../";
+
+    const testDynamicList = new DynamicList(JSON.parse(localStorage.getItem("testDynamicList") || "[]"));
+
+    testDynamicList.addListener((list) => {
+      localStorage.setItem("testDynamicList", JSON.stringify(list));
+    });
+
+    class TestDynamicList {
+      constructor() {
+        html`
+          <div
+            test-list
+            zyx-dynamic-list=${{
+              list: testDynamicList,
+              compose: (item) => html`<div test-item>${item.name}</div>`,
+              range: [0, 5],
+              offset: 0,
+              debounce: 100,
+            }}
+          ></div>
+
+          <button
+            zyx-click=${() => {
+              testDynamicList.clear();
+            }}
+          >
+            Clear List
+          </button>
+          <input this=input type="text"> </input>
+          <button
+            zyx-click=${(z) => {
+              testDynamicList.push({ name: z.input.value });
+              z.input.value = "";
+            }}
+          >
+            Add Item
+          </button>
+
+        `.bind(this);
+
+        console.log(this.__zyXHTML__);
+      }
+    }
+
+    const test = new TestDynamicList().place(document.getElementById("app"));
+
+    console.log({ test });
+  </script>
+</body>

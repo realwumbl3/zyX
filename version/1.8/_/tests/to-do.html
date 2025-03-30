@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>To-Do App</title>
+    <script type="module">
+      import { html } from "../../";
+
+      const todos = JSON.parse(localStorage.getItem("todos") || "[]");
+
+      const addTodo = (text) => {
+        todos.push({ text, completed: false });
+        localStorage.setItem("todos", JSON.stringify(todos));
+      };
+
+      const toggleTodo = (index) => {
+        todos[index].completed = !todos[index].completed;
+        localStorage.setItem("todos", JSON.stringify(todos));
+      };
+
+      const removeTodo = (index) => {
+        todos.splice(index, 1);
+        localStorage.setItem("todos", JSON.stringify(todos));
+      };
+
+      const todoItem = (todo) => html`
+        <li class="${todo.completed ? "completed" : ""}">
+          <span>${todo.text}</span>
+          <button zyx-click=${(z) => removeTodo(todos.indexOf(todo)) + z.main.remove()}>X</button>
+        </li>
+      `;
+
+      const { tasks } = html`
+        <div class="app">
+          <h1>To-Do List</h1>
+          <form
+            zyx-submit=${(e) => {
+              e.event.preventDefault();
+              const val = e.event.target.text.value;
+              if (!val) return;
+              addTodo(val);
+              todoItem({ text: val, completed: false }).prependTo(tasks);
+              e.event.target.reset();
+            }}
+          >
+            <input name="text" placeholder="Enter a to-do" />
+            <button>Add</button>
+          </form>
+          <ul this="tasks">
+            ${todos.map(todoItem)}
+          </ul>
+        </div>
+      `.place(document.body);
+    </script>
+    <style>
+      :root {
+        --bg-color: #222;
+        --text-color: #ddd;
+        --accent-color: #0074d9;
+      }
+
+      body {
+        background: var(--bg-color);
+        color: var(--text-color);
+        font-family: sans-serif;
+      }
+
+      .app {
+        max-width: 400px;
+        margin: 20px auto;
+      }
+
+      h1 {
+        text-align: center;
+      }
+
+      form {
+        display: flex;
+        margin-bottom: 20px;
+      }
+
+      input {
+        flex-grow: 1;
+        padding: 5px;
+      }
+
+      button {
+        background: var(--accent-color);
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        cursor: pointer;
+      }
+
+      ul {
+        list-style: none;
+        padding: 0;
+      }
+
+      li {
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+      }
+
+      li span {
+        flex-grow: 1;
+        cursor: pointer;
+      }
+
+      li.completed span {
+        text-decoration: line-through;
+        color: #888;
+      }
+    </style>
+  </head>
+  <body></body>
+</html>
