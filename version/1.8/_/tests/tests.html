@@ -97,15 +97,6 @@
         A lightweight, template-based JavaScript library with reactive variables and easy DOM manipulation
       </div>
 
-      <div id="code-example"></div>
-
-      <script type="module">
-        import { CodePreview } from "../codePreview.js";
-        const codePreview = new CodePreview();
-        await codePreview.updateCode("./exampleCode.js");
-        codePreview.appendTo(document.getElementById("code-example"));
-      </script>
-
       <div class="features-grid">
         <div class="feature-box">
           <h3>Tagged Templates</h3>
@@ -142,6 +133,9 @@
           <p>Embed components directly in templates for seamless composition of complex interfaces.</p>
         </div>
       </div>
+      
+      <h1>Example Code</h1>
+      <div id="code-example"></div>
 
       <h2>zyX Library Tests</h2>
 
@@ -164,5 +158,12 @@
         </a>
       </div>
     </div>
+
+    <script type="module">
+      import { CodePreview } from "../codePreview.js";
+      const codePreview = new CodePreview();
+      await codePreview.updateCode("./exampleCode.js");
+      codePreview.appendTo(document.getElementById("code-example"));
+    </script>
   </body>
 </html>

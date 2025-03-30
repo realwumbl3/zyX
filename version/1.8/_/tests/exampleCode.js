@@ -19,8 +19,15 @@ class Counter {
     `
       .bind(this) // Bind template to any class instance
       .place(document.querySelector("#app")); // Place in the DOM
+
+    // Access the title element and change the text content
+    this.title.textContent = "Hello World";
+
+    // Add an event listener to the title element
+    this.title.addEventListener("click", () => {
+      this.title.textContent = "UwU";
+    });
   }
 }
 
 const counter = new Counter();
-

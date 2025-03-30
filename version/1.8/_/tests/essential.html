@@ -99,7 +99,7 @@
                 undefined-return="${undefined}"
                 empty-return="${""}"
                 okstring-return="${"ok"}"
-                returned-value-return="${this.testDynamic}"
+                dynamic-value="${this.testDynamic}"
             ></h1>
             
             <div>negative-return{${-1}}</div>
@@ -110,7 +110,7 @@
             <div>undefined-return{${undefined}}</div>
             <div>empty-return{${""}}</div>
             <div>okstring-return{${"ok"}}</div>
-            <div>returned-value-return{${this.testDynamic}}</div>
+            <div>dynamic-value{${this.testDynamic}}</div>
     
             ${() => "returned value"} ${div} ${testChild} ${testzyXHTML}
             
@@ -122,8 +122,8 @@
             .place(document.getElementById("app"));
 
           setInterval(() => {
-            this.testDynamic.set(`new value ${Math.random()}`);
-          }, 500);
+            this.testDynamic.set(Math.random());
+          }, 100);
 
           console.log(this);
         }
