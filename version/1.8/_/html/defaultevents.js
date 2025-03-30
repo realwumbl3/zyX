@@ -44,3 +44,19 @@ export const defaultEvents = Object.fromEntries(
     },
   ])
 );
+
+defaultEvents["zyx-enter"] = ({ node, data, zyxhtml }) => {
+  node.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      data(
+        new Proxy(event, {
+          get: (target, prop) => {
+            if (prop === "e" || prop === "event") return event;
+            if (prop in zyxhtml) return zyxhtml[prop];
+            return undefined;
+          },
+        })
+      );
+    }
+  });
+};

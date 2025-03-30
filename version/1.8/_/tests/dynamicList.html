@@ -1,31 +1,66 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>zyX Tests</title>
+    <title>zyX Library Tests - Dynamic List</title>
+    <style>
+      body {
+        background-color: #0e0e0e;
+        color: #f1f1f1;
+        font-family: "Courier New", Courier, monospace;
+        margin: 0;
+        padding: 20px;
+      }
+      .container {
+        max-width: 1000px;
+        margin: 0 auto;
+      }
+      h1 {
+        text-align: center;
+        color: #4caf50;
+      }
+      .description {
+        text-align: center;
+        margin: 20px 0;
+        color: #888;
+      }
+      .back-button {
+        background-color: #4caf50;
+        color: #f1f1f1;
+        padding: 10px;
+        border-radius: 5px;
+        text-decoration: none;
+      }
+    </style>
   </head>
-</html>
-<style>
-  body {
-    background-color: #0e0e0e;
-    color: #f1f1f1;
-    font-family: "Courier New", Courier, monospace;
-  }
-</style>
+  <body>
+    <div class="container">
+      <a class="back-button" href="tests.html">Go Back.</a>
+      <h1>zyX Library Tests - Dynamic List</h1>
+      <div class="description">Dynamic list rendering and management</div>
 
-<body>
-  <div id="app"></div>
+      <div id="app"></div>
 
-  <script type="module">
-    import { html, DynamicList } from "../../";
+      <h1>This file's code:</h1>
+      <div id="code-example"></div>
+    </div>
 
-    const testDynamicList = new DynamicList(JSON.parse(localStorage.getItem("testDynamicList") || "[]"));
-    testDynamicList.addListener((list) => localStorage.setItem("testDynamicList", JSON.stringify(list)));
+    <script type="module" id="main_script">
+      import { html, DynamicList } from "../../";
 
-    class TestDynamicList {
-      constructor() {
-        html`
+      import { CodePreview } from "../codePreview.js";
+
+      const codePreview = new CodePreview();
+      codePreview.appendTo(document.getElementById("code-example"));
+
+      await codePreview.updateCode(document.getElementById("main_script"));
+
+      const testDynamicList = new DynamicList(JSON.parse(localStorage.getItem("testDynamicList") || "[]"));
+      testDynamicList.addListener((list) => localStorage.setItem("testDynamicList", JSON.stringify(list)));
+
+      class TestDynamicList {
+        constructor() {
+          html`
           <div
-            test-list
             zyx-dynamic-list=${{
               list: testDynamicList,
               compose: (item) => html`<div test-item>${item.name}</div>`,
@@ -35,31 +70,20 @@
             }}
           ></div>
 
-          <button
-            zyx-click=${() => {
-              testDynamicList.clear();
-            }}
-          >
-            Clear List
-          </button>
-          <input this=input type="text"> </input>
-          <button
-            zyx-click=${(z) => {
-              testDynamicList.push({ name: z.input.value });
-              z.input.value = "";
-            }}
-          >
-            Add Item
-          </button>
+          <button zyx-click=${() => testDynamicList.clear()}>Clear List</button>
+          <input this=input type="text" zyx-enter=${this.handleSubmit}> </input>
+          <button zyx-click=${this.handleSubmit}>Add Item</button>
 
         `.bind(this);
+        }
 
-        console.log(this.__zyXHTML__);
+        handleSubmit = (z) => {
+          testDynamicList.push({ name: this.input.value });
+          this.input.value = "";
+        };
       }
-    }
 
-    const test = new TestDynamicList().place(document.getElementById("app"));
-
-    console.log({ test });
-  </script>
-</body>
+      window.app = new TestDynamicList().place(document.getElementById("app"));
+    </script>
+  </body>
+</html>

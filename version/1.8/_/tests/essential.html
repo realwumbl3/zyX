@@ -1,55 +1,91 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>zyX Tests</title>
+    <title>zyX Library Tests - Essential</title>
+    <style>
+      body {
+        background-color: #0e0e0e;
+        color: #f1f1f1;
+        font-family: "Courier New", Courier, monospace;
+        margin: 0;
+        padding: 20px;
+      }
+      .container {
+        max-width: 1000px;
+        margin: 0 auto;
+      }
+      h1 {
+        text-align: center;
+        color: #4caf50;
+      }
+      .description {
+        text-align: center;
+        margin: 20px 0;
+        color: #888;
+      }
+      .back-button {
+        background-color: #4caf50;
+        color: #f1f1f1;
+        padding: 10px;
+        border-radius: 5px;
+        text-decoration: none;
+      }
+    </style>
   </head>
-</html>
-<style>
-  body {
-    background-color: #0e0e0e;
-    color: #f1f1f1;
-    font-family: "Courier New", Courier, monospace;
-  }
-</style>
+  <body>
+    <div class="container">
+      <a class="back-button" href="tests.html">Go Back.</a>
+      <h1>zyX Library Tests - Essential</h1>
+      <div class="description">Basic functionality, bindings, and attribute handling</div>
 
-<body>
-  <div id="app"></div>
+      <div id="app"></div>
 
-  <script type="module">
-    import { html, dynamicVar } from "../../";
+      <h1>This file's code:</h1>
+      <div id="code-example"></div>
+    </div>
 
-    class TestParentClass {
-      constructor() {
-        html`
-          <h2>Test ZyX Binded Parent Class</h2>
-          <div this="testcontainer" style="border: 1px solid red; padding: 10px;" test-container></div>
-        `.bind(this);
+    <script type="module" id="main_script">
+      import { html, dynamicVar } from "../../";
+
+      import { CodePreview } from "../codePreview.js";
+
+      const codePreview = new CodePreview();
+      codePreview.appendTo(document.getElementById("code-example"));
+
+      await codePreview.updateCode(document.getElementById("main_script"));
+
+      class TestParentClass {
+        constructor() {
+          html`
+            <h2>Test ZyX Binded Parent Class</h2>
+            <div this="testcontainer" style="border: 1px solid red; padding: 10px;" test-container></div>
+          `.bind(this);
+        }
       }
-    }
 
-    class TestChildClass extends TestParentClass {
-      constructor() {
-        super();
-        html` <h2>Test ZyX Joined Child Class</h2> `.join(this).appendTo(this.testcontainer);
+      class TestChildClass extends TestParentClass {
+        constructor() {
+          super();
+          html` <h2>Test ZyX Joined Child Class</h2> `.join(this).appendTo(this.testcontainer);
+        }
       }
-    }
 
-    const div = document.createElement("div");
-    div.id = "test";
+      const div = document.createElement("div");
+      div.id = "test";
 
-    const testChild = new TestChildClass();
+      const testChild = new TestChildClass();
 
-    const testzyXHTML = html`<h1>Test ZyXHTML</h1>`;
+      const testzyXHTML = html`<h1>Test ZyXHTML</h1>`;
 
-    const testTag = "div";
-    const testAttributeName = "test-attribute";
-    const testAttributeValue = "test-value";
+      const testTag = "div";
+      const testAttributeName = "test-attribute";
+      const testAttributeValue = "test-value";
 
-    class App {
-      constructor() {
-        this.testDynamic = dynamicVar("initial value");
+      class App {
+        constructor() {
+          this.testDynamic = dynamicVar("initial value");
 
-        html`
+          html`
           <div id="apptest">    
 
             <${testTag} ${testAttributeName}=${testAttributeValue}>:3</${testTag}>
@@ -78,21 +114,22 @@
     
             ${() => "returned value"} ${div} ${testChild} ${testzyXHTML}
             
-            <button zyx-click="${(z) => console.log(z)}">Click Me</button>
+            <button zyx-click=${(z) => console.log(z)}>Click Me</button>
 
             </div>
         `
-          .bind(this, { keepRaw: true, keepMarkup: true, keepData: true })
-          .place(document.getElementById("app"));
+            .bind(this, { keepRaw: true, keepMarkup: true, keepData: true })
+            .place(document.getElementById("app"));
 
-        setInterval(() => {
-          this.testDynamic.set(`new value ${Math.random()}`);
-        }, 500);
+          setInterval(() => {
+            this.testDynamic.set(`new value ${Math.random()}`);
+          }, 500);
 
-        console.log(this);
+          console.log(this);
+        }
       }
-    }
 
-    const app = new App();
-  </script>
-</body>
+      const app = new App();
+    </script>
+  </body>
+</html>
