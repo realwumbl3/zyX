@@ -2,39 +2,17 @@
 <html>
   <head>
     <title>zyX Library Tests - Dynamic List</title>
-    <style>
-      body {
-        background-color: #0e0e0e;
-        color: #f1f1f1;
-        font-family: "Courier New", Courier, monospace;
-        margin: 0;
-        padding: 20px;
-      }
-      .container {
-        max-width: 1000px;
-        margin: 0 auto;
-      }
-      h1 {
-        text-align: center;
-        color: #4caf50;
-      }
-      .description {
-        text-align: center;
-        margin: 20px 0;
-        color: #888;
-      }
-      .back-button {
-        background-color: #4caf50;
-        color: #f1f1f1;
-        padding: 10px;
-        border-radius: 5px;
-        text-decoration: none;
-      }
-    </style>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
   </head>
   <body>
     <div class="container">
-      <a class="back-button" href="tests.html">Go Back.</a>
+      <a class="back-button" href="tests.html">Go Back</a>
       <h1>zyX Library Tests - Dynamic List</h1>
       <div class="description">Dynamic list rendering and management</div>
 
@@ -60,21 +38,37 @@
       class TestDynamicList {
         constructor() {
           html`
-          <div
-            zyx-dynamic-list=${{
-              list: testDynamicList,
-              compose: (item) => html`<div test-item>${item.name}</div>`,
-              range: [0, 100],
-              offset: 0,
-              debounce: 100,
-            }}
-          ></div>
+            <div class="dynamic-list-container">
+              <div
+                zyx-dynamic-list=${{
+                  list: testDynamicList,
+                  compose: (item) => html`
+                    <div class="list-item">
+                      <div class="item-content">${item.name}</div>
+                      <button class="button button-danger" zyx-click=${() => testDynamicList.remove(item)}>
+                        Remove
+                      </button>
+                    </div>
+                  `,
+                  range: [0, 100],
+                  offset: 0,
+                  debounce: 100,
+                }}
+              ></div>
 
-          <button zyx-click=${() => testDynamicList.clear()}>Clear List</button>
-          <input this=input type="text" zyx-enter=${this.handleSubmit}> </input>
-          <button zyx-click=${this.handleSubmit}>Add Item</button>
-
-        `.bind(this);
+              <div class="input-group">
+                <input
+                  class="text-input"
+                  this="input"
+                  type="text"
+                  placeholder="Enter item name"
+                  zyx-enter=${this.handleSubmit}
+                />
+                <button class="button" zyx-click=${this.handleSubmit}>Add Item</button>
+                <button class="button button-danger" zyx-click=${() => testDynamicList.clear()}>Clear List</button>
+              </div>
+            </div>
+          `.bind(this);
         }
 
         handleSubmit = (z) => {
