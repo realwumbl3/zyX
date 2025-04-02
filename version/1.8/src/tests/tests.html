@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>zyX Library Tests</title>
+    <link rel="stylesheet" href="./css/styles.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <div class="container">
+      <h1>zyX Library</h1>
+
+      <div class="description">
+        A lightweight, template-based JavaScript library with reactive variables and easy DOM manipulation
+      </div>
+
+      <div class="features-grid">
+        <div class="feature-box">
+          <h3>Tagged Templates</h3>
+          <p>Use familiar template literal syntax with the powerful <code>html</code> tag for expressive templating.</p>
+        </div>
+        <div class="feature-box">
+          <h3>Dynamic Variables</h3>
+          <p>
+            Create reactive variables with <code>dynamicVar</code> that automatically update the DOM when their value
+            changes.
+          </p>
+        </div>
+        <div class="feature-box">
+          <h3>Element References</h3>
+          <p>
+            Easily reference elements with the <code>this="name"</code> attribute to access them directly in your code.
+          </p>
+        </div>
+        <div class="feature-box">
+          <h3>Event Binding</h3>
+          <p>
+            Handle events with inline functions using <code>zyx-event</code> attributes for clean, declarative code.
+          </p>
+        </div>
+        <div class="feature-box">
+          <h3>Template Chaining</h3>
+          <p>
+            Chain template methods like <code>bind()</code>, <code>join()</code>, <code>place()</code>, and
+            <code>appendTo()</code> for flexible DOM manipulation.
+          </p>
+        </div>
+        <div class="feature-box">
+          <h3>Dynamic Components</h3>
+          <p>Embed components directly in templates for seamless composition of complex interfaces.</p>
+        </div>
+      </div>
+      
+      <h1>Example Code</h1>
+      <div id="code-example"></div>
+
+      <h2>zyX Library Tests</h2>
+
+      <div class="description">A collection of test pages demonstrating zyX library features</div>
+
+      <div class="test-links">
+        <a href="./essential.html" class="test-link">
+          Essential Tests
+          <div class="test-link-description">Basic functionality, bindings, and attribute handling</div>
+        </a>
+
+        <a href="./dynamicList.html" class="test-link">
+          Dynamic List Tests
+          <div class="test-link-description">Dynamic list rendering and management</div>
+        </a>
+
+        <a href="./if-elif-else.html" class="test-link">
+          Conditional Tests
+          <div class="test-link-description">Conditional rendering and logic handling</div>
+        </a>
+
+        <a href="./input-test.html" class="test-link">
+          Input Tests
+          <div class="test-link-description">Input handling and event binding</div>
+          </a>
+      </div>
+    </div>
+
+    <script type="module">
+      import { CodePreview } from "../components/codePreview.js";
+      const codePreview = new CodePreview();
+      await codePreview.updateCode("./exampleCode.js");
+      codePreview.appendTo(document.getElementById("code-example"));
+    </script>
+  </body>
+</html>

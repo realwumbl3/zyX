@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>zyX Library Tests - Input</title>
+    <link rel="stylesheet" href="./css/styles.css" />
+    <link rel="stylesheet" href="./css/input-test.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="container">
+      <a class="back-button" href="./tests.html">Go Back</a>
+      <h1>zyX Library Tests - Input</h1>
+      <div class="description">Input handling and event binding demonstrations</div>
+
+      <div id="app"></div>
+
+      <!-- <h1>This file's code:</h1>
+      <div id="code-example"></div> -->
+    </div>
+
+    <script type="module" id="main_script">
+      /**
+       * Comprehensive input system test file
+       * Demonstrates all input types and their combinations
+       */
+
+      import zyX, { html, LiveList } from "../../";
+      import ZyXInput from "../zyX-Input.js";
+      import { CodePreview } from "../components/codePreview.js";
+
+      // const codePreview = new CodePreview();
+      // codePreview.appendTo(document.getElementById("code-example"));
+      // await codePreview.updateCode(document.getElementById("main_script"));
+
+      // Initialize input system
+      const input = new ZyXInput();
+
+      const lastClickEvents = new LiveList([]);
+
+      // Create test container with all input examples
+      const app = html`
+        <div this="container" class="input-test-container">
+          <!-- Basic Click Examples -->
+          <section class="test-section">
+            <h2>Click Examples</h2>
+
+            <!-- Multiple click handlers -->
+            <div class="test-item">
+              <h3>Multiple click handlers</h3>
+              <div this="simpleClick" class="click-box">Click, double click or right click me!</div>
+              <div
+                class="result result-list"
+                this="simpleClickResult"
+                zyx-live-list=${{
+                  list: lastClickEvents,
+                  compose: (e) => html`
+                    <div class="click-event">
+                      <div>${e.type}</div>
+                      <div>${e.timestamp}</div>
+                    </div>
+                  `,
+                  range: [0, 10],
+                }}
+              ></div>
+            </div>
+          </section>
+
+          <!-- Scroll Examples -->
+          <section class="test-section">
+            <h2>Scroll Examples</h2>
+
+            <!-- Momentum Scroll -->
+            <div class="test-item">
+              <h3>Momentum Scroll (drag to scroll)</h3>
+              <span class="scroll-info" style="display: flex; gap: 10px; align-items: center;">
+                <span style="font-weight: bold;">Delta Y:</span>
+                <span this="deltaY">0</span>
+              </span>
+              <div this="momentumScroll" class="scroll-container">
+                <div
+                  class="scroll-content"
+                  zyx-insert-n=${[420, (z, i) => html`<div class="scroll-item">Scroll Item ${i + 1}</div>`]}
+                ></div>
+              </div>
+            </div>
+
+            <!-- Wheel Events -->
+            <div class="test-item">
+              <h3>Wheel Events</h3>
+              <div this="wheelEvents" class="wheel-box">Scroll me!</div>
+              <div class="result" this="wheelResult">No wheel events yet</div>
+            </div>
+          </section>
+        </div>
+      `.place(document.getElementById("app"));
+
+      input.on(app.simpleClick).rightClick({
+        onUp: ({ dwn_e }) => {
+          lastClickEvents.unshift({ type: "rightclick", timestamp: Date.now() });
+        },
+      });
+
+      input.on(app.simpleClick).clickOrTwo({
+        single: (e) => {
+          lastClickEvents.unshift({ type: "singleclick", timestamp: Date.now() });
+        },
+        double: (e) => {
+          lastClickEvents.unshift({ type: "doubleclick", timestamp: Date.now() });
+        },
+        button: 0,
+      });
+
+      // Scroll handlers
+      input.bindMomentumScroll(app.momentumScroll, {
+        overrideDefaultScroll: true,
+        onScroll: (e) => {
+          app.deltaY.textContent = Math.round(e.deltaY);
+          return true;
+        },
+      });
+
+      input.on(app.wheelEvents).wheel({
+        onWheel: ({ whl_e }) => {
+          app.wheelResult.textContent = `Wheel delta: ${whl_e.deltaY}
+            deltaX: ${whl_e.deltaX}
+            deltaMode: ${whl_e.deltaMode}
+            deltaZ: ${whl_e.deltaZ}
+            shiftKey: ${whl_e.shiftKey}
+            ctrlKey: ${whl_e.ctrlKey}
+            altKey: ${whl_e.altKey}
+            metaKey: ${whl_e.metaKey}
+          `;
+          whl_e.preventDefault();
+        },
+      });
+    </script>
+  </body>
+</html>
