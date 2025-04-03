@@ -27,13 +27,12 @@ export default class ZyXAudio {
         this.muted = false;
         this.activeSources = new Set();
         this.backgroundMusic = null;
-        this.categories = {
-            music: new Set(),
-            sfx: new Set(),
-            ambient: new Set()
-        };
+        this.backgroundMusicPosition = 0;  // Store current playback position for pausing/resuming
+        this.isChangingBackgroundMusic = false;  // Flag to track if we're in the middle of changing music
         this.filters = null;
         this.filtersEnabled = false;
+
+        console.log("ZyXAudio initialized", this);
     }
 
     /**
@@ -69,14 +68,12 @@ export default class ZyXAudio {
     /**
      * Add a new sound to the audio system
      * @param {string} file_name - Name of the audio file
-     * @param {string} [category='sfx'] - Category of the sound (music, sfx, ambient)
      * @returns {Promise<AudioBuffer>} The loaded audio buffer
      * @throws {Error} If audio loading or decoding fails
      */
-    async addSound(file_name, category = 'sfx') {
+    async addSound(file_name) {
         return new Promise((resolve, reject) => {
             if (Object.keys(this.SOUNDS).includes(file_name)) {
-                this.categories[category].add(file_name);
                 return resolve();
             }
 
@@ -86,7 +83,6 @@ export default class ZyXAudio {
                     e.target.response,
                     (b) => {
                         this.SOUNDS[file_name] = b;
-                        this.categories[category].add(file_name);
                         resolve(this.SOUNDS[file_name]);
                     },
                     (e) => {
@@ -195,40 +191,76 @@ export default class ZyXAudio {
             loop = true
         } = options;
 
-        if (this.backgroundMusic) {
-            await this.fadeOutBackgroundMusic(fadeOut);
+        // If we're already changing music, cancel the request
+        if (this.isChangingBackgroundMusic) {
+            console.log("Already changing background music, ignoring new request");
+            return;
         }
 
-        await this.addSound(name, 'music');
-        const source = this.createBuffer(name, () => {
-            if (loop) {
-                this.playBackgroundMusic(name, options);
+        this.isChangingBackgroundMusic = true;
+
+        try {
+            // Fade out and stop current music if it exists
+            if (this.backgroundMusic) {
+                console.log("Fading out background music", fadeOut);
+
+                // Directly fade out using the gain node
+                const startTime = this.ctx.currentTime;
+                this.gainNode.gain.setTargetAtTime(0, startTime, fadeOut / 3); // Time constant is duration/3 for ~95% completion
+
+                // Wait for fade out
+                await new Promise(resolve => setTimeout(resolve, fadeOut * 1000));
+
+                // Now stop the old music
+                if (this.backgroundMusic) {
+                    this.stop(this.backgroundMusic);
+                    this.backgroundMusic = null;
+                }
             }
-        });
 
-        source.loop = loop;
-        source.start(0);
-        this.backgroundMusic = source;
-        await this.fadeVolume(volume, fadeIn);
-    }
+            // Load the sound if needed
+            await this.addSound(name);
 
-    /**
-     * Fade out current background music
-     * @param {number} [duration=2] - Fade-out duration in seconds
-     * @returns {Promise<void>}
-     */
-    async fadeOutBackgroundMusic(duration = 2) {
-        if (!this.backgroundMusic) return;
+            // Create a new buffer source with NO onended callback that would trigger recursion
+            const source = this.ctx.createBufferSource();
+            source.buffer = this.SOUNDS[name];
 
-        const startVolume = this.gainNode.gain.value;
-        const startTime = this.ctx.currentTime;
+            // Connect to gain node
+            if (!this.filtersEnabled) {
+                source.connect(this.gainNode);
+            } else {
+                this.setupFilters();
+                source.connect(this.filters.lowpass);
+            }
 
-        this.gainNode.gain.setTargetAtTime(0, startTime, duration);
+            // Add to active sources
+            this.activeSources.add(source);
 
-        await new Promise(resolve => setTimeout(resolve, duration * 1000));
-        this.stop(this.backgroundMusic);
-        this.backgroundMusic = null;
-        this.gainNode.gain.value = startVolume;
+            // Configure looping on the source itself (Web Audio API handles this internally)
+            source.loop = loop;
+
+            // Set initial volume to 0 for fade-in
+            this.gainNode.gain.value = 0;
+
+            // Start playback
+            source.start(0);
+            this.backgroundMusic = source;
+
+            // Fade in the volume
+            console.log("Fading in background music", fadeIn);
+            const startTime = this.ctx.currentTime;
+            this.gainNode.gain.setTargetAtTime(
+                calculateLogarithmicVolume(volume),
+                startTime,
+                fadeIn / 3 // Time constant is duration/3 for ~95% completion
+            );
+
+            // Wait for fade in to complete
+            await new Promise(resolve => setTimeout(resolve, fadeIn * 1000));
+        } finally {
+            // Reset the flag when we're done
+            this.isChangingBackgroundMusic = false;
+        }
     }
 
     /**
@@ -280,40 +312,56 @@ export default class ZyXAudio {
      * @param {number} [options.playbackRate=1] - Playback speed
      * @param {number} [options.pan=0] - Stereo panning
      * @param {number} [options.fadeIn=0] - Fade-in duration
-     * @param {string} [options.category='sfx'] - Sound category
+     * @param {Function} [options.onEnded] - Callback when sound playback ends
      * @returns {Promise<AudioBufferSourceNode>} The playing audio source
      */
     async play({ source, name, looping = false, delay = 0, volume = 1, loopOnEnded, n = 0,
-        playbackRate = 1, pan = 0, fadeIn = 0, category = 'sfx' } = {}) {
-        await this.addSound(name, category);
+        playbackRate = 1, pan = 0, fadeIn = 0, onEnded = null } = {}) {
+        await this.addSound(name);
         volume = this.muted ? 0 : volume;
         if (volume === 0) return;
 
+        // Set initial volume based on fadeIn parameter
         if (fadeIn > 0) {
+            // Start with zero volume if fading in
             this.gainNode.gain.value = 0;
-            this.gainNode.gain.setTargetAtTime(
-                calculateLogarithmicVolume(volume),
-                this.ctx.currentTime,
-                fadeIn
-            );
         } else {
+            // Set to target volume immediately if not fading
             this.gainNode.gain.value = calculateLogarithmicVolume(volume);
         }
 
         if (looping || n) {
             looping = true;
             let repeat_count = n-- > 0;
-            loopOnEnded = () => {
-                if (!looping || (repeat_count && n-- <= 0)) return;
+            let internalLoopOnEnded = () => {
+                // Call user's onEnded callback if provided
+                if (onEnded) {
+                    onEnded();
+                }
+
+                if (!looping || (repeat_count && n-- <= 0)) {
+                    // If we're done looping, call onEnded one last time
+                    if (onEnded && (repeat_count && n < 0)) {
+                        onEnded(true); // Pass true to indicate final loop ended
+                    }
+                    return;
+                }
+
                 setTimeout((_) => {
-                    source = this.createAndExecute(name, loopOnEnded);
+                    source = this.createAndExecute(name, internalLoopOnEnded);
                     this.setPlaybackRate(source, playbackRate);
                     this.setStereoPan(source, pan);
                 }, delay);
             };
-            source = this.createAndExecute(name, loopOnEnded);
+            source = this.createAndExecute(name, internalLoopOnEnded);
             this.setPlaybackRate(source, playbackRate);
             this.setStereoPan(source, pan);
+
+            // Apply fade-in if needed
+            if (fadeIn > 0) {
+                this.fadeVolume(volume, fadeIn);
+            }
+
             return {
                 source,
                 stop: () => (looping = false),
@@ -322,26 +370,35 @@ export default class ZyXAudio {
                 setVolume: (vol) => this.fadeVolume(vol)
             };
         } else {
-            const newSource = this.createAndExecute(name);
+            // Set up the onended handler that incorporates the user callback
+            const handleOnEnded = () => {
+                if (onEnded) {
+                    onEnded();
+                }
+                this.stop(newSource);
+            };
+
+            // Create the source with our wrapped callback
+            const newSource = this.createBuffer(name, handleOnEnded);
+            newSource.start(0);
+
             this.setPlaybackRate(newSource, playbackRate);
             this.setStereoPan(newSource, pan);
+
+            // Apply fade-in if needed
+            if (fadeIn > 0) {
+                this.fadeVolume(volume, fadeIn);
+            }
+
             return newSource;
         }
     }
 
     /**
      * Stop all playing sounds
-     * @param {string} [category] - Category of sounds to stop
      */
-    stopAll(category = null) {
-        if (category) {
-            this.categories[category].forEach(name => {
-                const source = this.activeSources.find(s => s.buffer === this.SOUNDS[name]);
-                if (source) this.stop(source);
-            });
-        } else {
-            this.activeSources.forEach(source => this.stop(source));
-        }
+    stopAll() {
+        this.activeSources.forEach(source => this.stop(source));
     }
 
     /**
@@ -351,6 +408,131 @@ export default class ZyXAudio {
         this.activeSources.forEach(source => {
             if (source.stop) source.stop();
         });
+    }
+
+    /**
+     * Pause the currently playing background music
+     * @param {number} [fadeOut=0.5] - Fade-out duration in seconds before pausing
+     * @returns {Promise<boolean>} True if music was paused, false if no music was playing
+     */
+    async pauseBackgroundMusic(fadeOut = 0.5) {
+        if (!this.backgroundMusic || this.isChangingBackgroundMusic) {
+            return false;
+        }
+
+        this.isChangingBackgroundMusic = true;
+
+        try {
+            // Store the current time position for potential resume later
+            this.backgroundMusicPosition = this.ctx.currentTime - this.backgroundMusic.startTime;
+
+            // Fade out smoothly
+            if (fadeOut > 0) {
+                const startTime = this.ctx.currentTime;
+                this.gainNode.gain.setTargetAtTime(0, startTime, fadeOut / 3);
+                await new Promise(resolve => setTimeout(resolve, fadeOut * 1000));
+            }
+
+            // Suspend the audio context to "pause" all audio
+            if (this.ctx.state === 'running') {
+                await this.ctx.suspend();
+            }
+
+            return true;
+        } finally {
+            this.isChangingBackgroundMusic = false;
+        }
+    }
+
+    /**
+     * Resume the previously paused background music
+     * @param {number} [fadeIn=0.5] - Fade-in duration in seconds
+     * @param {number} [volume=0.5] - Target volume to fade in to
+     * @returns {Promise<boolean>} True if music was resumed, false if no music was paused
+     */
+    async resumeBackgroundMusic(fadeIn = 0.5, volume = 0.5) {
+        if (!this.backgroundMusic || this.isChangingBackgroundMusic) {
+            return false;
+        }
+
+        this.isChangingBackgroundMusic = true;
+
+        try {
+            // Resume the audio context
+            if (this.ctx.state === 'suspended') {
+                await this.ctx.resume();
+            }
+
+            // Reset volume and fade in
+            if (fadeIn > 0) {
+                this.gainNode.gain.value = 0;
+                const startTime = this.ctx.currentTime;
+                this.gainNode.gain.setTargetAtTime(
+                    calculateLogarithmicVolume(volume),
+                    startTime,
+                    fadeIn / 3
+                );
+                await new Promise(resolve => setTimeout(resolve, fadeIn * 1000));
+            } else {
+                this.gainNode.gain.value = calculateLogarithmicVolume(volume);
+            }
+
+            return true;
+        } finally {
+            this.isChangingBackgroundMusic = false;
+        }
+    }
+
+    /**
+     * Stop the currently playing background music
+     * @param {number} [fadeOut=0.5] - Fade-out duration in seconds before stopping
+     * @returns {Promise<boolean>} True if music was stopped, false if no music was playing
+     */
+    async stopBackgroundMusic(fadeOut = 0.5) {
+        if (!this.backgroundMusic || this.isChangingBackgroundMusic) {
+            return false;
+        }
+
+        this.isChangingBackgroundMusic = true;
+
+        try {
+            // Fade out smoothly
+            if (fadeOut > 0) {
+                const startTime = this.ctx.currentTime;
+                this.gainNode.gain.setTargetAtTime(0, startTime, fadeOut / 3);
+                await new Promise(resolve => setTimeout(resolve, fadeOut * 1000));
+            }
+
+            // Stop and clean up the background music source
+            this.stop(this.backgroundMusic);
+            this.backgroundMusic = null;
+            this.backgroundMusicPosition = 0;
+
+            return true;
+        } finally {
+            this.isChangingBackgroundMusic = false;
+        }
+    }
+
+    /**
+     * Check if background music is currently playing
+     * @returns {boolean} True if music is playing, false otherwise
+     */
+    isMusicPlaying() {
+        // Check if we have a background music source and the audio context is running
+        return this.backgroundMusic !== null && this.ctx.state === 'running';
+    }
+
+    /**
+     * Check the state of background music
+     * @returns {string} 'playing', 'paused', or 'stopped'
+     */
+    getMusicState() {
+        if (!this.backgroundMusic) {
+            return 'stopped';
+        }
+
+        return this.ctx.state === 'running' ? 'playing' : 'paused';
     }
 
     getCurrentTime(source) {

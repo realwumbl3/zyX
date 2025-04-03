@@ -15,6 +15,7 @@ const TAG_CONTEXT = "tag";
 const UNQUOTED_VALUE_CONTEXT = "unquoted-value";
 const QUOTED_VALUE_CONTEXT = "quoted-value";
 
+/* <zyx-module place src="./exampleCode.js"></zyx-script> TODO: query for zyx-module and replace with ZyXHTML default at src. */
 
 import { processDynamicVarAttributes } from "./html/dynamicVariable.js";
 

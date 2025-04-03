@@ -3,9 +3,12 @@
   <head>
     <title>zyX Library Tests</title>
     <link rel="stylesheet" href="./css/styles.css" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
   </head>
   <body>
     <div class="container">
@@ -51,9 +54,6 @@
           <p>Embed components directly in templates for seamless composition of complex interfaces.</p>
         </div>
       </div>
-      
-      <h1>Example Code</h1>
-      <div id="code-example"></div>
 
       <h2>zyX Library Tests</h2>
 
@@ -78,15 +78,38 @@
         <a href="./input-test.html" class="test-link">
           Input Tests
           <div class="test-link-description">Input handling and event binding</div>
-          </a>
+        </a>
+
+        <a href="./transform-test.html" class="test-link">
+          Transform Tests
+          <div class="test-link-description">CSS transform manipulation and animation</div>
+        </a>
       </div>
+      <br />
+      <h1>Example Code</h1>
+      <div id="code-example" style="max-height: 70vh; overflow-y: auto"></div>
     </div>
 
     <script type="module">
       import { CodePreview } from "../components/codePreview.js";
       const codePreview = new CodePreview();
-      await codePreview.updateCode("./exampleCode.js");
+      await codePreview.updateCode("./js/exampleCode.js");
       codePreview.appendTo(document.getElementById("code-example"));
+
+      import ZyXAudio from "../zyX-Audio.js";
+      const audioSystem = new ZyXAudio("./sfx/");
+      audioSystem.addSound("confirm.mp3");
+
+      document.body.addEventListener("click", (e) => {
+        if (e.target.matches("a")) {
+          e.preventDefault();
+          audioSystem.play({
+            name: "confirm.mp3",
+            volume: 0.5,
+          });
+          window.open(`${e.target.href}#asnewtab`, "_blank");
+        }
+      });
     </script>
   </body>
 </html>

@@ -58,6 +58,13 @@
   box-shadow: var(--shadow-md);
 }
 
+.click-box:active {
+  background: var(--bg-card-active);
+  transform: translateY(0);
+  transition: var(--transition-fast);
+  box-shadow: var(--shadow-sm);
+}
+
 .click-event {
   display: flex;
   justify-content: space-between;

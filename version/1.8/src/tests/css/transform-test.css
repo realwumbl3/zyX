@@ -1,0 +1,236 @@
+.transform-demo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-xl);
+  padding: var(--space-xl);
+}
+
+.transform-controls {
+  background: var(--bg-card);
+  padding: var(--space-xl);
+  border-radius: var(--space-lg);
+  border: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.control-group h3 {
+  color: var(--text-primary);
+  font-size: 1.1rem;
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-xs);
+  width: 100%;
+}
+
+.value-separator {
+  color: var(--text-secondary);
+  margin: 0;
+  font-weight: normal;
+  opacity: 0.6;
+}
+
+.value-display {
+  color: var(--primary-light);
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+  white-space: pre;
+  user-select: none;
+  font-weight: normal;
+}
+
+.control-group h3::after {
+  content: "";
+  flex: 1;
+  border-bottom: 1px dotted var(--border-color);
+  margin-left: var(--space-md);
+}
+
+.slider-container {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.slider-container input[type="range"] {
+  width: 100%;
+  height: 6px;
+  -webkit-appearance: none;
+  background: var(--bg-card-hover);
+  border-radius: 3px;
+  outline: none;
+  margin: 0;
+}
+
+.slider-container input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  background: var(--primary);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: var(--transition-normal);
+}
+
+.slider-container input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+  background: var(--primary-dark);
+}
+
+.button-group {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: var(--space-md);
+  margin-top: var(--space-md);
+}
+
+.transform-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  background: var(--bg-card);
+  border-radius: var(--space-lg);
+  border: 1px solid var(--border-color);
+  perspective: 100vmin;
+  width: 100%;
+  height: 100%;
+}
+
+.transform-box {
+  background: var(--bg-card-hover);
+  border: 2px solid var(--primary);
+  border-radius: var(--space-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 90%;
+  aspect-ratio: 1/1;
+  transform-style: preserve-3d;
+}
+
+.transform-content {
+  position: absolute;
+
+  padding: var(--space-lg);
+  text-align: center;
+  color: var(--text-primary);
+  transform: translateZ(50px);
+}
+
+.transform-content h2 {
+  margin: 0 0 var(--space-sm) 0;
+  font-size: 1.5rem;
+  color: var(--primary);
+}
+
+.transform-content p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.transform-box-outline {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 2px solid var(--primary);
+  border-radius: var(--space-md);
+  transform: translateZ(20px);
+}
+
+.main-controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.slider-settings {
+  display: flex;
+  flex-direction: row;
+  gap: var(--space-sm);
+}
+
+.setting-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.setting-group label {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.setting-group input {
+  width: 100%;
+  padding: var(--space-sm);
+  border-radius: var(--space-sm);
+  border: 1px solid var(--border-color);
+}
+
+.setting-group input[type="number"] {
+  width: 100%;
+  padding: var(--space-sm);
+  border-radius: var(--space-sm);
+  background: var(--bg-card);
+  color: var(--text-primary);
+}
+
+/* stylize the number input arrows to instead be dots */
+.setting-group input[type="number"]::-webkit-inner-spin-button,
+.setting-group input[type="number"]::-webkit-outer-spin-button {
+  display: none;
+}
+
+/* Responsive design */
+@media screen and (pointer: coarse) {
+  .transform-demo {
+    grid-template-columns: 1fr;
+    padding: var(--space-md);
+    gap: var(--space-lg);
+  }
+
+  .transform-controls {
+    padding: var(--space-lg);
+  }
+
+  .transform-display {
+    min-height: 300px;
+  }
+
+  .transform-box {
+    width: 150px;
+    height: 150px;
+  }
+
+  .button-group {
+    flex-direction: column;
+  }
+
+  .button-group .button {
+    width: 100%;
+  }
+
+  .slider-container {
+    grid-template-columns: 1fr 8ch;
+  }
+
+  .value-display {
+    font-size: 0.8rem;
+    padding: 0.15em 0.3em;
+  }
+}

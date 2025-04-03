@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>zyX Library Tests - Transform</title>
+    <link rel="stylesheet" href="./css/styles.css" />
+    <link rel="stylesheet" href="./css/transform-test.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="container">
+      <a class="back-button" id="back-button" href="./tests.html">Go Back</a>
+      <script src="./js/removeBackIsNewTab.js"></script>
+      <h1>zyX Library Tests - Transform</h1>
+      <div class="description">CSS transform manipulation and animation demonstrations</div>
+
+      <div id="app"></div>
+
+      <h1>This file's code:</h1>
+      <div id="code-example"></div>
+    </div>
+
+    <script type="module" src="./js/transform-test-v3.js"></script>
+    <script type="module">
+      import { CodePreview } from "../components/codePreview.js";
+      const codePreview = new CodePreview();
+      codePreview.appendTo(document.getElementById("code-example"));
+      await codePreview.updateCode("./js/transform-test-v3.js");
+    </script>
+  </body>
+</html>

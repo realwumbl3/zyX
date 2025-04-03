@@ -1,0 +1,73 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+
+# Your rule content
+
+- You can @ files here
+- You can use markdown but dont have to
+1. Entry Point Analysis:
+   [line:column] Function/Method Name  
+   └─ Input: {detailed parameter types and values}  
+   └─ Purpose: Brief description of function's purpose  
+   └─ Execution Steps:
+
+   1. [line:column] Operation description  
+      └─ Data state: {show data state at this point}
+   2. [line:column] Operation description  
+       └─ Data state: {show data state at this point}  
+       └─ Output: {what is returned or modified}  
+      └─ Note: ALL functions and methods called within this function are documented as part of the execution flow and data transformation.
+
+2. Function Call Tree (with line numbers):
+   [line:column] MainFunction()  
+   ├─ [line:column] SubFunction1()  
+   │ ├─ [line:column] NestedFunction1()  
+   │ └─ [line:column] NestedFunction2()  
+   └─ [line:column] SubFunction2()  
+   └─ Note: Ensure that every function and method called, regardless of nesting level, is included in the documentation and execution flow/data transformation.
+
+3. For each function, provide:
+   /\*\*
+
+   - [line:column] FunctionName
+   - @description What this function does
+   - @params {type} name - Description
+   - @returns {type} Description
+   -
+   - Call Sequence:
+     - 1. [line:column] First operation
+       - Data in: {initial state}
+       - Data out: {modified state}
+     - 2. [line:column] Second operation
+       - Data in: {initial state}
+       - Data out: {modified state}
+   -
+   - Example Usage:
+     - Input: {example input}  
+       └─ [line:column] Step 1 result: {intermediate state}  
+       └─ [line:column] Step 2 result: {intermediate state}  
+       └─ Final output: {final state}
+   -
+   - Note: ALL functions and methods invoked during this function's execution must be explicitly documented in the call sequence and their impact on data flow described.
+     \*\*/
+
+4. Data Flow Map:
+   [line:column] Data Entry Point  
+   ├─ [line:column] Transformation 1  
+   │ └─ Result: {transformed data}  
+   ├─ [line:column] Transformation 2  
+   │ └─ Result: {transformed data}  
+   └─ [line:column] Final State  
+   └─ Note: Include every function and method call that affects the data transformation, ensuring each step of data processing is clearly mapped.
+
+5. Error Handling Points:
+   [line:column] try-catch block  
+   └─ Potential Errors:
+   - Error 1: {description and handling}
+   - Error 2: {description and handling}  
+     └─ Note: Document any functions or methods called within error handling blocks as part of the overall execution and data transformation flow.
+
+Ensure the analysis remains extensive and detailed, incorporating ALL functions and methods called as part of the documentation and code execution flow/data transformation.
