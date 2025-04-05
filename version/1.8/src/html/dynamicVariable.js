@@ -1,50 +1,77 @@
 // Dynamic value system for zyX HTML
 // Provides reactive values that update DOM when modified
-const VERBOSE = true;
-/** 
- * Creates a dynamic variable with reactive behavior
- * @param {*} initialValue - The initial value of the variable
- * @returns {Object} The reactive variable object
+const VERBOSE = false;
+
+/**
+ * Class representing a dynamic variable with reactive behavior
  */
-export function dynamicVar(initialValue) {
-  // Store subscribers that will be updated when the value changes
-  const subscribers = new Set();
-
-  // Create a reactive object with getter/setter
-  const reactive = {
-    initialValue: initialValue,
-    reset() {
-      reactive.value = reactive.initialValue;
-      notifySubscribers();
-    },
-    value: initialValue,
-    // Method to update the value and notify subscribers
-    set(newValue) {
-      if (VERBOSE) console.log("setting value", newValue, { reactive, subscribers });
-      if (newValue === reactive.value) return;
-      reactive.value = newValue;
-      notifySubscribers();
-    },
-
-    // Add a subscriber to be notified on changes
-    subscribe(callback) {
-      subscribers.add(callback);
-      return () => subscribers.delete(callback); // Return unsubscribe function
-    },
-
-    // Alias for subscribe to maintain compatibility with LiveVariable
-    addListener(callback) {
-      return this.subscribe(callback);
-    }
-  };
-
-  // Notify all subscribers of value change
-  function notifySubscribers() {
-    if (VERBOSE) console.log("notifying subscribers", { reactive, subscribers });
-    subscribers.forEach((callback) => callback(reactive.value));
+export class ZyXDynamicVar {
+  /**
+   * Create a new dynamic variable
+   * @param {*} initialValue - The initial value of the variable
+   */
+  constructor(initialValue) {
+    this.initialValue = initialValue;
+    this.value = initialValue;
+    this.subscribers = new Set();
   }
 
-  return reactive;
+  /**
+   * Reset the value to its initial value
+   */
+  reset() {
+    if (VERBOSE) console.log("resetting value", { initialValue: this.initialValue, value: this.value });
+    this.value = this.initialValue;
+    this.notifySubscribers();
+  }
+
+  /**
+   * Set a new value and notify subscribers
+   * @param {*} newValue - The new value to set
+   */
+  set(newValue) {
+    if (VERBOSE) console.log("setting value", newValue, { value: this.value, subscribers: this.subscribers });
+    if (newValue === this.value) return;
+    this.value = newValue;
+    this.notifySubscribers();
+  }
+
+  /**
+   * Add a subscriber to be notified on changes
+   * @param {Function} callback - The callback function to call when value changes
+   * @returns {Function} Unsubscribe function
+   */
+  subscribe(callback) {
+    this.subscribers.add(callback);
+    return () => this.subscribers.delete(callback); // Return unsubscribe function
+  }
+
+  /**
+   * Alias for subscribe to maintain compatibility with LiveVariable
+   * @param {Function} callback - The callback function
+   * @returns {Function} Unsubscribe function
+   */
+  addListener(callback) {
+    return this.subscribe(callback);
+  }
+
+  /**
+   * Notify all subscribers of value change
+   * @private
+   */
+  notifySubscribers() {
+    if (VERBOSE) console.log("notifying subscribers", { value: this.value, subscribers: this.subscribers });
+    this.subscribers.forEach((callback) => callback(this.value));
+  }
+}
+
+/**
+ * Creates a dynamic variable with reactive behavior
+ * @param {*} initialValue - The initial value of the variable
+ * @returns {ZyXDynamicVar} The reactive variable object
+ */
+export function dynamicVar(initialValue) {
+  return new ZyXDynamicVar(initialValue);
 }
 
 /**
@@ -52,28 +79,22 @@ export function dynamicVar(initialValue) {
  * @param {ZyXHtml} zyxhtml - The zyX HTML instance
  * @param {Element} node - The DOM element to process
  * @param {string} attrName - The name of the attribute to process
- * @param {Object} reactive - The reactive value object
+ * @param {ZyXDynamicVar} reactive - The reactive value object
  * @returns {void}
  */
-
-// Process reactive values in attributes and content
 export function processDynamicVarAttributes(zyxhtml, node, attrName, reactive) {
-  if (!reactive || typeof reactive !== "object" || !("subscribe" in reactive)) {
-    return; // Not a reactive value
-  }
+  if (!(reactive instanceof ZyXDynamicVar)) throw new Error("reactive must be an instance of ZyXDynamicVar");
 
   if (attrName) {
     // For attributes: update the attribute when the value changes
     const updateAttribute = (newValue) => {
       if (VERBOSE) console.log("updating attribute", { node, attrName, newValue });
+      node.setAttribute(attrName, newValue);
 
-      // if node is an input, also update the value of the input
       if (node.tagName === "INPUT") {
-        if (VERBOSE) console.log("updating input value", { node, newValue });
-        node.value = `${newValue}`;
+        if (VERBOSE) console.log("updating input", { node, newValue });
+        node.value = newValue;
       }
-
-      node.setAttribute(attrName, `${newValue}`);
     };
 
     // Initial update - ensure it runs after the node is in the DOM

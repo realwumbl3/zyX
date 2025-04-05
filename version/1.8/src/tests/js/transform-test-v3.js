@@ -1,5 +1,21 @@
 import { html, dynamicVar } from "../../../";
-import zyxTransform, { withUnits } from "../../zyX-Transform.js";
+
+function updateSliderBar(z, min, max) {
+  const percent = getSliderPercentage(z.e.target.value, min.value, max.value);
+  z.slider_bar.style.setProperty("--slider-value", `${percent}%`);
+}
+
+function getSliderStyle(value, min, max) {
+  const percent = getSliderPercentage(value, min, max);
+  return `--slider-value: ${percent}%;`;
+}
+
+// function to set the slider bar to the correct position
+function getSliderPercentage(value, min, max) {
+  const percent = (value - min) / (max - min) * 100;
+  return percent;
+}
+
 
 class TransformControls {
   constructor() {
@@ -38,9 +54,14 @@ class TransformControls {
   }
 
   buildMenu() {
+
+
     for (const [key, dynamicVar] of Object.entries(this.dynamicVars)) {
       const { min, max, step } = this.limits[key];
-      console.log("building menu", { key, dynamicVar, min, max, step });
+      const handleSliderChange = (z, min, max) => {
+        dynamicVar.set(parseFloat(z.e.target.value));
+        updateSliderBar(z, min, max);
+      }
       html`
         <div class="control-group">
           <div class="main-controls">
@@ -48,14 +69,19 @@ class TransformControls {
               ${key} <span class="value-separator">|</span> <span class="value-display">${dynamicVar}</span>
             </h3>
             <div class="slider-container">
-              <input
+              ${html`<input
                 type="range"
                 min=${min}
                 max=${max}
                 step=${step}
                 value=${dynamicVar}
-                zyx-input=${(z) => dynamicVar.set(parseFloat(z.e.target.value))}
-              />
+                zyx-input=${_ => { handleSliderChange(_, min, max) }}
+                zyx-connected=${_ => { console.log("zyx-connected", _) }}
+                />
+                <div this=slider_bar class="slider-bar"
+                style="${getSliderStyle(dynamicVar.value, min.value, max.value)}"
+                ></div>
+                `}
             </div>
           </div>
           <div class="slider-settings">
@@ -89,6 +115,7 @@ class TransformControls {
           </div>
         </div>
       `.appendTo(this.menu);
+
     }
   }
 
@@ -99,7 +126,7 @@ class TransformControls {
   }
 }
 
-class TransformDemo {
+new (class TransformDemo {
   constructor() {
     // Create dynamic values for transform controls
     this.transformControls = new TransformControls();
@@ -109,12 +136,12 @@ class TransformDemo {
         <div class="transform-controls">
           ${this.transformControls}
           <div class="button-group">
-            <button class="button" zyx-click=${() => this.transformControls.resetTransforms()}>Reset</button>
+            <button class="button" zyx-click=${() => this.transformBox.zyxTrans.resetTransforms()}>Reset</button>
           </div>
         </div>
 
         <div class="transform-display">
-          <div this="transformBox" class="transform-box">
+          <div this="transformBox" class="transform-box" zyx-transform=${{ map: this.transformControls.dynamicVars }}>   
             <div class="transform-content">
               <h2>Transform Demo</h2>
               <p>Drag the sliders to see the transforms in action!</p>
@@ -127,24 +154,7 @@ class TransformDemo {
       .bind(this)
       .place(document.getElementById("app"));
 
-    // Initialize transform manager
-    this.transformManager = zyxTransform(this.transformBox);
+    window.transformDemo = this;
 
-    // Set up transform updates
-    this.transformManager.set({
-      scale: this.transformControls.dynamicVars.scale,
-      rotateX: withUnits(this.transformControls.dynamicVars.rotateX, "deg"),
-      rotateY: withUnits(this.transformControls.dynamicVars.rotateY, "deg"),
-      rotateZ: withUnits(this.transformControls.dynamicVars.rotateZ, "deg"),
-      translateX: withUnits(this.transformControls.dynamicVars.translateX, "px"),
-      translateY: withUnits(this.transformControls.dynamicVars.translateY, "px"),
-      translateZ: withUnits(this.transformControls.dynamicVars.translateZ, "px"),
-      originX: withUnits(this.transformControls.dynamicVars.originX, "%"),
-      originY: withUnits(this.transformControls.dynamicVars.originY, "%"),
-    });
   }
-
-
-}
-
-const demo = new TransformDemo();
+})()

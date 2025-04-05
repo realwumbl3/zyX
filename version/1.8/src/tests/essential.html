@@ -22,7 +22,38 @@
       <h1>This file's code:</h1>
       <div id="code-example"></div>
     </div>
+    <style>
+      /* Test Components */
+      .test-container {
+        background: var(--bg-card);
+        border: 1px solid var(--primary);
+        padding: var(--space-xl);
+        border-radius: var(--space-lg);
+        margin: var(--space-xl) 0;
+      }
 
+      .test-section {
+        background: var(--bg-card);
+        padding: var(--space-xl);
+        border-radius: var(--space-lg);
+        margin: var(--space-xl) 0;
+        border: 1px solid var(--border-color);
+      }
+
+      .test-value {
+        background: var(--bg-card);
+        padding: var(--space-lg);
+        border-radius: var(--space-md);
+        margin: var(--space-md) 0;
+        border: 1px solid var(--border-color);
+        transition: var(--transition-normal);
+      }
+
+      .test-value:hover {
+        border-color: var(--primary);
+        transform: translateX(4px);
+      }
+    </style>
     <script type="module" id="main_script">
       import { html, dynamicVar } from "../../";
 

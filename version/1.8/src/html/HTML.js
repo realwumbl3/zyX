@@ -1,15 +1,31 @@
+/**
+ * @param {string} markup
+ * @returns {Element}
+ */
 export function innerHTML(markup) {
   const markupContent = document.createElement("div");
   markupContent.innerHTML = markup;
   return markupContent;
 }
 
+/**
+ * @param {Element} markup
+ * @returns {Element}
+ */
 export function wrapInTemplate(markup) {
   const asHTMLTemplate = document.createElement("template");
   asHTMLTemplate.content.append(...markup.childNodes);
   return asHTMLTemplate;
 }
 
+/**
+ * Places a node in the DOM
+ * if where is an object, it will replace the node
+ * if where is a string, it look for a ph (placeholder) node with that id and replace it
+ * @param {Element} what
+ * @param {string|Element} where
+ * @returns {void}
+ */
 export function placer(what, where) {
   if (typeof where === "object") return where.replaceWith(what);
   const placeTarget = document.querySelector(`ph[${where}]`);
@@ -17,24 +33,37 @@ export function placer(what, where) {
   else throw new Error(`${where} not found`);
 }
 
+/**
+ * @type {string}
+ */
 export const placeholdTag = "zyx-ph";
 
+/**
+ * @param {string} key
+ * @returns {string}
+ */
 export function strPlaceholder(key) {
   return `<${placeholdTag} id='${key}'></${placeholdTag}>`;
 }
 
-// export function strPlaceholderHTML(key) {
-//   return `&lt;${placeholdTag} id='${key}'&gt;&lt;/${placeholdTag}&gt;`;
-// }
-
+/**
+ * @type {RegExp}
+ */
 export const placeholderRegex = new RegExp(`(${strPlaceholder("\\d+")})`, "g");
-// export const placeholderRegexHTML = new RegExp(`(${strPlaceholderHTML("\\d+")})`, "g");
 
+/**
+ * @param {string} markup
+ * @returns {string}
+ */
 export function getPlaceholderID(markup) {
   const match = markup.match(/id='(.*?)'/);
   return match?.length > 0 ? match[1] : null;
 }
 
+/**
+ * @param {Element} dom
+ * @returns {Element}
+ */
 export function trimTextNodes(dom) {
   // remove first and last child if they are empty text nodes
   const nodes = dom.childNodes;

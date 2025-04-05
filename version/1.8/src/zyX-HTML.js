@@ -4,7 +4,6 @@ import {
     innerHTML,
     placer,
     strPlaceholder,
-    placeholderRegex,
     wrapInTemplate,
     trimTextNodes,
 } from "./html/HTML.js";
@@ -17,7 +16,7 @@ const QUOTED_VALUE_CONTEXT = "quoted-value";
 
 /* <zyx-module place src="./exampleCode.js"></zyx-script> TODO: query for zyx-module and replace with ZyXHTML default at src. */
 
-import { processDynamicVarAttributes } from "./html/dynamicVariable.js";
+import { ZyXDynamicVar, processDynamicVarAttributes } from "./html/dynamicVariable.js";
 
 /**
  * @typedef {Object} TagExpressionData
@@ -49,17 +48,43 @@ export class ZyXHtml {
     /** @private */
     #data;
     /** @private */
+    #map;
+    /** @private */
     #isTemplate;
     /** @private */
-    #proxscope = {};
-    /** @private */
     #mutable;
-    /** @private */
-    #proxy;
     /** @private */
     #raw;
     /** @private Array<TagExpressionData> */
     #tagData;
+    /** @private */
+    #selfMutationObserver;
+    /**
+     * Creates a new ZyXHtml instance
+     * @param {TemplateStringsArray} raw - The raw HTML template string
+     * @param {...*} tagData - The data to be inserted into the template
+     */
+    constructor(raw, ...tagData) {
+        // Store the raw HTML string and tag data
+        this.#raw = raw;
+        this.#tagData = tagData;
+        this.#data = this.processTagData();
+        this.#markup = this.becomeDOM();
+        this.#isTemplate = false;
+        this.#dom = null;
+        this.#map = null;
+        this.#constructed = false;
+    }
+
+    cleanUp(keepMarkup = false, keepRaw = false, keepData = false, keepMap = false) {
+        if (!keepMarkup) this.#markup = null;
+        if (!keepRaw) this.#raw = null;
+        if (!keepData) {
+            this.#data = null;
+            this.#tagData = null;
+        }
+        if (!keepMap) this.#map = null;
+    }
 
     /**
      * Processes tag data and determines context for each placeholder
@@ -69,7 +94,7 @@ export class ZyXHtml {
         const rawParts = this.#raw.slice(0, -1);
         let scanned = "";
         // Process each expression and track its context
-        this.#data = this.#tagData.map((value, i) => {
+        return this.#tagData.map((value, i) => {
             scanned += rawParts.shift();
 
             // We need to analyze the full string before the placeholder to determine context
@@ -95,18 +120,13 @@ export class ZyXHtml {
                 context = TAG_CONTEXT;
             }
 
-            const placeholder = strPlaceholder(i);
-
-            const needsObjectPlaceholder = value !== null && (typeof value === "object" || typeof value === "function");
-
-            const placeholderQuoteFix = needsQuotes ? `"${placeholder}"` : placeholder;
+            const placeholder = needsQuotes ? `"${strPlaceholder(i)}"` : strPlaceholder(i);
 
             return {
-                value,
-                replacement: !needsObjectPlaceholder || context === "tag" ? value : placeholderQuoteFix,
-                needsObjectPlaceholder,
                 context,
-                needsQuotes,
+                value,
+                replacement: context === "tag" ? value : placeholder,
+                needsPlaceholder: value !== null && (typeof value === "object" || typeof value === "function"),
             };
         });
     }
@@ -116,71 +136,11 @@ export class ZyXHtml {
      * @private
      */
     becomeDOM() {
-        const string = String.raw({ raw: this.#raw }, ...this.#data.map((_) => _.replacement));
-        // place in a DOM object and trim text nodes
-        this.#markup = trimTextNodes(innerHTML(string));
-    }
+        const string = String.raw({ raw: this.#raw }, ...this.#data.map(({ value, needsPlaceholder, replacement }) =>
+            needsPlaceholder ? replacement : value
+        ));
 
-    /**
-     * Creates a new ZyXHtml instance
-     * @param {TemplateStringsArray} raw - The raw HTML template string
-     * @param {...*} tagData - The data to be inserted into the template
-     */
-    constructor(raw, ...tagData) {
-        // Store the raw HTML string and tag data
-        this.#raw = raw;
-        this.#tagData = tagData;
-        this.#data = null;
-        this.#markup = null;
-
-        // Process the tag data and generate placeholders
-        this.processTagData();
-        this.becomeDOM();
-
-        // Create a proxy to handle property access and mutation
-        this.#proxy = new Proxy(this, {
-            get: (obj, key) => {
-                if (this.hasOwnProperty(key)) return this[key];
-                if (this.#proxscope.hasOwnProperty(key)) return this.#proxscope[key].value;
-                return obj[key];
-            },
-            set: (obj, key, val) => {
-                if (this.#proxscope.hasOwnProperty(key)) return this.#proxscope[key].set(val);
-                return (obj[key] = val);
-            },
-        });
-    }
-
-    /**
-     * Replaces innerHTML placeholders with their corresponding values
-     * @private
-     */
-    replaceInnerHTMLPlaceholders() {
-        const placeholders = this.#markup.innerHTML.match(placeholderRegex);
-        placeholders?.forEach((ph) => {
-            const { placeholder, value, needsObjectPlaceholder } = this.#data[getPlaceholderID(ph)];
-            this.#markup.innerHTML = this.#markup.innerHTML.replace(
-                placeholder,
-                needsObjectPlaceholder ? placeholder : value
-            );
-        });
-    }
-
-    /**
-     * Replaces DOM placeholders with their corresponding elements
-     * @private
-     */
-    replaceDOMPlaceholders() {
-        // Replace DOM placeholders with their corresponding elements
-        for (const ph of [...this.#markup.querySelectorAll(placeholdTag)]) {
-            const dataValue = this.#data[ph.id].value;
-            // Check if this is a dynamic/reactive value
-            if (dataValue && typeof dataValue === "object" && "subscribe" in dataValue) {
-                processDynamicVarAttributes(this, ph, null, dataValue);
-            } else {
-                ph.replaceWith(makePlaceable(dataValue));
-            }
-        }
+        return trimTextNodes(innerHTML(string));
     }
 
     /**
@@ -188,36 +148,52 @@ export class ZyXHtml {
      * @param {ConstOptions} options - Options for the construction process
      * @returns {ZyXHtml} The current instance
      */
-    const({ keepRaw = false, keepMarkup = false, keepData = false } = {}) {
+    const({ keepRaw = false, keepMarkup = false, keepData = false, keepMap = false, mutationObserver = false } = {}) {
         if (this.#constructed) return this;
 
-        // Replace RAW placeholders with actual values
-        this.replaceInnerHTMLPlaceholders();
-        // Replace DOM placeholders with their corresponding elements
+        this.#map = this.mapEverything();
+        console.log(this.#map);
+
         this.replaceDOMPlaceholders();
 
+        for (const { node, ph } of this.#map.phs) {
+            node.setAttribute("ph", ph);
+            this.thisAssigner(node, ph);
+            markAttributeProcessed(node, "ph", ph);
+        }
+
         // Assign "this" references to elements
-        [...this.#markup.querySelectorAll("ph")].forEach((node) => {
-            const firstKey = [...node.attributes][0].nodeName;
-            node.setAttribute("ph", firstKey);
-            this.thisAssigner(node, firstKey);
-        });
+        for (const { node, key } of this.#map.hasThis) {
+            this.thisAssigner(node, key);
+            markAttributeProcessed(node, "this", key);
+        }
 
-        [...this.#markup.querySelectorAll("[this]")].forEach((node) => {
-            this.thisAssigner(node, node.getAttribute("this"));
-            node.removeAttribute("this");
-        });
+        for (const { node, id } of this.#map.hasId) {
+            this.thisAssigner(node, id);
+            markAttributeProcessed(node, "id", id);
+        }
 
-        [...this.#markup.querySelectorAll("[id]")].forEach((node) => {
-            this.thisAssigner(node, node.id);
-        });
+        for (const { node, attr, data } of this.#map.zyxBindAttributes) {
+            const handler = zyxAttributes[attr];
+            try {
+                handler({ zyxhtml: this, node, data });
+                markAttributeProcessed(node, attr);
+            } catch (e) {
+                console.error("ZyXHTML: Error binding attribute", attr, "to", data, "on", node, "with handler", handler, "error", e);
+                markAttributeProcessed(node, `errored-${attr}`, e);
+            }
+        }
 
-        // Process custom attributes
-        this.processAttributes(this.#markup, this.#data);
+        // Process dynamic values in all attributes
+        for (const { node, attr, data } of this.#map.zyxDynamicVars) {
+            processDynamicVarAttributes(this, node, attr, data);
+            markAttributeProcessed(node, attr);
+        }
 
         // If no element has been assigned to "main", assign the first element
         if (!this.main && this.#markup.firstElementChild) {
             this.thisAssigner(this.#markup.firstElementChild, "main");
+            markAttributeProcessed(this.#markup.firstElementChild, "main");
         }
 
         // Wrap the markup in a template if necessary
@@ -226,15 +202,97 @@ export class ZyXHtml {
         if (this.#isTemplate) this.#dom = this.#dom.content;
         else this.#dom = this.#dom.firstElementChild;
 
-        if (!keepMarkup) this.#markup = null;
-        if (!keepRaw) this.#raw = null;
-        if (!keepData) {
-            this.#data = null;
-            this.#tagData = null;
+        if (mutationObserver) {
+            this.setupSelfMutationObserver();
         }
+
+        this.cleanUp(keepMarkup, keepRaw, keepData, keepMap);
 
         this.#constructed = true;
         return this;
+    }
+
+    /**
+     * Creates a hydrated map of the DOM placeholders
+     * @private
+     */
+    mapEverything() {
+        const allElements = [...this.#markup.querySelectorAll("*")];
+        const placeholders = []
+        const hasThis = []
+        const hasId = []
+        const zyxBindAttributes = []
+        const zyxDynamicVars = []
+        const phs = []
+
+        for (const node of allElements) {
+            if (node.matches(placeholdTag)) {
+                const phid = node.getAttribute("id");
+                if (phid) {
+                    const dataValue = this.#data[phid]?.value;
+                    placeholders.push({ node, phid, dataValue });
+                }
+                continue;
+            }
+            if (node.hasAttribute("ph")) {
+                phs.push({ node, ph: node.getAttribute("ph") });
+                continue;
+            }
+            if (node.hasAttribute("this")) {
+                hasThis.push({ node, key: node.getAttribute("this") });
+            }
+            if (node.hasAttribute("id")) {
+                hasId.push({ node, id: node.getAttribute("id") });
+            }
+            for (const { name: attr, value } of [...node.attributes]) {
+                if (attr in zyxAttributes) {
+                    const hasData = getPlaceholderID(value);
+                    const data = this.#data[hasData]?.value;
+                    zyxBindAttributes.push({ node, attr, data });
+                    if (data && data instanceof ZyXDynamicVar) {
+                        zyxDynamicVars.push({ node, attr, data });
+                    }
+                }
+            }
+        }
+
+        return {
+            all: allElements,
+            placeholders,
+            hasThis,
+            hasId,
+            zyxBindAttributes,
+            zyxDynamicVars,
+            phs,
+        }
+    }
+
+
+    /**
+     * Replaces DOM placeholders with their corresponding elements
+     * @private
+     */
+    replaceDOMPlaceholders() {
+        // Replace DOM placeholders with their corresponding elements
+        for (const { node, dataValue } of this.#map.placeholders) {
+            // Check if this is a dynamic/reactive value
+            if (dataValue instanceof ZyXDynamicVar) {
+                processDynamicVarAttributes(this, node, null, dataValue);
+            } else {
+                node.replaceWith(makePlaceable(dataValue));
+            }
+        }
+
+    }
+
+    setupSelfMutationObserver() {
+        this.#selfMutationObserver = new MutationObserver((mutations) => {
+            console.log(this, "self mutation observer", mutations);
+            for (const mutation of mutations) {
+                console.log(mutation);
+            }
+        });
+        this.#selfMutationObserver.observe(this.#dom, { childList: true, subtree: true });
     }
 
     /**
@@ -259,45 +317,6 @@ export class ZyXHtml {
         }
     }
 
-    /**
-     * Processes special attributes in the markup
-     * @private
-     */
-    processAttributes() {
-        const zyxBindAttributespattern = `[${Object.keys(zyxAttributes).join("],[")}]`;
-
-        // Process zyx attributes
-        new Set(this.#markup.querySelectorAll(zyxBindAttributespattern)).forEach((node) => {
-            for (const attr of [...node.attributes].filter((_) => _.name in zyxAttributes)) {
-                const placeholder = getPlaceholderID(attr.value);
-                if (placeholder) {
-                    zyxAttributes[attr.name]({
-                        zyxhtml: this,
-                        node,
-                        data: this.#data[placeholder].value,
-                    });
-                    node.removeAttribute(attr.name);
-                } else {
-                    zyxAttributes[attr.name]({ zyxhtml: this, node, data: attr.value });
-                }
-            }
-        });
-
-        // Process dynamic values in all attributes
-        [...this.#markup.querySelectorAll("*")].forEach((node) => {
-            [...node.attributes].forEach((attr) => {
-                const placeholder = getPlaceholderID(attr.value);
-                if (placeholder) {
-                    const dataValue = this.#data[placeholder].value;
-                    // Check if this is a dynamic/reactive value
-                    if (dataValue && typeof dataValue === "object" && "subscribe" in dataValue) {
-                        processDynamicVarAttributes(this, node, attr.name, dataValue);
-                        node.removeAttribute(attr.name);
-                    }
-                }
-            });
-        });
-    }
 
     /**
      * Returns the constructed DOM structure
@@ -345,7 +364,6 @@ export class ZyXHtml {
      */
     bind(any, opts = {}) {
         this.#mutable = any;
-        any.proxy = this.#proxy;
         any[IDENTIFIER_KEY] = this;
         any.appendTo = (container) => this.appendTo(container);
         any.prependTo = (container) => this.prependTo(container);
@@ -391,9 +409,15 @@ export function templateFromPlaceables(placeables) {
     return fragment;
 }
 
+function markAttributeProcessed(node, attr, value) {
+    node.removeAttribute(attr);
+    node.setAttribute(`${attr}-processed`, value || "");
+}
+
 import { defaultEvents } from "./html/DefaultEvents.js";
 import { conditionalAttributes } from "./html/Conditional.js";
 import { processLiveDomListAttributes } from "./html/LiveDomList.js";
+import zyxTransform from "./zyX-Transform.js";
 
 const zyxAttributes = {
     ...defaultEvents,
@@ -402,10 +426,13 @@ const zyxAttributes = {
     "zyx-insert-n": ({ zyxhtml, node, data }) => {
         const [n, compose] = data;
         for (let i = 0; i < n; i++) {
-            node.append(makePlaceable(compose(zyxhtml, i)));
+            node.append(makePlaceable(compose(zyxhtml, i, n)));
         }
     },
-};
+    "zyx-transform": ({ node, data }) => {
+        node.zyxTrans = zyxTransform(node, data?.map);
+    }
+}
 
 /**
  * Creates a new ZyXHtml instance

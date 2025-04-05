@@ -1,8 +1,9 @@
 .transform-demo {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 25em 1fr;
   gap: var(--space-xl);
   padding: var(--space-xl);
+  position: relative;
 }
 
 .transform-controls {
@@ -19,6 +20,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
+  user-select: none;
 }
 
 .control-group h3 {
@@ -26,9 +28,10 @@
   font-size: 1.1rem;
   margin: 0;
   display: flex;
-  align-items: baseline;
+  align-items: start;
   gap: var(--space-xs);
   width: 100%;
+  padding: var(--space-sm);
 }
 
 .value-separator {
@@ -45,27 +48,22 @@
   font-variant-numeric: tabular-nums;
   white-space: pre;
   user-select: none;
-  font-weight: normal;
-}
-
-.control-group h3::after {
-  content: "";
-  flex: 1;
-  border-bottom: 1px dotted var(--border-color);
-  margin-left: var(--space-md);
+  margin: 0.3em;
 }
 
 .slider-container {
   display: flex;
   align-items: center;
-  width: 100%;
+  inset: 0;
+  position: absolute;
+  border-radius: var(--space-sm);
+  outline: 1px solid var(--primary);
 }
 
 .slider-container input[type="range"] {
-  width: 100%;
-  height: 6px;
-  -webkit-appearance: none;
-  background: var(--bg-card-hover);
+  opacity: 0;
+  inset: 0;
+  position: absolute;
   border-radius: 3px;
   outline: none;
   margin: 0;
@@ -95,20 +93,12 @@
 }
 
 .transform-display {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 400px;
-  background: var(--bg-card);
-  border-radius: var(--space-lg);
-  border: 1px solid var(--border-color);
   perspective: 100vmin;
-  width: 100%;
-  height: 100%;
+  height: max-content;
 }
 
 .transform-box {
-  background: var(--bg-card-hover);
+  background: hsla(120, 100%, 50%, 0.1);
   border: 2px solid var(--primary);
   border-radius: var(--space-md);
   display: flex;
@@ -118,11 +108,11 @@
   width: 90%;
   aspect-ratio: 1/1;
   transform-style: preserve-3d;
+  pointer-events: none;
 }
 
 .transform-content {
   position: absolute;
-
   padding: var(--space-lg);
   text-align: center;
   color: var(--text-primary);
@@ -153,6 +143,8 @@
 }
 
 .main-controls {
+  min-height: 50px;
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
@@ -171,8 +163,9 @@
 }
 
 .setting-group label {
-  font-size: 0.8rem;
+  font-size: 0.6rem;
   color: var(--text-secondary);
+  line-height: 0.1;
 }
 
 .setting-group input {
@@ -184,16 +177,32 @@
 
 .setting-group input[type="number"] {
   width: 100%;
-  padding: var(--space-sm);
+  padding: 0.2em;
   border-radius: var(--space-sm);
   background: var(--bg-card);
   color: var(--text-primary);
 }
 
-/* stylize the number input arrows to instead be dots */
-.setting-group input[type="number"]::-webkit-inner-spin-button,
-.setting-group input[type="number"]::-webkit-outer-spin-button {
-  display: none;
+.slider-bar {
+  --slider-value: 0;
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.slider-bar::-webkit-slider-thumb {
+  pointer-events: auto;
+}
+
+.slider-bar::before {
+  content: "";
+  position: absolute;
+  inset: 0.3em;
+  background: var(--primary);
+  width: 0.1em;
+  height: auto;
+  left: var(--slider-value);
+  pointer-events: none;
 }
 
 /* Responsive design */

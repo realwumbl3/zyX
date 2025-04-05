@@ -1,6 +1,6 @@
 ---
 description: 
 globs: 
-alwaysApply: true
+alwaysApply: false
 ---
 Always write / update/ maintain JSDOCS.
