@@ -11,7 +11,7 @@
 
 // Core imports
 // HTML
-import { ZyXHtml, html, makePlaceable } from "./src/zyX-HTML.js";
+import html, { ZyXHtml, makePlaceable } from "./src/zyX-HTML.js";
 import { dynamicVar } from "./src/html/dynamicVariable.js";
 import LiveDomList from "./src/html/LiveDomList.js";
 // CSS

@@ -2,7 +2,7 @@
 import zyX from "../";
 
 import { WeakRefSet } from "./zyX-Types.js";
-import { pointerEventPathContainsMatching } from "../zyX-Toolbox.js";
+import { pointerEventPathContainsMatching } from "./zyX-Toolbox.js";
 
 import * as presets from "./ZyXInput/Presets.js";
 

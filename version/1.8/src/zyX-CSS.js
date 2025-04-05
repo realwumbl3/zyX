@@ -4,7 +4,7 @@
  */
 
 import { fetchCSS } from "./zyX-Fetch.js";
-import { html } from "./zyX-HTML.js";
+import  html from "./zyX-HTML.js";
 
 /**
  * Manages CSS styles in the application, providing methods to load external stylesheets

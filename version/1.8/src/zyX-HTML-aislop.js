@@ -14,8 +14,7 @@ const TAG_CONTEXT = "tag";
 const UNQUOTED_VALUE_CONTEXT = "unquoted-value";
 const QUOTED_VALUE_CONTEXT = "quoted-value";
 
-/* <zyx-module place src="./exampleCode.js"></zyx-script> TODO: query for zyx-module and replace with ZyXHTML default at src. */
-
+// Replace TODO with implementation that will use exampleCode.js from tests folder as default
 import { ZyXDynamicVar, processDynamicVarAttributes } from "./html/dynamicVariable.js";
 
 /**
@@ -274,14 +273,15 @@ export class ZyXHtml {
             if (node.hasAttribute("id")) {
                 initialMap.hasId.push({ node, id: node.getAttribute("id") });
             }
-            for (const attr of [...node.attributes]) {
-                const hasData = getPlaceholderID(attr.value);
-                if (!hasData) continue;
-                const data = this.#data[hasData]?.value;
-                if (attr.name in zyxAttributes)
-                    initialMap.zyxBindAttributes.push({ node, attr: attr.name, data });
-                if (data && data instanceof ZyXDynamicVar)
-                    initialMap.zyxDynamicVars.push({ node, attr: attr.name, data });
+            for (const { name: attr, value } of [...node.attributes]) {
+                if (attr in zyxAttributes) {
+                    const hasData = getPlaceholderID(value);
+                    const data = this.#data[hasData]?.value;
+                    initialMap.zyxBindAttributes.push({ node, attr, data });
+                    if (data && data instanceof ZyXDynamicVar) {
+                        initialMap.zyxDynamicVars.push({ node, attr, data });
+                    }
+                }
             }
         }
 
@@ -298,7 +298,7 @@ export class ZyXHtml {
     replaceDOMPlaceholders() {
         // Replace DOM placeholders with their corresponding elements
         if (!this.#map?.placeholders?.length) return;
-
+        
         for (const { node, dataValue } of this.#map.placeholders) {
             try {
                 if (dataValue instanceof ZyXDynamicVar) {
@@ -337,7 +337,7 @@ export class ZyXHtml {
      */
     thisAssigner(node, keyname) {
         if (!node || !keyname) return;
-
+        
         try {
             const splitNames = keyname.split(" ");
             if (splitNames.length === 1) {
