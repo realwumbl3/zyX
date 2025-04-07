@@ -1,4 +1,4 @@
-import { html, dynamicVar } from "../../../";
+import { html, dynamicVar } from "../..";
 
 // Create a dynamic value with an initial value of 69 boats
 const boats = dynamicVar(69);

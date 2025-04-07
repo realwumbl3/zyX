@@ -12,9 +12,9 @@
   </head>
   <body>
     <div class="container">
-      <a class="back-button" id="back-button" href="tests.html">Go Back</a>
-      <script src="./js/removeBackIsNewTab.js"></script>
-      <h1>zyX Library Tests - Conditional</h1>
+      <a class="back-button" id="back-button" href="./index.html">Go Back</a>
+      <script src="./js/js.js"></script>
+      <h1 class="page-title">zyX Library Tests - Conditional</h1>
       <div class="description">Conditional rendering and logic handling</div>
 
       <div id="app"></div>
@@ -79,7 +79,7 @@
     <script type="module" id="main_script">
       import { html, dynamicVar } from "../../";
 
-      import { CodePreview } from "../components/codePreview.js";
+      import { CodePreview } from "./js/codePreview.js";
 
       const codePreview = new CodePreview();
       codePreview.appendTo(document.getElementById("code-example"));

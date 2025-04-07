@@ -9,20 +9,17 @@
   </head>
   <body>
     <div class="container">
-      <a class="back-button" id="back-button" href="./tests.html">Go Back</a>
-      <script src="./js/removeBackIsNewTab.js"></script>
-      <h1>zyX Library Tests - Transform</h1>
+      <a class="back-button" id="back-button" href="./index.html">Go Back</a>
+      <script src="./js/js.js"></script>
+      <h1 class="page-title">zyX Library Tests - Transform</h1>
       <div class="description">CSS transform manipulation and animation demonstrations</div>
-
       <div id="app"></div>
-
-      <h1>This file's code:</h1>
       <div id="code-example"></div>
     </div>
 
     <script type="module" src="./js/transform-test-v3.js"></script>
     <script type="module">
-      import { CodePreview } from "../components/codePreview.js";
+      import { CodePreview } from "./js/codePreview.js";
       const codePreview = new CodePreview();
       codePreview.appendTo(document.getElementById("code-example"));
       await codePreview.updateCode("./js/transform-test-v3.js");

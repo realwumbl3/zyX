@@ -9,17 +9,14 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap"
       rel="stylesheet"
     />
-  </head>
-  <body>
+    </head>
+    <body>
     <div class="container">
-      <a class="back-button" id="back-button" href="tests.html">Go Back</a>
-      <script src="./js/removeBackIsNewTab.js"></script>
-      <h1>zyX Library Tests - Essential</h1>
+      <a class="back-button" id="back-button" href="./index.html">Go Back</a>
+      <script src="./js/js.js"></script>
+      <h1 class="page-title">zyX Library Tests - Essential</h1>
       <div class="description">Basic functionality, bindings, and attribute handling</div>
-
       <div id="app"></div>
-
-      <h1>This file's code:</h1>
       <div id="code-example"></div>
     </div>
     <style>
@@ -57,7 +54,7 @@
     <script type="module" id="main_script">
       import { html, dynamicVar } from "../../";
 
-      import { CodePreview } from "../components/codePreview.js";
+      import { CodePreview } from "./js/codePreview.js";
 
       const codePreview = new CodePreview();
       codePreview.appendTo(document.getElementById("code-example"));
@@ -67,8 +64,10 @@
       class TestParentClass {
         constructor() {
           html`
-            <h2>Test ZyX Binded Parent Class</h2>
-            <div this="testcontainer" class="test-container" test-container></div>
+            <div class="test-container">
+              <h2>Test ZyX Binded Parent Class</h2>
+              <div this="test_container" class="test-container" test-container></div>
+            </div>
           `.bind(this);
         }
       }
@@ -76,7 +75,7 @@
       class TestChildClass extends TestParentClass {
         constructor() {
           super();
-          html` <h2>Test ZyX Joined Child Class</h2> `.join(this).appendTo(this.testcontainer);
+          html` <h2>Test ZyX Joined Child Class</h2> `.join(this).appendTo(this.test_container);
         }
       }
 

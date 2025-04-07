@@ -180,7 +180,7 @@ export class ZyXHtml {
         if (this.#constructed) return this;
 
         this.#map = this.mapEverything();
-
+        
         this.replaceDOMPlaceholders();
 
         for (const { node, ph } of this.#map.phs) {

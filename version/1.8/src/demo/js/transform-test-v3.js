@@ -1,10 +1,5 @@
 import { html, dynamicVar } from "../../../";
 
-function updateSliderBar(z, min, max) {
-  const percent = getSliderPercentage(z.e.target.value, min.value, max.value);
-  z.slider_bar.style.setProperty("--slider-value", `${percent}%`);
-}
-
 function getSliderStyle(value, min, max) {
   const percent = getSliderPercentage(value, min, max);
   return `--slider-value: ${percent}%;`;
@@ -16,6 +11,72 @@ function getSliderPercentage(value, min, max) {
   return percent;
 }
 
+class TransformControlsMenuItem {
+  constructor(key, dynamicVar, limit) {
+    this.key = key;
+    this.dynamicVar = dynamicVar;
+    this.limit = limit;
+
+    html`
+      <div class="control-group">
+          <div class="main-controls">
+            <h3>
+              ${this.key} <span class="value-separator">|</span> <span class="value-display">${this.dynamicVar}</span>
+            </h3>
+            <div class="slider-container">
+              <input
+                type="range"
+                min=${this.limit.min}
+                max=${this.limit.max}
+                step=${this.limit.step}
+                value=${this.dynamicVar}
+                zyx-input=${this.handleSliderChange.bind(this)}
+                />
+                <div this=slider_bar class="slider-bar"
+                  style="${getSliderStyle(this.dynamicVar.value, this.limit.min.value, this.limit.max.value)}"
+                ></div>
+            </div>
+          </div>
+          <div class="slider-settings">
+            <div class="setting-group">
+              <label for="min">Min</label>
+              <input
+                type="number"
+                value=${this.limit.min}
+                zyx-input=${(z) => this.limit.min.set(parseFloat(z.e.target.value))}
+              />
+            </div>
+            <div class="setting-group">
+              <label for="max">Max</label>
+              <input
+                type="number"
+                value=${this.limit.max}
+                zyx-input=${(z) => this.limit.max.set(parseFloat(z.e.target.value))}
+              />
+            </div>
+            <div class="setting-group">
+              <label for="step">Step</label>
+              <input
+                type="number"
+                value=${this.limit.step}
+                zyx-input=${(z) => this.limit.step.set(parseFloat(z.e.target.value))}
+              />
+            </div>
+          </div>
+        </div>
+    `.bind(this);
+  }
+
+  updateSliderBar() {
+    const percent = getSliderPercentage(this.dynamicVar.value, this.limit.min.value, this.limit.max.value);
+    this.slider_bar.style.setProperty("--slider-value", `${percent}%`);
+  }
+
+  handleSliderChange(z) {
+    this.dynamicVar.set(parseFloat(z.e.target.value));
+    this.updateSliderBar();
+  }
+}
 
 class TransformControls {
   constructor() {
@@ -54,68 +115,10 @@ class TransformControls {
   }
 
   buildMenu() {
-
-
     for (const [key, dynamicVar] of Object.entries(this.dynamicVars)) {
       const { min, max, step } = this.limits[key];
-      const handleSliderChange = (z, min, max) => {
-        dynamicVar.set(parseFloat(z.e.target.value));
-        updateSliderBar(z, min, max);
-      }
-      html`
-        <div class="control-group">
-          <div class="main-controls">
-            <h3>
-              ${key} <span class="value-separator">|</span> <span class="value-display">${dynamicVar}</span>
-            </h3>
-            <div class="slider-container">
-              ${html`<input
-                type="range"
-                min=${min}
-                max=${max}
-                step=${step}
-                value=${dynamicVar}
-                zyx-input=${_ => { handleSliderChange(_, min, max) }}
-                zyx-connected=${_ => { console.log("zyx-connected", _) }}
-                />
-                <div this=slider_bar class="slider-bar"
-                style="${getSliderStyle(dynamicVar.value, min.value, max.value)}"
-                ></div>
-                `}
-            </div>
-          </div>
-          <div class="slider-settings">
-            <div class="setting-group">
-              <label for="min">Min</label>
-              <input
-                type="number"
-                id="min"
-                value=${min}
-                zyx-input=${(z) => min.set(parseFloat(z.e.target.value))}
-              />
-            </div>
-            <div class="setting-group">
-              <label for="max">Max</label>
-              <input
-                type="number"
-                id="max"
-                value=${max}
-                zyx-input=${(z) => max.set(parseFloat(z.e.target.value))}
-              />
-            </div>
-            <div class="setting-group">
-              <label for="step">Step</label>
-              <input
-                type="number"
-                id="step"
-                value=${step}
-                zyx-input=${(z) => step.set(parseFloat(z.e.target.value))}
-              />
-            </div>
-          </div>
-        </div>
-      `.appendTo(this.menu);
-
+      const menuItem = new TransformControlsMenuItem(key, dynamicVar, { min, max, step });
+      menuItem.appendTo(this.menu);
     }
   }
 

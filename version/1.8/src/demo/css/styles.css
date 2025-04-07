@@ -75,16 +75,6 @@ body {
   min-height: 100vh;
 }
 
-/* Container and Layout */
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: var(--space-xl);
-  background: var(--bg-card);
-  border-radius: var(--space-lg);
-  box-shadow: var(--shadow-lg);
-}
-
 /* Typography */
 h1,
 h2,
@@ -127,6 +117,125 @@ h3 {
   font-size: 1.25rem;
   color: var(--primary);
   margin-bottom: var(--space-md);
+}
+
+.title {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 4.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: relative;
+  display: inline-block;
+  margin: 0 auto;
+  padding: 0;
+  margin-bottom: 2rem;
+  transition: transform 0.3s ease-out;
+}
+
+.title::before {
+  content: "zyX";
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  opacity: 0.2;
+  transform: translate(2px, 2px);
+  z-index: -1;
+}
+
+.title::after {
+  content: "";
+  position: absolute;
+  bottom: -12px;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, var(--primary) 0%, var(--primary-dark) 100%);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s ease-out;
+}
+
+.page-title {
+  font-size: 2rem;
+  color: var(--primary-dark);
+  text-align: center;
+}
+
+.back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  background-color: var(--primary);
+  color: var(--text-primary);
+  padding: var(--space-md) var(--space-lg);
+  border-radius: 0 0 var(--space-md) var(--space-md);
+  text-decoration: none;
+  font-weight: 500;
+  margin-bottom: var(--space-xl);
+  transition: all var(--transition-normal);
+  position: absolute;
+  top: 0;
+  margin: 0 auto;
+  overflow: hidden;
+  z-index: 100;
+  height: 3em;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.back-button:hover {
+  background-color: var(--primary-dark);
+  transform: translateX(-50%) translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.back-button-scrolled {
+  height: 1em;
+  position: fixed;
+}
+
+/* Container and Layout */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  background: var(--bg-card);
+  border-radius: var(--space-lg);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-xl);
+}
+
+.container:hover .title {
+  transform: translateY(-2px);
+}
+
+.container:hover .title::after {
+  transform: scaleX(1);
+}
+
+.section-title {
+  font-size: 2rem;
+  color: var(--primary-dark);
+  text-align: center;
+  margin: var(--space-xxl) 0 var(--space-xl);
+  transition: transform 0.3s ease-out;
+}
+
+.section-container {
+  margin-bottom: var(--space-xxl);
+
+  &:hover .section-title {
+    transform: translateY(-2px);
+  }
 }
 
 /* Description Text */
@@ -197,32 +306,6 @@ h3 {
 
 .test-link:hover .test-link-description {
   color: var(--text-primary);
-}
-
-.back-button {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-sm);
-  background-color: var(--primary);
-  color: var(--text-primary);
-  padding: var(--space-md) var(--space-lg);
-  border-radius: var(--space-md);
-  text-decoration: none;
-  font-weight: 500;
-  margin-bottom: var(--space-xl);
-  transition: var(--transition-normal);
-  position: relative;
-  overflow: hidden;
-}
-
-.back-button:hover {
-  background-color: var(--primary-dark);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-}
-
-.back-button:hover::before {
-  transform: translateX(-4px);
 }
 
 /* Buttons and Inputs */
@@ -348,6 +431,12 @@ button:focus-visible {
   padding: var(--space-lg);
   background: var(--bg-card-hover);
   border-radius: var(--space-lg);
+  transition: var(--transition-normal);
+  &:hover {
+    background: var(--bg-card-hover);
+    transform: scale(1.07);
+    box-shadow: var(--shadow-lg);
+  }
 }
 
 /* Feature Boxes */

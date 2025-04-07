@@ -1,4 +1,4 @@
-import { html, css } from "../../";
+import { html, css } from "../../../";
 
 css`
   .code-preview {

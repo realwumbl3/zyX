@@ -2,8 +2,8 @@
     <script type="importmap">
     {
         "imports": {
-            "zyX": "https://zyxx.wumbl3.xyz/v:1.5/",
-            "zyX/": "https://zyxx.wumbl3.xyz/v:1.5/"
+            "zyX": "https://z.wumbl3.xyz/v:1.8/",
+            "zyX/": "https://z.wumbl3.xyz/v:1.8/"
         }
     }
     </script>

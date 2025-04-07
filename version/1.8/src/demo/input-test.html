@@ -13,30 +13,22 @@
   </head>
   <body>
     <div class="container">
-      <a class="back-button" id="back-button" href="./tests.html">Go Back</a>
-      <script src="./js/removeBackIsNewTab.js"></script>
-      <h1>zyX Library Tests - Input</h1>
+      <a class="back-button" id="back-button" href="./index.html">Go Back</a>
+      <script src="./js/js.js"></script>
+      <h1 class="page-title">zyX Library Tests - Input</h1>
       <div class="description">Input handling and event binding demonstrations</div>
-
       <div id="app"></div>
-
-      <!-- <h1>This file's code:</h1>
-      <div id="code-example"></div> -->
+      <div id="code-example"></div>
     </div>
 
     <script type="module" id="main_script">
-      /**
-       * Comprehensive input system test file
-       * Demonstrates all input types and their combinations
-       */
-
       import zyX, { html, LiveList } from "../../";
       import ZyXInput from "../zyX-Input.js";
-      import { CodePreview } from "../components/codePreview.js";
+      import { CodePreview } from "./js/codePreview.js";
 
-      // const codePreview = new CodePreview();
-      // codePreview.appendTo(document.getElementById("code-example"));
-      // await codePreview.updateCode(document.getElementById("main_script"));
+      const codePreview = new CodePreview();
+      codePreview.appendTo(document.getElementById("code-example"));
+      await codePreview.updateCode(document.getElementById("main_script"));
 
       // Initialize input system
       const input = new ZyXInput();
