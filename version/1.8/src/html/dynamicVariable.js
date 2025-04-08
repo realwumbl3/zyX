@@ -94,6 +94,7 @@ export function processDynamicVarAttributes(zyxhtml, node, attrName, reactive) {
       if (node.tagName === "INPUT") {
         if (VERBOSE) console.log("updating input", { node, newValue });
         node.value = newValue;
+        node.dispatchEvent(new Event("change"));
       }
     };
 

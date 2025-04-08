@@ -180,7 +180,7 @@ export class ZyXHtml {
         if (this.#constructed) return this;
 
         this.#map = this.mapEverything();
-        
+
         this.replaceDOMPlaceholders();
 
         for (const { node, ph } of this.#map.phs) {
@@ -360,6 +360,23 @@ export class ZyXHtml {
     }
 
     /**
+     * Assigns elements to properties based on their keys
+     * @private
+     * @param {Element} node - The DOM node to assign
+     * @param {string} keyname - The key name(s) to assign the node to
+     */
+    pushAssigner(node, groupname) {
+        console.log("pushAssigner", groupname);
+        if (!this[groupname]) this[groupname] = [];
+        this[groupname].push(node);
+        if (this.#mutable) {
+            if (!this.#mutable[groupname]) this.#mutable[groupname] = [];
+            this.#mutable[groupname].push(node);
+        }
+        console.log("pushAssigner", { groupname, this: this, mutable: this.#mutable });
+    }
+
+    /**
      * Marks an attribute as processed and optionally stores its value
      * @private 
      * @param {Element} node - The DOM node
@@ -475,6 +492,18 @@ const zyxAttributes = {
         const [n, compose] = data;
         for (let i = 0; i < n; i++) {
             node.append(makePlaceable(compose(zyxhtml, i, n)));
+        }
+    },
+    "zyx-insert-entries": ({ zyxhtml, node, data }) => {
+        const [entries, compose, groupname] = data;
+        for (const [key, value] of Object.entries(entries)) {
+            const composeResult = compose(zyxhtml, key, value);
+            node.append(makePlaceable(composeResult));
+            if (groupname) {
+                if (typeof groupname === "string") zyxhtml.pushAssigner(composeResult, groupname);
+                else if (Array.isArray(groupname)) groupname.push(composeResult);
+                else throw new Error("Invalid groupname");
+            }
         }
     },
     "zyx-transform": ({ node, data }) => {

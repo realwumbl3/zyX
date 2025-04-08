@@ -21,9 +21,13 @@ if (window.location.hash === "#asnewtab") {
 }
 
 const backButton = document.getElementById("back-button");
+function checkScroll() {
+    backButton.classList.toggle("back-button-scrolled", window.scrollY > backButton.offsetHeight / 2);
+}
 
 // if scrolled down 100px, make back 1em tall
-window.addEventListener('scroll', () => {
-    console.log(window.scrollY);
-    backButton.classList.toggle("back-button-scrolled", window.scrollY > 70);
-});
+window.addEventListener('scroll', checkScroll);
+
+setTimeout(() => {
+    checkScroll();
+}, 100);

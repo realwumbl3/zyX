@@ -1,4 +1,4 @@
-import { html, dynamicVar } from "../../../";
+import { html, dynamicVar, clamp } from "../../../";
 
 function getSliderStyle(value, min, max) {
   const percent = getSliderPercentage(value, min, max);
@@ -11,7 +11,7 @@ function getSliderPercentage(value, min, max) {
   return percent;
 }
 
-class TransformControlsMenuItem {
+class TransformControl {
   constructor(key, dynamicVar, limit) {
     this.key = key;
     this.dynamicVar = dynamicVar;
@@ -31,6 +31,7 @@ class TransformControlsMenuItem {
                 step=${this.limit.step}
                 value=${this.dynamicVar}
                 zyx-input=${this.handleSliderChange.bind(this)}
+                zyx-change=${this.updateSliderBar.bind(this)}
                 />
                 <div this=slider_bar class="slider-bar"
                   style="${getSliderStyle(this.dynamicVar.value, this.limit.min.value, this.limit.max.value)}"
@@ -68,13 +69,17 @@ class TransformControlsMenuItem {
   }
 
   updateSliderBar() {
-    const percent = getSliderPercentage(this.dynamicVar.value, this.limit.min.value, this.limit.max.value);
+    const percent = clamp(getSliderPercentage(this.dynamicVar.value, this.limit.min.value, this.limit.max.value), 0, 100);
     this.slider_bar.style.setProperty("--slider-value", `${percent}%`);
   }
 
   handleSliderChange(z) {
     this.dynamicVar.set(parseFloat(z.e.target.value));
     this.updateSliderBar();
+  }
+
+  reset() {
+    this.dynamicVar.reset();
   }
 }
 
@@ -104,34 +109,29 @@ class TransformControls {
       originY: { min: dynamicVar(0), max: dynamicVar(100), step: dynamicVar(1) },
     };
 
+    /**
+     * @type {TransformControl[]}
+     */
+    this.controls = [];
+
     html`
       <div class="transform-controls">
-        <div this=menu class="control-group" ></div>
-        </div>
+        <div this=menu class="control-group" 
+        zyx-insert-entries=${[this.dynamicVars, (z, key, dynamicVar) => {
+        return new TransformControl(key, dynamicVar, this.limits[key]);
+      }, this.controls]}></div>
       </div>
     `.bind(this);
 
-    this.buildMenu();
-  }
-
-  buildMenu() {
-    for (const [key, dynamicVar] of Object.entries(this.dynamicVars)) {
-      const { min, max, step } = this.limits[key];
-      const menuItem = new TransformControlsMenuItem(key, dynamicVar, { min, max, step });
-      menuItem.appendTo(this.menu);
-    }
   }
 
   resetTransforms() {
-    for (const [key, dynamicVar] of Object.entries(this.dynamicVars)) {
-      dynamicVar.reset();
-    }
+    for (const control of Object.values(this.controls)) control.reset();
   }
 }
 
-new (class TransformDemo {
+class TransformDemo {
   constructor() {
-    // Create dynamic values for transform controls
     this.transformControls = new TransformControls();
 
     html`
@@ -139,7 +139,7 @@ new (class TransformDemo {
         <div class="transform-controls">
           ${this.transformControls}
           <div class="button-group">
-            <button class="button" zyx-click=${() => this.transformBox.zyxTrans.resetTransforms()}>Reset</button>
+            <button class="button" zyx-click=${() => this.transformControls.resetTransforms()}>Reset</button>
           </div>
         </div>
 
@@ -156,8 +156,7 @@ new (class TransformDemo {
     `
       .bind(this)
       .place(document.getElementById("app"));
-
-    window.transformDemo = this;
-
   }
-})()
+}
+
+window.transformDemo = new TransformDemo();
