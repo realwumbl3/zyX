@@ -75,3 +75,15 @@ export function trimTextNodes(dom) {
   }
   return dom;
 }
+
+
+// Convert markup strings to HTML elements.
+// Returns an array of all the created elements.
+export function getTopLevelElements(htmlString) {
+  // Create a temporary container
+  const container = document.createElement("div");
+  container.innerHTML = htmlString.trim();
+
+  // Convert the top-level child nodes to an array
+  return Array.from(container.children);
+}

@@ -1,3 +1,5 @@
+import { fetchCSS } from "./zyX-Fetch.js";
+
 export function getAllShadowRoots() {
     return [...document.querySelectorAll("zyx-shadow-root")].map((node) => node.shadow);
 }
@@ -18,3 +20,23 @@ export function queryAllRoots(selector) {
     return all;
 }
 
+
+/**
+ * @deprecated
+ * @param {Element} node
+ */
+export function LegacyShadowRoot({ node }) {
+    console.warn("zyX-Shadowroot: LegacyShadowRoot is deprecated");
+    console.log("zyX-Shadowroot: LegacyShadowRoot", { node });
+    node.shadow = node.attachShadow({ mode: "open" });
+    node.shadow.append(...node.childNodes);
+    node.loadCSS = async (p) => {
+        if (Array.isArray(p)) {
+            for (const css of p) await node.loadCSS(css);
+            return
+        }
+        const { link } = await fetchCSS(p);
+        node.shadow.append(link);
+    }
+    node.removeAttribute("zyx-shadowroot");
+}

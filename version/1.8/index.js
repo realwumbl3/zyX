@@ -12,20 +12,24 @@
 // Core imports
 // HTML
 import html, { ZyXHtml, makePlaceable } from "./src/zyX-HTML.js";
+import { getTopLevelElements } from "./src/html/HTML.js";
+
 import { dynamicVar } from "./src/html/dynamicVariable.js";
 import LiveDomList from "./src/html/LiveDomList.js";
 // CSS
 import css, { zyxcss } from "./src/zyX-CSS.js";
+// Shadowroot
+import { clearAllSelections, forEachShadowRoot, getAllShadowRoots, queryAllRoots } from "./src/zyX-Shadowroot.js";
 // Store
 import { Cookies } from "./src/zyX-Store.js";
 // Async
-import { sleep, AsynConstructor, AsyncWorker, asyncPool } from "./src/zyX-Async.js";
+import { sleep, AsynConstructor, AsyncWorker, asyncPool, LegacyAsynConstructor } from "./src/zyX-Async.js";
 // Delay
 import { delayChain, breakDelayChain, clearDelay, delay, debounce, instant } from "./src/zyX-Delay.js";
 // Events
-import ZyXEvents from "./src/zyX-Events.js";
+import ZyXEvents, { addEventListeners, removeEventListeners } from "./src/zyX-Events.js";
 // Math
-import { clamp, lerp, mapRange, scaleFromOffset, scaleToOffset, roundTo, roundToDecimals, randomInt, randomFloat, isEven, isOdd, isInteger, isFloat } from "./src/zyX-Math.js";
+import { clamp, ceilClamp, lerp, mapRange, scaleFromOffset, scaleToOffset, roundTo, roundToDecimals, randomInt, randomFloat, isEven, isOdd, isInteger, isFloat } from "./src/zyX-Math.js";
 // Types
 import { WeakRefSet, Deque, LiveList, LiveVariable, LiveDeque } from "./src/zyX-Types.js";
 // Audio
@@ -52,20 +56,33 @@ import {
     seedShuffle,
     seedRandom
 } from "./src/zyX-Toolbox.js";
-
+// ScrollTo
+import ScrollTo from "./src/zyX-ScrollTo.js";
+// HUE
+import calculateDominantColor from "./src/zyX-HUE.js";
 // Currently implemented exports
 export {
     // HTML
     html,
     makePlaceable,
+    // HTML utils
+    getTopLevelElements,
     // CSS
     css,
     zyxcss,
+    // Shadowroot
+    clearAllSelections,
+    forEachShadowRoot,
+    getAllShadowRoots,
+    queryAllRoots,
     // Store
     Cookies,
     ZyXHtml,
     ZyXAudio,
+    // Events
     ZyXEvents,
+    addEventListeners,
+    removeEventListeners,
     // Input
     ZyXInput,
     // Websocket
@@ -84,6 +101,7 @@ export {
     sleep,
     AsyncWorker,
     AsynConstructor,
+    LegacyAsynConstructor,
     // Delay
     delayChain,
     breakDelayChain,
@@ -94,6 +112,7 @@ export {
     asyncPool,
     // Math
     clamp,
+    ceilClamp,
     lerp,
     mapRange,
     scaleFromOffset,
@@ -135,7 +154,10 @@ export {
     sS,
     seedShuffle,
     seedRandom,
-
+    // ScrollTo
+    ScrollTo,
+    // HUE
+    calculateDominantColor,
 };
 
 export function isMobile() {
@@ -151,6 +173,9 @@ const zyXMethods = {
     delayChain,
     breakDelayChain,
     debounce,
+    addEventListeners,
+    removeEventListeners,
+
 };
 
 export default function zyX(that) {

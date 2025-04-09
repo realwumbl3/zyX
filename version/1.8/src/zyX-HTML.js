@@ -18,6 +18,8 @@ const QUOTED_VALUE_CONTEXT = "quoted-value";
 
 import { ZyXDynamicVar, processDynamicVarAttributes } from "./html/dynamicVariable.js";
 
+import { LegacyShadowRoot } from "./zyX-Shadowroot.js";
+
 /**
  * @typedef {Object} TagExpressionData
  * @property {*} value - The actual value to be inserted
@@ -80,6 +82,8 @@ export class ZyXHtml {
     #tagData;
     /** @private */
     #selfMutationObserver;
+    /** @private */
+    #logMap;
     /**
      * Creates a new ZyXHtml instance
      * @param {TemplateStringsArray} raw - The raw HTML template string
@@ -95,6 +99,12 @@ export class ZyXHtml {
         this.#dom = null;
         this.#map = null;
         this.#constructed = false;
+        this.#logMap = false;
+    }
+
+    logMap() {
+        this.#logMap = true;
+        return this;
     }
 
     /**
@@ -180,6 +190,8 @@ export class ZyXHtml {
         if (this.#constructed) return this;
 
         this.#map = this.mapEverything();
+
+        if (this.#logMap) console.log("ZyXHtml: map", this.#map, { this: this });
 
         this.replaceDOMPlaceholders();
 
@@ -276,7 +288,6 @@ export class ZyXHtml {
             }
             for (const attr of [...node.attributes]) {
                 const hasData = getPlaceholderID(attr.value);
-                if (!hasData) continue;
                 const data = this.#data[hasData]?.value;
                 if (attr.name in zyxAttributes)
                     initialMap.zyxBindAttributes.push({ node, attr: attr.name, data });
@@ -451,7 +462,27 @@ export class ZyXHtml {
         if (target?.[IDENTIFIER_KEY]) Object.assign(this, target[IDENTIFIER_KEY]);
         return this.const();
     }
+
+
+    // depracation area, still perform but warn in console
+    // TODO: remove in v1.0.0
+    /**
+     * @deprecated
+     * @param {Function} callback - The callback function to call
+     * @returns {ZyXHtml} The current instance
+     */
+    touch(callback) {
+        console.warn("ZyXHtml: touch is deprecated");
+        callback({
+            proxy: this,
+            markup: this.markup
+        })
+        return this;
+    }
+
 }
+
+
 
 /**
  * Creates a placeable element from an object
@@ -508,6 +539,10 @@ const zyxAttributes = {
     },
     "zyx-transform": ({ node, data }) => {
         node.zyxTrans = zyxTransform(node, data?.map);
+    },
+    // Deprecation Zone
+    "zyx-shadowroot": ({ node }) => {
+        LegacyShadowRoot({ node });
     }
 }
 

@@ -11,6 +11,18 @@ export function clamp(value, min, max) {
 }
 
 /**
+ * Clamps a value between min and max and rounds up
+ * @param {number} value - The value to clamp
+ * @param {number} min - Minimum value
+ * @param {number} max - Maximum value
+ * @returns {number} The clamped value
+ */
+export function ceilClamp(val, min, max) {
+    return Math.min(Math.max(Math.ceil(val), min), max);
+}
+
+
+/**
  * Linear interpolation between two values
  * @param {number} start - Starting value
  * @param {number} end - Ending value

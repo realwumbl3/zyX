@@ -175,6 +175,20 @@ export class AsynConstructor {
 	}
 }
 
+export class LegacyAsynConstructor {
+	constructor({ delay = 1, microtask = false } = {}) {
+		if (typeof this.asynConstructor === "function") {
+			if (microtask) {
+				queueMicrotask(_ => this.asynConstructor());
+			} else {
+				setTimeout(_ => this.asynConstructor(), delay);
+			}
+		} else {
+			console.warn("you are using a (new AsynConstructor()) class without an async asynConstructor method.");
+		}
+	}
+}
+
 /**
  * Creates a debounced version of a function
  * @param {Function} fn - Function to debounce

@@ -102,3 +102,31 @@ export default class ZyXEvents {
         return this.#events[event]?.length || 0;
     }
 }
+
+
+// Random aah helpers
+
+
+/**
+ * Adds event listeners to an element for multiple events
+ * @param {Element} that - The element to add event listeners to
+ * @param {string} events - The events to add, separated by spaces
+ * @param {Function} cb - The callback function to call when the event occurs
+ * @param {Object} [options] - Optional event listener options  
+ */
+export function addEventListeners(that, events, cb, options = {}) {
+    events.split(" ").forEach((event) => that.addEventListener(event, cb, options));
+}
+
+/**
+ * Removes event listeners from an element for multiple events
+ * @param {Element} that - The element to remove event listeners from
+ * @param {string} events - The events to remove, separated by spaces
+ * @param {Function} cb - The callback function to remove
+ * @param {Object} [options] - Optional event listener options
+ */
+export function removeEventListeners(that, events, cb, options = {}) {
+    events.split(" ").forEach((event) => that.removeEventListener(event, cb, options));
+}
+
+

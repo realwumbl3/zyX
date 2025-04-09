@@ -57,6 +57,8 @@ export default class LiveDomList {
     } = {}) {
         if (!(list instanceof LiveList)) throw new Error("list must be an instance of LiveList");
 
+        container.liveDomList = this;
+
         this.#container = container;
         this.infiniteScrolling = null;
 

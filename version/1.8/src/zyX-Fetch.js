@@ -72,6 +72,7 @@ export function fetchCSS(url) {
     };
     link.onerror = rej;
     link.href = url;
+    document.head.appendChild(link);
   });
 }
 
