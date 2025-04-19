@@ -9,17 +9,17 @@
 	</script>
 */
 
-import { ZyXDomArray, getDomArray } from "./_/zyX-Reactive.js";
-import { ZyXArray, ZyXObject } from "./_/zyX-Types.js";
-import { css, zyxcss } from "./_/zyX-CSS.js";
+import { ZyXDomArray, getDomArray } from "./src/zyX-Reactive.js";
+import { ZyXArray, ZyXObject } from "./src/zyX-Types.js";
+import { css, zyxcss } from "./src/zyX-CSS.js";
 
-import { ZyXHtml, html, makePlaceable, getTopLevelElements } from "./_/zyX-HTML.js";
+import { ZyXHtml, html, makePlaceable, getTopLevelElements } from "./src/zyX-HTML.js";
 
-import "./_/zyX-Init.js";
+import "./src/zyX-Init.js";
 
-import { offset, offsetLimit } from "./_/zyX-Math.js";
+import { offset, offsetLimit } from "./src/zyX-Math.js";
 
-import { sleep, AsyncWorker, AsynConstructor } from "./_/zyX-Async.js";
+import { sleep, AsyncWorker, AsynConstructor } from "./src/zyX-Async.js";
 
 import {
 	delayChain,
@@ -28,9 +28,9 @@ import {
 	delay,
 	debounce,
 	instant,
-} from "./_/zyX-Delay.js";
+} from "./src/zyX-Delay.js";
 
-import { WeakRefSet, ZyXSlots, ZyXDeque } from "./_/zyX-Types.js";
+import { WeakRefSet, ZyXSlots, ZyXDeque } from "./src/zyX-Types.js";
 
 import {
 	timeoutLimiter,
@@ -49,24 +49,24 @@ import {
 	minMax,
 	seedShuffle,
 	seedRandom,
-} from "./_/zyX-Toolbox.js";
+} from "./src/zyX-Toolbox.js";
 
-import zyXCookie from "./_/zyX-Cookie.js";
+import zyXCookie from "./src/zyX-Cookie.js";
 
-import ZyXEvents from "./_/zyX-Event.js";
-import ZyXAudio from "./_/zyX-Audio.js";
-import ZyXInput, { functions } from "./_/zyX-Input.js";
-import { Focusable, FocusController } from "./_/zyX-Focusables.js";
+import ZyXEvents from "./src/zyX-Event.js";
+import ZyXAudio from "./src/zyX-Audio.js";
+import ZyXInput, { functions } from "./src/zyX-Input.js";
+import { Focusable, FocusController } from "./src/zyX-Focusables.js";
 
-import calculateDominantColor from "./_/zyX-HUE.js";
-import zyXTransform from "./_/zyX-Transform.js";
+import calculateDominantColor from "./src/zyX-HUE.js";
+import zyXTransform from "./src/zyX-Transform.js";
 
 import {
 	getAllShadowRoots,
 	clearAllSelections,
 	forEachShadowRoot,
 	queryAllRoots,
-} from "./_/zyX-ShadowRoot.js";
+} from "./src/zyX-ShadowRoot.js";
 
 ///// wumbl3.xyz 2023 ///// //// /// // 7
 
@@ -109,8 +109,8 @@ import {
 	zyXFetchBlob,
 	resizeImageToCanvas,
 	urlSplitExt,
-} from "./_/zyX-Fetch.js";
-import ScrollTo from "./_/zyX-ScrollTo.js";
+} from "./src/zyX-Fetch.js";
+import ScrollTo from "./src/zyX-ScrollTo.js";
 
 /////// \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 export {

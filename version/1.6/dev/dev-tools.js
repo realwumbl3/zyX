@@ -1,4 +1,4 @@
-import { io } from "../_/Cdn/socket.io.esm.min.js";
+import { io } from "../src/Cdn/socket.io.esm.min.js";
 
 import { html, css } from "../";
 

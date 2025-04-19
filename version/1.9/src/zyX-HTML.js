@@ -55,7 +55,7 @@ import { LegacyShadowRoot } from "./zyX-Shadowroot.js";
  * @property {Element} [markup=null] - The markup element
  * @property {Array<TagExpressionData>} [data=[]] - The data to be inserted into the template
  * @property {ZyxMap} [map=null] - The map of placeholders
- * @property {boolean} [isTemplate=false] - Whether the markup is a template    
+ * @property {boolean} [isTemplate=false] - Whether the markup is a template
  * @property {Object} [mutable=null] - The mutable object
  * @property {string} [raw=null] - The raw HTML string
  * @property {Array<TagExpressionData>} [tagData=[]] - The tag data
@@ -174,9 +174,10 @@ export class ZyXHtml {
      * the HTML template string.
      */
     becomeDOM() {
-        const string = String.raw({ raw: this.#raw }, ...this.#data.map(({ value, needsPlaceholder, replacement }) =>
-            needsPlaceholder ? replacement : value
-        ));
+        const string = String.raw(
+            { raw: this.#raw },
+            ...this.#data.map(({ value, needsPlaceholder, replacement }) => (needsPlaceholder ? replacement : value))
+        );
 
         return trimTextNodes(innerHTML(string));
     }
@@ -207,6 +208,12 @@ export class ZyXHtml {
             this.markAttributeProcessed(node, "this", key);
         }
 
+        // Assign "push" references to elements
+        for (const { node, key } of this.#map.hasPush) {
+            this.pushAssigner(node, key);
+            this.markAttributeProcessed(node, "push", key);
+        }
+
         for (const { node, id } of this.#map.hasId) {
             this.thisAssigner(node, id);
         }
@@ -217,7 +224,18 @@ export class ZyXHtml {
                 handler({ zyxhtml: this, node, data });
                 this.markAttributeProcessed(node, attr);
             } catch (e) {
-                console.error("ZyXHTML: Error binding attribute", attr, "to", data, "on", node, "with handler", handler, "error", e);
+                console.error(
+                    "ZyXHTML: Error binding attribute",
+                    attr,
+                    "to",
+                    data,
+                    "on",
+                    node,
+                    "with handler",
+                    handler,
+                    "error",
+                    e
+                );
                 this.markAttributeProcessed(node, `errored-${attr}`, e);
             }
         }
@@ -263,7 +281,8 @@ export class ZyXHtml {
             hasId: [],
             zyxBindAttributes: [],
             zyxDynamicVars: [],
-            phs: []
+            phs: [],
+            hasPush: [],
         };
 
         for (const node of allElements) {
@@ -282,14 +301,17 @@ export class ZyXHtml {
             if (node.hasAttribute("this")) {
                 initialMap.hasThis.push({ node, key: node.getAttribute("this") });
             }
+            if (node.hasAttribute("push")) {
+                initialMap.hasPush.push({ node, key: node.getAttribute("push") });
+                continue;
+            }
             if (node.hasAttribute("id")) {
                 initialMap.hasId.push({ node, id: node.getAttribute("id") });
             }
             for (const attr of [...node.attributes]) {
                 const hasData = getPlaceholderID(attr.value);
                 const data = this.#data[hasData]?.value;
-                if (attr.name in zyxAttributes)
-                    initialMap.zyxBindAttributes.push({ node, attr: attr.name, data });
+                if (attr.name in zyxAttributes) initialMap.zyxBindAttributes.push({ node, attr: attr.name, data });
                 if (data && data instanceof ZyXDynamicVar)
                     initialMap.zyxDynamicVars.push({ node, attr: attr.name, data });
             }
@@ -297,7 +319,7 @@ export class ZyXHtml {
 
         return {
             all: allElements,
-            ...initialMap
+            ...initialMap,
         };
     }
 
@@ -330,7 +352,7 @@ export class ZyXHtml {
     setupSelfMutationObserver() {
         this.#selfMutationObserver = new MutationObserver((mutations) => {
             // Observer implementation - log only in development
-            if (process.env.NODE_ENV === 'development') {
+            if (process.env.NODE_ENV === "development") {
                 for (const mutation of mutations) {
                     // Process mutation if needed
                 }
@@ -375,20 +397,20 @@ export class ZyXHtml {
      * @param {Element} node - The DOM node to assign
      * @param {string} keyname - The key name(s) to assign the node to
      */
-    pushAssigner(node, groupname) {
-        console.log("pushAssigner", groupname);
-        if (!this[groupname]) this[groupname] = [];
-        this[groupname].push(node);
+    pushAssigner(node, keyname) {
+        console.log("pushAssigner", keyname, this[keyname]);
+        if (!this[keyname]) this[keyname] = [];
+        this[keyname].push(node);
         if (this.#mutable) {
-            if (!this.#mutable[groupname]) this.#mutable[groupname] = [];
-            this.#mutable[groupname].push(node);
+            if (!this.#mutable[keyname]) this.#mutable[keyname] = [];
+            this.#mutable[keyname].push(node);
         }
-        console.log("pushAssigner", { groupname, this: this, mutable: this.#mutable });
+        console.log("pushAssigner", { keyname, this: this, mutable: this.#mutable });
     }
 
     /**
      * Marks an attribute as processed and optionally stores its value
-     * @private 
+     * @private
      * @param {Element} node - The DOM node
      * @param {string} attr - The attribute name
      * @param {string} [value] - Optional value to store
@@ -462,9 +484,6 @@ export class ZyXHtml {
         return this.const();
     }
 
-
-    // depracation area, still perform but warn in console
-    // TODO: remove in v1.0.0
     /**
      * @deprecated
      * @param {Function} callback - The callback function to call
@@ -474,14 +493,13 @@ export class ZyXHtml {
         console.warn("ZyXHtml: touch is deprecated");
         callback({
             proxy: this,
-            markup: this.markup
-        })
+            markup: this.markup,
+        });
         return this;
     }
-
 }
 
-
+ZyXHtml.prototype.super = ZyXHtml.prototype.join;
 
 /**
  * Creates a placeable element from an object
@@ -542,12 +560,14 @@ const zyxAttributes = {
     // Deprecation Zone
     "zyx-shadowroot": ({ node }) => {
         LegacyShadowRoot({ node });
-    }
-}
+    },
+};
 
 /**
  * Creates a new ZyXHtml instance
  * @param {TemplateStringsArray} args - The template strings and data
  * @returns {ZyXHtml} A new ZyXHtml instance
  */
-export default function html(...args) { return new ZyXHtml(...args) };
+export default function html(...args) {
+    return new ZyXHtml(...args);
+}

@@ -1,0 +1,245 @@
+.transform-demo {
+  display: grid;
+  grid-template-columns: 25em 1fr;
+  gap: var(--space-xl);
+  padding: var(--space-xl);
+  position: relative;
+}
+
+.transform-controls {
+  background: var(--bg-card);
+  padding: var(--space-xl);
+  border-radius: var(--space-lg);
+  border: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  user-select: none;
+}
+
+.control-group h3 {
+  color: var(--text-primary);
+  font-size: 1.1rem;
+  margin: 0;
+  display: flex;
+  align-items: start;
+  gap: var(--space-xs);
+  width: 100%;
+  padding: var(--space-sm);
+}
+
+.value-separator {
+  color: var(--text-secondary);
+  margin: 0;
+  font-weight: normal;
+  opacity: 0.6;
+}
+
+.value-display {
+  color: var(--primary-light);
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+  white-space: pre;
+  user-select: none;
+  margin: 0.3em;
+}
+
+.slider-container {
+  display: flex;
+  align-items: center;
+  inset: 0;
+  position: absolute;
+  border-radius: var(--space-sm);
+  outline: 1px solid var(--primary);
+}
+
+.slider-container input[type="range"] {
+  opacity: 0;
+  inset: 0;
+  position: absolute;
+  border-radius: 3px;
+  outline: none;
+  margin: 0;
+}
+
+.slider-container input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  background: var(--primary);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: var(--transition-normal);
+}
+
+.slider-container input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+  background: var(--primary-dark);
+}
+
+.button-group {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: var(--space-md);
+  margin-top: var(--space-md);
+}
+
+.transform-display {
+  perspective: 100vmin;
+  height: max-content;
+}
+
+.transform-box {
+  background: hsla(120, 100%, 50%, 0.1);
+  border: 2px solid var(--primary);
+  border-radius: var(--space-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 90%;
+  aspect-ratio: 1/1;
+  transform-style: preserve-3d;
+  pointer-events: none;
+}
+
+.transform-content {
+  position: absolute;
+  padding: var(--space-lg);
+  text-align: center;
+  color: var(--text-primary);
+  transform: translateZ(50px);
+}
+
+.transform-content h2 {
+  margin: 0 0 var(--space-sm) 0;
+  font-size: 1.5rem;
+  color: var(--primary);
+}
+
+.transform-content p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.transform-box-outline {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 2px solid var(--primary);
+  border-radius: var(--space-md);
+  transform: translateZ(20px);
+}
+
+.main-controls {
+  min-height: 50px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.slider-settings {
+  display: flex;
+  flex-direction: row;
+  gap: var(--space-sm);
+}
+
+.setting-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.setting-group label {
+  font-size: 0.6rem;
+  color: var(--text-secondary);
+  line-height: 0.1;
+}
+
+.setting-group input {
+  width: 100%;
+  padding: var(--space-sm);
+  border-radius: var(--space-sm);
+  border: 1px solid var(--border-color);
+}
+
+.setting-group input[type="number"] {
+  width: 100%;
+  padding: 0.2em;
+  border-radius: var(--space-sm);
+  background: var(--bg-card);
+  color: var(--text-primary);
+}
+
+.slider-bar {
+  --slider-value: 0;
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.slider-bar::-webkit-slider-thumb {
+  pointer-events: auto;
+}
+
+.slider-bar::before {
+  content: "";
+  position: absolute;
+  inset: 0.3em;
+  background: var(--primary);
+  width: 0.1em;
+  height: auto;
+  left: var(--slider-value);
+  pointer-events: none;
+}
+
+/* Responsive design */
+@media screen and (pointer: coarse) {
+  .transform-demo {
+    grid-template-columns: 1fr;
+    padding: var(--space-md);
+    gap: var(--space-lg);
+  }
+
+  .transform-controls {
+    padding: var(--space-lg);
+  }
+
+  .transform-display {
+    min-height: 300px;
+  }
+
+  .transform-box {
+    width: 150px;
+    height: 150px;
+  }
+
+  .button-group {
+    flex-direction: column;
+  }
+
+  .button-group .button {
+    width: 100%;
+  }
+
+  .slider-container {
+    grid-template-columns: 1fr 8ch;
+  }
+
+  .value-display {
+    font-size: 0.8rem;
+    padding: 0.15em 0.3em;
+  }
+}
