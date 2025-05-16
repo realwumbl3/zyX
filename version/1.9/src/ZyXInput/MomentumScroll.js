@@ -28,11 +28,22 @@ export class MomentumScroll {
      * @param {boolean} [options.overrideDefaultScroll=false] - Whether to override default scroll behavior
      * @param {Function} [options.onPointerMove] - Callback for pointer move events
      * @param {Function} [options.onWheel] - Callback for scroll events
+     * @param {boolean} [options.swapY] - Swap Y scroll for X scroll, Y scroll events will become X scroll events
+     * @param {boolean} [options.swapX] - Swap X scroll for Y scroll, X scroll events will become Y scroll events
      */
     constructor(
         input_binder,
         container,
-        { scrollTarget, directions = "y", overrideDefaultScroll = false, onPointerMove, onWheel, onScroll } = {}
+        {
+            scrollTarget,
+            directions = "y",
+            overrideDefaultScroll = false,
+            onPointerMove,
+            onWheel,
+            onScroll,
+            swapY,
+            swapX,
+        } = {}
     ) {
         if (!container) {
             console.warn("[ZyXInput] Invalid container for MomentumScroll");
@@ -50,6 +61,9 @@ export class MomentumScroll {
         // Initialize container and scroll target
         this.container = container;
         this.scrollTarget = scrollTarget || container;
+        this.container._momentumScroll = this; // Mark container as having momentum scroll
+        this.swapY = swapY;
+        this.swapX = swapX;
 
         // Initialize scroll state
         this.velocityY = 0;
@@ -116,7 +130,10 @@ export class MomentumScroll {
         input_binder.on(this.container).pointerDownMoveUp({
             capture: true,
             captureMove: true,
-            onDown: () => {
+            onDown: ({ dwn_e }) => {
+                // Check if any child element has momentum scrolling enabled
+                const check = this._checkPathForMomentumScroll(dwn_e);
+                if (check) return;
                 this.pointerDown = true;
                 const selectionRange = window.getSelection();
                 return { selectionRange };
@@ -167,6 +184,23 @@ export class MomentumScroll {
                 this.pointerDown = false;
             },
         });
+    }
+
+    /**
+     * Check if any child element has momentum scrolling enabled
+     * @param {Event} e - The event
+     * @returns {boolean} True if any child element has momentum scrolling enabled
+     */
+    _checkPathForMomentumScroll(e) {
+        const eventPath = e.composedPath();
+        for (let i = 0; i < eventPath.length; i++) {
+            const element = eventPath[i];
+            if (element === this.container) break; // Stop at current container
+            if (element._momentumScroll) {
+                return true; // Prevent event if child has momentum scroll
+            }
+        }
+        return false;
     }
 
     /**
@@ -300,25 +334,39 @@ export class MomentumScroll {
      * @param {WheelEvent} e - The wheel event
      */
     wheel(e) {
+        const check = this._checkPathForMomentumScroll(e);
+        if (check) return;
+
         e.preventDefault();
         e.stopPropagation();
 
         this.checkCounterScroll(e);
-        this.direction = e.deltaY > 0 ? "down" : "up";
+
+        let deltaX = e.deltaX;
+        let deltaY = e.deltaY;
+
+        if (this.swapY) {
+            deltaX = e.deltaY;
+        }
+        if (this.swapX) {
+            deltaY = e.deltaX;
+        }
+
+        this.direction = deltaY > 0 ? "down" : "up";
 
         let addVelX = 0;
         let addVelY = 0;
 
         // Handle Y delta if enabled
-        if (this.directions.y && e.deltaY !== 0) {
-            if (Math.abs(e.deltaY) < this.smallDeltaStep.floor) {
-                this.smallDeltaStep.culm += e.deltaY;
+        if (this.directions.y && deltaY !== 0) {
+            if (Math.abs(deltaY) < this.smallDeltaStep.floor) {
+                this.smallDeltaStep.culm += deltaY;
                 if (Math.abs(this.smallDeltaStep.culm) > this.smallDeltaStep.culmLimit) {
-                    addVelY = this.smallDeltaStep.tick * (e.deltaY > 0 ? 1 : -1);
+                    addVelY = this.smallDeltaStep.tick * (deltaY > 0 ? 1 : -1);
                     this.smallDeltaStep.culm = 0;
                 }
             } else {
-                addVelY = e.deltaY * 0.1;
+                addVelY = deltaY * 0.1;
                 this.smallDeltaStep.culm = 0; // Reset accumulator on large step
             }
         } else {
@@ -326,15 +374,15 @@ export class MomentumScroll {
         }
 
         // Handle X delta if enabled
-        if (this.directions.x && e.deltaX !== 0) {
-            if (Math.abs(e.deltaX) < this.smallDeltaStepX.floor) {
-                this.smallDeltaStepX.culm += e.deltaX;
+        if (this.directions.x && deltaX !== 0) {
+            if (Math.abs(deltaX) < this.smallDeltaStepX.floor) {
+                this.smallDeltaStepX.culm += deltaX;
                 if (Math.abs(this.smallDeltaStepX.culm) > this.smallDeltaStepX.culmLimit) {
-                    addVelX = this.smallDeltaStepX.tick * (e.deltaX > 0 ? 1 : -1);
+                    addVelX = this.smallDeltaStepX.tick * (deltaX > 0 ? 1 : -1);
                     this.smallDeltaStepX.culm = 0;
                 }
             } else {
-                addVelX = e.deltaX * 0.1;
+                addVelX = deltaX * 0.1;
                 this.smallDeltaStepX.culm = 0; // Reset accumulator on large step
             }
         } else {

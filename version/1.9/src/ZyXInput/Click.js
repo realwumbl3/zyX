@@ -8,28 +8,20 @@ import { angleToDirection, calculateAngle, calculateFourAngleSnap } from "../zyX
  * Handle right-click events with support for both mouse and touch devices
  * @this {ZyXInput}
  * @param {Element} element - The target element
- * @param {Object} options - Right-click handler options    
+ * @param {Object} options - Right-click handler options
  * @param {Function} [options.onDown] - Callback for pointer down event
  * @param {Function} [options.onUp] - Callback for pointer up event
  * @param {boolean} [options.once=false] - Whether to trigger only once
  * @param {boolean} [options.capture=false] - Whether to use event capture
  * @param {string} [options.label="rightclick"] - Event label for debugging
  */
-export function rightClick(
-    element,
-    {
-        onDown,
-        onUp,
-        once = false,
-        capture = false,
-        label = "rightclick"
-    } = {}) {
+export function rightClick(element, { onDown, onUp, once = false, capture = false, label = "rightclick" } = {}) {
     if (!element) {
-        console.warn('[ZyXInput] Invalid element for RightClick handler');
+        console.warn("[ZyXInput] Invalid element for RightClick handler");
         return;
     }
 
-    if (!onUp) throw new Error('[ZyXInput] onUp required for RightClick');
+    if (!onUp) throw new Error("[ZyXInput] onUp required for RightClick");
 
     this.on(element).pointerDownMoveUp({
         label,
@@ -54,17 +46,20 @@ export function rightClick(
             if (up_e.pointerType === "mouse" && up_e.button === 2) {
                 if (moveFuse.true) return;
                 if (eventFuse.false) {
-                    console.warn('[ZyXInput] EventFuse not found in activeEvents for RightClick', { element, eventFuse, args });
+                    console.warn("[ZyXInput] EventFuse not found in activeEvents for RightClick", {
+                        element,
+                        eventFuse,
+                        args,
+                    });
                     return;
                 }
                 this.kingOfTheStack(eventFuse, () => onUp(args));
             }
         },
         once,
-        capture
+        capture,
     });
 }
-
 
 /**
  * Handle single click events with advanced options
@@ -90,12 +85,11 @@ export function clickOne(element, args) {
         stopPropagation = false,
         stopImmediatePropagation = false,
         preventDefault = true,
-        label = "click"
+        label = "click",
     } = args;
     const func = (dwn_e) => {
-
-        if (!(typeof onClick === 'function')) {
-            throw new Error('[ZyXInput] onClick required for ClickOne');
+        if (!(typeof onClick === "function")) {
+            throw new Error("[ZyXInput] onClick required for ClickOne");
         }
 
         // Handle event propagation
@@ -123,25 +117,29 @@ export function clickOne(element, args) {
         const { check } = this.moveTripper({ startX: clientX, startY: clientY });
 
         // Handle pointer up
-        element.addEventListener("pointerup", (up_e) => {
-            if (!check(up_e) && eventFuse.true && up_e.target === target) {
-                this.kingOfTheStack(eventFuse, () => onClick({ dwn_e, up_e, down_return, eventFuse }, b4));
-            }
-        }, { once: true });
+        element.addEventListener(
+            "pointerup",
+            (up_e) => {
+                if (!check(up_e) && eventFuse.true && up_e.target === target) {
+                    this.kingOfTheStack(eventFuse, () => onClick({ dwn_e, up_e, down_return, eventFuse }, b4));
+                }
+            },
+            { once: true }
+        );
     };
 
     // Set up event listeners
     element.addEventListener("pointerdown", func, { once, capture });
     if (preventDefault) {
-        element.addEventListener("click", e => e.preventDefault(), { once, capture });
+        element.addEventListener("click", (e) => e.preventDefault(), { once, capture });
     }
 
     // Return unbind function
     return {
         unbind: () => {
             element.removeEventListener("pointerdown", func, { capture });
-            element.removeEventListener("click", e => e.preventDefault(), { capture });
-        }
+            element.removeEventListener("click", (e) => e.preventDefault(), { capture });
+        },
     };
 }
 
@@ -152,8 +150,8 @@ export function clickOne(element, args) {
  * @param {Function} callback - The click callback function
  */
 export function click(element, callback) {
-    if (!element || typeof callback !== 'function') {
-        console.warn('[ZyXInput] Invalid parameters for Click handler');
+    if (!element || typeof callback !== "function") {
+        console.warn("[ZyXInput] Invalid parameters for Click handler");
         return;
     }
 
@@ -163,9 +161,13 @@ export function click(element, callback) {
         const b4 = this.beforePointerEvent("custom-click", e);
         if (!b4) return nullifyEvent(e);
 
-        element.addEventListener("click", () => {
-            callback();
-        }, { once: true });
+        element.addEventListener(
+            "click",
+            () => {
+                callback();
+            },
+            { once: true }
+        );
     });
 }
 
@@ -185,22 +187,22 @@ export function click(element, callback) {
  * @param {Fuse} [state.activeFuse=new Fuse()] - Active state fuse
  * @param {Fuse} [state.db_fuse=new Fuse()] - Double click state fuse
  */
-export function clickOrTwo(element, {
-    single,
-    double,
-    doubleWait = false,
-    cooldown,
-    cooldownDuration = 350,
-    button = 0,
-    label = "click-or-two",
-    preventDefault = true
-} = {}, {
-    activeFuse = new Fuse(),
-    dblClickFuse = new Fuse(),
-    singleClickTimeout = null
-} = {}) {
+export function clickOrTwo(
+    element,
+    {
+        single,
+        double,
+        doubleWait = false,
+        cooldown,
+        cooldownDuration = this.clickOrTwoWindowMs,
+        button = 0,
+        label = "click-or-two",
+        preventDefault = true,
+    } = {},
+    { activeFuse = new Fuse(), dblClickFuse = new Fuse(), singleClickTimeout = null } = {}
+) {
     if (!element) {
-        console.warn('[ZyXInput] Invalid element for ClickOrTwo handler');
+        console.warn("[ZyXInput] Invalid element for ClickOrTwo handler");
         return;
     }
 
@@ -224,7 +226,8 @@ export function clickOrTwo(element, {
 
             if (activeFuse.true) {
                 // Second click within window - handle double click
-                if (eventFuse.true) {  // Only handle if our event is still king
+                if (eventFuse.true) {
+                    // Only handle if our event is still king
                     // Clear any pending single click timeout
                     if (singleClickTimeout) {
                         clearTimeout(singleClickTimeout);
@@ -232,7 +235,7 @@ export function clickOrTwo(element, {
                     }
 
                     double(args);
-                    cooldown = setTimeout(() => cooldown = null, cooldownDuration);
+                    cooldown = setTimeout(() => (cooldown = null), cooldownDuration);
                 }
                 activeFuse.reset();
                 dblClickFuse.reset();
@@ -250,10 +253,10 @@ export function clickOrTwo(element, {
                 }
                 activeFuse.reset();
                 singleClickTimeout = null;
-            }, doubleWait || this.clickOrTwoWindowMs);
+            }, doubleWait || cooldownDuration);
         },
         once: false,
-        capture: false
+        capture: false,
     });
 }
 
@@ -279,25 +282,28 @@ export function clickOrTwo(element, {
  * @param {string} [options.label="pointerDownMoveUp"] - Event label for debugging
  * @returns {Object} Unbind function to remove event listeners
  */
-export function pointerDownMoveUp(element, {
-    onDown,
-    onStartMove,
-    onMove,
-    onUp,
-    once = false,
-    deadzone = null,
-    capture = false,
-    captureMove = false,
-    verbose = false,
-    stopPropagation = false,
-    stopImmediatePropagation = false,
-    stopMovePropagation = false,
-    stopImmediateMovePropagation = false,
-    movePrecision = 1,
-    label = "pointerDownMoveUp"
-} = {}) {
+export function pointerDownMoveUp(
+    element,
+    {
+        onDown,
+        onStartMove,
+        onMove,
+        onUp,
+        once = false,
+        deadzone = null,
+        capture = false,
+        captureMove = false,
+        verbose = false,
+        stopPropagation = false,
+        stopImmediatePropagation = false,
+        stopMovePropagation = false,
+        stopImmediateMovePropagation = false,
+        movePrecision = 1,
+        label = "pointerDownMoveUp",
+    } = {}
+) {
     if (!element) {
-        console.warn('[ZyXInput] Invalid element for PointerDownMoveUp handler');
+        console.warn("[ZyXInput] Invalid element for PointerDownMoveUp handler");
         return;
     }
 
@@ -313,10 +319,10 @@ export function pointerDownMoveUp(element, {
             eventFuse = new Fuse(true, { label }),
             pointerDown = new Fuse(true, { label }),
             startX,
-            startY
+            startY,
         } = {
             startX: dwn_e.clientX,
-            startY: dwn_e.clientY
+            startY: dwn_e.clientY,
         };
 
         this.activeEvents.add(eventFuse);
@@ -331,13 +337,7 @@ export function pointerDownMoveUp(element, {
         const composedPath = dwn_e.composedPath();
 
         // Initialize movement tracking
-        let {
-            startAngle = null,
-            moveCalledOnce = false,
-            latest_move_e = null,
-            startMove,
-            pixels_moved = 0
-        } = {};
+        let { startAngle = null, moveCalledOnce = false, latest_move_e = null, startMove, pixels_moved = 0 } = {};
 
         // Call onDown callback
         const down_return = onDown?.({
@@ -346,9 +346,9 @@ export function pointerDownMoveUp(element, {
             moveFuse,
             pointerDown,
             eventFuse,
-            kingOfTheStack: _ => this.kingOfTheStack(eventFuse),
+            kingOfTheStack: (_) => this.kingOfTheStack(eventFuse),
             pathContains: (selector) => pointerEventPathContains(dwn_e, selector),
-            pathContainsMatching: (selector) => pointerEventPathContainsMatching(dwn_e, selector)
+            pathContainsMatching: (selector) => pointerEventPathContainsMatching(dwn_e, selector),
         });
 
         if (!down_return) {
@@ -357,10 +357,7 @@ export function pointerDownMoveUp(element, {
 
         // Movement calculation helpers
         const angleFromStart = (e) => calculateAngle(startX, startY, e.clientX, e.clientY);
-        const distanceFromStart = (e) => Math.sqrt(
-            Math.pow(e.clientX - startX, 2) +
-            Math.pow(e.clientY - startY, 2)
-        );
+        const distanceFromStart = (e) => Math.sqrt(Math.pow(e.clientX - startX, 2) + Math.pow(e.clientY - startY, 2));
         const fourAngleSnap = (e) => calculateFourAngleSnap(angleFromStart(e));
 
         // Handle pointer move
@@ -400,12 +397,12 @@ export function pointerDownMoveUp(element, {
                     up: canceled_or_up,
                     moveFuse,
                     startMove,
-                    kingOfTheStack: _ => this.kingOfTheStack(eventFuse),
+                    kingOfTheStack: (_) => this.kingOfTheStack(eventFuse),
                     clearAllSelections: () => this.clearAllSelections(),
                     fourAngleSnap: () => fourAngleSnap(mv_e),
                     angleFromStart: () => angleFromStart(mv_e),
                     distanceFromStart: () => distanceFromStart(mv_e),
-                    direction: () => angleToDirection(angleFromStart(mv_e))
+                    direction: () => angleToDirection(angleFromStart(mv_e)),
                 };
 
                 // Handle move event propagation
@@ -420,17 +417,16 @@ export function pointerDownMoveUp(element, {
                 if (onStartMove) {
                     startMove = onStartMove(call, down_return);
                     if (!startMove) return false;
-                    if (typeof startMove === 'object' && startMove !== null) {
-                        if ('onMove' in startMove) onMove = startMove.onMove;
-                        if ('onUp' in startMove) onUp = startMove.onUp;
+                    if (typeof startMove === "object" && startMove !== null) {
+                        if ("onMove" in startMove) onMove = startMove.onMove;
+                        if ("onUp" in startMove) onUp = startMove.onUp;
                     }
                 }
 
                 this.kingOfTheStack(eventFuse);
                 moveCalledOnce = true;
-
             } catch (error) {
-                console.error('[ZyXInput] Error in move handler:', error);
+                console.error("[ZyXInput] Error in move handler:", error);
             }
         };
 
@@ -453,7 +449,7 @@ export function pointerDownMoveUp(element, {
                 fourAngleSnap: () => fourAngleSnap(up_e),
                 angleFromStart: () => angleFromStart(up_e),
                 distanceFromStart: () => distanceFromStart(up_e),
-                direction: () => angleToDirection(angleFromStart(up_e))
+                direction: () => angleToDirection(angleFromStart(up_e)),
             };
             onUp?.(call, down_return);
         };
@@ -476,6 +472,6 @@ export function pointerDownMoveUp(element, {
 
     // Return unbind function
     return {
-        removeEventListener: () => element.removeEventListener("pointerdown", down_func, { capture })
+        removeEventListener: () => element.removeEventListener("pointerdown", down_func, { capture }),
     };
 }

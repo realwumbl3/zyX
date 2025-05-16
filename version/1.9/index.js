@@ -85,6 +85,8 @@ import {
     sS,
     seedShuffle,
     seedRandom,
+    shorthandNumber,
+    hslToHex,
 } from "./src/zyX-Toolbox.js";
 // ScrollTo
 import ScrollTo from "./src/zyX-ScrollTo.js";
@@ -180,9 +182,11 @@ export {
     hslCssKeys,
     hexToRGB,
     hexToHSL,
+    hslToHex,
     sS,
     seedShuffle,
     seedRandom,
+    shorthandNumber,
     // ScrollTo
     ScrollTo,
     // HUE

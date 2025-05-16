@@ -45,7 +45,7 @@ export default class ZyXInput {
         this.listenToController = false;
 
         // Input timing configurations
-        this.clickOrTwoWindowMs = 350;
+        this.clickOrTwoWindowMs = 250;
         this.moveTripperDist = 5;
         this.mobilePressHoldDelay = 550;
 
