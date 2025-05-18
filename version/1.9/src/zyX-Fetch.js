@@ -14,13 +14,14 @@
  * @param {Function} [options.onProgress] - Callback for upload progress
  * @returns {Promise<Response>} The response from the server
  */
-export function postData(url, data) {
-  return fetch(url, {
-    headers: new Headers({ "Content-Type": "application/json" }),
-    method: "POST",
-    credentials: "include",
-    body: JSON.stringify(data),
-  });
+export function postData(url, data, options = {}) {
+    return fetch(url, {
+        headers: new Headers({ "Content-Type": "application/json" }),
+        method: "POST",
+        credentials: "include",
+        body: JSON.stringify(data),
+        ...options,
+    });
 }
 
 /**
@@ -31,12 +32,13 @@ export function postData(url, data) {
  * @param {Object} [options.headers] - Custom headers to include
  * @returns {Promise<Response>} The response from the server
  */
-export function getData(url) {
-  return fetch(url, {
-    headers: new Headers({ "Content-Type": "application/json" }),
-    method: "GET",
-    credentials: "include",
-  });
+export function getData(url, options = {}) {
+    return fetch(url, {
+        headers: new Headers({ "Content-Type": "application/json" }),
+        method: "GET",
+        credentials: "include",
+        ...options,
+    });
 }
 
 /**
@@ -49,10 +51,14 @@ export function getData(url) {
  * @param {Function} [options.onProgress] - Callback for upload progress
  * @returns {Promise<Response>} The response from the server
  */
-export function postForm(url, data) {
-  const formData = new FormData();
-  Object.entries(data).forEach(([key, value]) => formData.append(key, value));
-  return fetch(url, { method: "POST", body: formData });
+export function postForm(url, data, options = {}) {
+    const formData = new FormData();
+    Object.entries(data).forEach(([key, value]) => formData.append(key, value));
+    return fetch(url, {
+        method: "POST",
+        body: formData,
+        ...options,
+    });
 }
 
 /**
@@ -62,18 +68,18 @@ export function postForm(url, data) {
  * @returns {Promise<{link: HTMLLinkElement, remove: Function}>} Object containing the link element and a remove function
  */
 export function fetchCSS(url) {
-  return new Promise((res, rej) => {
-    const link = document.createElement("link");
-    link.rel = "stylesheet";
-    link.type = "text/css";
-    link.onload = () => {
-      link.remove();
-      res({ link, remove: () => link.remove() });
-    };
-    link.onerror = rej;
-    link.href = url;
-    document.head.appendChild(link);
-  });
+    return new Promise((res, rej) => {
+        const link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.type = "text/css";
+        link.onload = () => {
+            link.remove();
+            res({ link, remove: () => link.remove() });
+        };
+        link.onerror = rej;
+        link.href = url;
+        document.head.appendChild(link);
+    });
 }
 
 /**
@@ -84,14 +90,14 @@ export function fetchCSS(url) {
  * @throws {Error} If the blob fetch fails
  */
 export async function grabBlob(url) {
-  const response = await fetch(url);
-  if (response.ok) {
-    const blob = await response.blob();
-    const objectURL = URL.createObjectURL(blob);
-    return { blob, objectURL };
-  } else {
-    throw new Error("Blob fetch failed");
-  }
+    const response = await fetch(url);
+    if (response.ok) {
+        const blob = await response.blob();
+        const objectURL = URL.createObjectURL(blob);
+        return { blob, objectURL };
+    } else {
+        throw new Error("Blob fetch failed");
+    }
 }
 
 /**
@@ -102,12 +108,12 @@ export async function grabBlob(url) {
  * @throws {Error} If the image fails to load
  */
 async function loadImg(url) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => resolve(img);
-    img.onerror = reject;
-    img.src = url;
-  });
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = url;
+    });
 }
 
 /**
@@ -118,15 +124,15 @@ async function loadImg(url) {
  * @returns {Promise<HTMLCanvasElement>} Canvas element containing the resized image
  */
 export async function shrinkImage(url, maxSide) {
-  const image = await loadImg(url);
-  maxSide = maxSide || 512;
-  const canvas = document.createElement("canvas");
-  const ctx = canvas.getContext("2d");
-  const [width, height] = resizeImage(image.width, image.height, maxSide);
-  canvas.width = width;
-  canvas.height = height;
-  ctx.drawImage(image, 0, 0, width, height);
-  return canvas;
+    const image = await loadImg(url);
+    maxSide = maxSide || 512;
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    const [width, height] = resizeImage(image.width, image.height, maxSide);
+    canvas.width = width;
+    canvas.height = height;
+    ctx.drawImage(image, 0, 0, width, height);
+    return canvas;
 }
 
 /**
@@ -138,11 +144,11 @@ export async function shrinkImage(url, maxSide) {
  * @returns {[number, number]} Array containing new width and height
  */
 function resizeImage(width, height, maxSize) {
-  if (width > maxSize || height > maxSize) {
-    const ratio = maxSize / Math.max(width, height);
-    return [width * ratio, height * ratio];
-  }
-  return [width, height];
+    if (width > maxSize || height > maxSize) {
+        const ratio = maxSize / Math.max(width, height);
+        return [width * ratio, height * ratio];
+    }
+    return [width, height];
 }
 
 /**
@@ -152,8 +158,8 @@ function resizeImage(width, height, maxSize) {
  * @returns {{filename: string, ext: string}} Object containing filename and extension
  */
 export function splitFilename(url) {
-  const filename = url.replace(/^.*[\\\/]/, "").split("?")[0];
-  return { filename, ext: filename.split(".").pop() };
+    const filename = url.replace(/^.*[\\\/]/, "").split("?")[0];
+    return { filename, ext: filename.split(".").pop() };
 }
 
 /**
@@ -167,17 +173,17 @@ export function splitFilename(url) {
  * @returns {Promise<Object>} The parsed JSON response
  */
 export async function fetchJSON(url, options = {}) {
-  const response = await fetch(url, {
-    headers: new Headers({ "Content-Type": "application/json" }),
-    credentials: "include",
-    ...options,
-  });
+    const response = await fetch(url, {
+        headers: new Headers({ "Content-Type": "application/json" }),
+        credentials: "include",
+        ...options,
+    });
 
-  if (!response.ok) {
-    throw new Error(`Request failed with status ${response.status}`);
-  }
+    if (!response.ok) {
+        throw new Error(`Request failed with status ${response.status}`);
+    }
 
-  return response.json();
+    return response.json();
 }
 
 /**
@@ -188,12 +194,12 @@ export async function fetchJSON(url, options = {}) {
  * @returns {Promise<Response>} The response from the server
  */
 export function putData(url, data) {
-  return fetch(url, {
-    headers: new Headers({ "Content-Type": "application/json" }),
-    method: "PUT",
-    credentials: "include",
-    body: JSON.stringify(data),
-  });
+    return fetch(url, {
+        headers: new Headers({ "Content-Type": "application/json" }),
+        method: "PUT",
+        credentials: "include",
+        body: JSON.stringify(data),
+    });
 }
 
 /**
@@ -203,11 +209,11 @@ export function putData(url, data) {
  * @returns {Promise<Response>} The response from the server
  */
 export function deleteData(url) {
-  return fetch(url, {
-    headers: new Headers({ "Content-Type": "application/json" }),
-    method: "DELETE",
-    credentials: "include",
-  });
+    return fetch(url, {
+        headers: new Headers({ "Content-Type": "application/json" }),
+        method: "DELETE",
+        credentials: "include",
+    });
 }
 
 /**
@@ -220,13 +226,13 @@ export function deleteData(url) {
  * @returns {Promise<HTMLScriptElement>} The created script element
  */
 export async function injectScript(url) {
-  return new Promise((resolve, reject) => {
-    const script = document.createElement("script");
-    script.src = url;
-    script.onload = () => resolve(script);
-    script.onerror = reject;
-    document.head.appendChild(script);
-  });
+    return new Promise((resolve, reject) => {
+        const script = document.createElement("script");
+        script.src = url;
+        script.onload = () => resolve(script);
+        script.onerror = reject;
+        document.head.appendChild(script);
+    });
 }
 
 /**
@@ -237,11 +243,11 @@ export async function injectScript(url) {
  * @returns {Promise<{blob: Blob, objectURL: string}>} Object containing the blob and its object URL
  */
 export async function dataToBlob(data, type = "application/octet-stream") {
-  const blob = new Blob([data], { type });
-  return {
-    blob,
-    objectURL: URL.createObjectURL(blob),
-  };
+    const blob = new Blob([data], { type });
+    return {
+        blob,
+        objectURL: URL.createObjectURL(blob),
+    };
 }
 
 /**
@@ -254,18 +260,18 @@ export async function dataToBlob(data, type = "application/octet-stream") {
  * @throws {Error} If the request times out
  */
 export async function fetchWithTimeout(url, options = {}, timeout = 5000) {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeout);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
 
-  try {
-    const response = await fetch(url, {
-      ...options,
-      signal: controller.signal
-    });
-    return response;
-  } finally {
-    clearTimeout(timeoutId);
-  }
+    try {
+        const response = await fetch(url, {
+            ...options,
+            signal: controller.signal,
+        });
+        return response;
+    } finally {
+        clearTimeout(timeoutId);
+    }
 }
 
 /**
@@ -279,20 +285,20 @@ export async function fetchWithTimeout(url, options = {}, timeout = 5000) {
  * @throws {Error} If all retry attempts fail
  */
 export async function tryFetch(url, options = {}, retries = 3, delay = 1000) {
-  let lastError;
+    let lastError;
 
-  for (let attempt = 0; attempt < retries; attempt++) {
-    try {
-      return await fetch(url, options);
-    } catch (error) {
-      lastError = error;
-      if (attempt < retries - 1) {
-        await new Promise(resolve => setTimeout(resolve, delay));
-      }
+    for (let attempt = 0; attempt < retries; attempt++) {
+        try {
+            return await fetch(url, options);
+        } catch (error) {
+            lastError = error;
+            if (attempt < retries - 1) {
+                await new Promise((resolve) => setTimeout(resolve, delay));
+            }
+        }
     }
-  }
 
-  throw lastError;
+    throw lastError;
 }
 
 /**
@@ -305,29 +311,29 @@ export async function tryFetch(url, options = {}, retries = 3, delay = 1000) {
  * @returns {Promise<void>}
  */
 export function downloadFile(url, filename) {
-  return new Promise((resolve, reject) => {
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename || '';
-    link.style.display = 'none';
+    return new Promise((resolve, reject) => {
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = filename || "";
+        link.style.display = "none";
 
-    link.onclick = () => {
-      setTimeout(() => {
-        URL.revokeObjectURL(link.href);
-        link.remove();
-        resolve();
-      }, 150);
-    };
+        link.onclick = () => {
+            setTimeout(() => {
+                URL.revokeObjectURL(link.href);
+                link.remove();
+                resolve();
+            }, 150);
+        };
 
-    link.onerror = () => {
-      URL.revokeObjectURL(link.href);
-      link.remove();
-      reject(new Error('Download failed'));
-    };
+        link.onerror = () => {
+            URL.revokeObjectURL(link.href);
+            link.remove();
+            reject(new Error("Download failed"));
+        };
 
-    document.body.appendChild(link);
-    link.click();
-  });
+        document.body.appendChild(link);
+        link.click();
+    });
 }
 
 /**
@@ -337,12 +343,12 @@ export function downloadFile(url, filename) {
  * @returns {Promise<string>} The base64 string
  */
 export async function blobToBase64(blob) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
-  });
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+    });
 }
 
 /**
@@ -353,15 +359,19 @@ export async function blobToBase64(blob) {
  * @param {number} [quality=0.8] - Quality of the output (0-1)
  * @returns {Promise<Blob>} The created blob
  */
-export function canvasToBlob(canvas, type = 'image/png', quality = 0.8) {
-  return new Promise((resolve) => {
-    canvas.toBlob((blob) => {
-      resolve({
-        blob,
-        objectURL: URL.createObjectURL(blob)
-      });
-    }, type, quality);
-  });
+export function canvasToBlob(canvas, type = "image/png", quality = 0.8) {
+    return new Promise((resolve) => {
+        canvas.toBlob(
+            (blob) => {
+                resolve({
+                    blob,
+                    objectURL: URL.createObjectURL(blob),
+                });
+            },
+            type,
+            quality
+        );
+    });
 }
 
 /**
@@ -371,12 +381,12 @@ export function canvasToBlob(canvas, type = 'image/png', quality = 0.8) {
  * @param {Function} onProgress - Progress callback function
  */
 export function handleUploadProgress(xhr, onProgress) {
-  xhr.upload.onprogress = (e) => {
-    if (e.lengthComputable && onProgress) {
-      const percent = (e.loaded / e.total) * 100;
-      onProgress(percent, e);
-    }
-  };
+    xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable && onProgress) {
+            const percent = (e.loaded / e.total) * 100;
+            onProgress(percent, e);
+        }
+    };
 }
 
 /**
@@ -386,12 +396,12 @@ export function handleUploadProgress(xhr, onProgress) {
  * @returns {Promise<{img: HTMLImageElement, width: number, height: number}>} Object containing the image and its dimensions
  */
 export async function preloadImage(url) {
-  const img = await loadImg(url);
-  return {
-    img,
-    width: img.width,
-    height: img.height
-  };
+    const img = await loadImg(url);
+    return {
+        img,
+        width: img.width,
+        height: img.height,
+    };
 }
 
 /**
@@ -402,15 +412,15 @@ export async function preloadImage(url) {
  * @returns {{promise: Promise<Response>, cancel: Function}} Object containing the fetch promise and cancel function
  */
 export function cancelableFetch(url, options = {}) {
-  const controller = new AbortController();
-  const signal = controller.signal;
+    const controller = new AbortController();
+    const signal = controller.signal;
 
-  const promise = fetch(url, { ...options, signal });
+    const promise = fetch(url, { ...options, signal });
 
-  return {
-    promise,
-    cancel: () => controller.abort()
-  };
+    return {
+        promise,
+        cancel: () => controller.abort(),
+    };
 }
 
 /**
@@ -420,16 +430,16 @@ export function cancelableFetch(url, options = {}) {
  * @returns {Promise<Array<Response>>} Array of responses
  */
 export async function fetchMultiple(requests) {
-  return Promise.all(
-    requests.map(request => {
-      if (typeof request === 'string') {
-        return fetch(request);
-      } else {
-        const { url, ...options } = request;
-        return fetch(url, options);
-      }
-    })
-  );
+    return Promise.all(
+        requests.map((request) => {
+            if (typeof request === "string") {
+                return fetch(request);
+            } else {
+                const { url, ...options } = request;
+                return fetch(url, options);
+            }
+        })
+    );
 }
 
 /**
@@ -440,29 +450,29 @@ export async function fetchMultiple(requests) {
  * @returns {{socket: WebSocket, onMessage: Function, send: Function, close: Function}} WebSocket wrapper object
  */
 export function createWebSocketConnection(url, protocols) {
-  const socket = new WebSocket(url, protocols);
+    const socket = new WebSocket(url, protocols);
 
-  return {
-    socket,
-    onMessage: (callback) => {
-      socket.addEventListener('message', (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          callback(data, event);
-        } catch (e) {
-          callback(event.data, event);
-        }
-      });
-    },
-    send: (data) => {
-      if (typeof data === 'object') {
-        socket.send(JSON.stringify(data));
-      } else {
-        socket.send(data);
-      }
-    },
-    close: () => socket.close()
-  };
+    return {
+        socket,
+        onMessage: (callback) => {
+            socket.addEventListener("message", (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    callback(data, event);
+                } catch (e) {
+                    callback(event.data, event);
+                }
+            });
+        },
+        send: (data) => {
+            if (typeof data === "object") {
+                socket.send(JSON.stringify(data));
+            } else {
+                socket.send(data);
+            }
+        },
+        close: () => socket.close(),
+    };
 }
 
 /**
@@ -472,12 +482,12 @@ export function createWebSocketConnection(url, protocols) {
  * @param {Function} onProgress - Progress callback function
  */
 export function handleDownloadProgress(xhr, onProgress) {
-  xhr.onprogress = (e) => {
-    if (e.lengthComputable && onProgress) {
-      const percent = (e.loaded / e.total) * 100;
-      onProgress(percent, e);
-    }
-  };
+    xhr.onprogress = (e) => {
+        if (e.lengthComputable && onProgress) {
+            const percent = (e.loaded / e.total) * 100;
+            onProgress(percent, e);
+        }
+    };
 }
 
 /**
@@ -487,9 +497,9 @@ export function handleDownloadProgress(xhr, onProgress) {
  * @returns {FormData} The created FormData instance
  */
 export function createFormData(data) {
-  const formData = new FormData();
-  Object.entries(data).forEach(([key, value]) => formData.append(key, value));
-  return formData;
+    const formData = new FormData();
+    Object.entries(data).forEach(([key, value]) => formData.append(key, value));
+    return formData;
 }
 
 /**
@@ -499,9 +509,9 @@ export function createFormData(data) {
  * @returns {string} The encoded query string
  */
 export function createQueryString(params) {
-  return Object.entries(params)
-    .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
-    .join('&');
+    return Object.entries(params)
+        .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+        .join("&");
 }
 
 /**
@@ -511,12 +521,12 @@ export function createQueryString(params) {
  * @returns {Object} Object containing parsed parameters
  */
 export function parseQueryString(queryString) {
-  const params = {};
-  queryString.split('&').forEach(param => {
-    const [key, value] = param.split('=');
-    params[decodeURIComponent(key)] = decodeURIComponent(value);
-  });
-  return params;
+    const params = {};
+    queryString.split("&").forEach((param) => {
+        const [key, value] = param.split("=");
+        params[decodeURIComponent(key)] = decodeURIComponent(value);
+    });
+    return params;
 }
 
 /**
@@ -526,10 +536,10 @@ export function parseQueryString(queryString) {
  * @returns {Object} Combined headers object
  */
 export function getHeaders(customHeaders = {}) {
-  return {
-    ...customHeaders,
-    "Content-Type": "application/json"
-  };
+    return {
+        ...customHeaders,
+        "Content-Type": "application/json",
+    };
 }
 
 /**
@@ -540,10 +550,10 @@ export function getHeaders(customHeaders = {}) {
  * @throws {Error} If the response is not ok
  */
 export async function handleResponse(response) {
-  if (!response.ok) {
-    throw new Error(`Request failed with status ${response.status}`);
-  }
-  return response.json();
+    if (!response.ok) {
+        throw new Error(`Request failed with status ${response.status}`);
+    }
+    return response.json();
 }
 
 /**
@@ -553,7 +563,7 @@ export async function handleResponse(response) {
  * @returns {Promise<never>} Rejected promise with the error
  */
 export function handleError(error) {
-  throw error;
+    throw error;
 }
 
 /**
@@ -563,12 +573,12 @@ export function handleError(error) {
  * @returns {boolean} Whether the string is valid JSON
  */
 export function isJSON(str) {
-  try {
-    JSON.parse(str);
-    return true;
-  } catch (e) {
-    return false;
-  }
+    try {
+        JSON.parse(str);
+        return true;
+    } catch (e) {
+        return false;
+    }
 }
 
 /**
@@ -578,7 +588,7 @@ export function isJSON(str) {
  * @returns {string} The content type
  */
 export function getContentType(response) {
-  return response.headers.get("Content-Type");
+    return response.headers.get("Content-Type");
 }
 
 /**
@@ -588,7 +598,7 @@ export function getContentType(response) {
  * @returns {boolean} Whether the value is a Blob
  */
 export function isBlob(value) {
-  return value instanceof Blob;
+    return value instanceof Blob;
 }
 
 /**
@@ -598,5 +608,5 @@ export function isBlob(value) {
  * @returns {boolean} Whether the value is FormData
  */
 export function isFormData(value) {
-  return value instanceof FormData;
+    return value instanceof FormData;
 }

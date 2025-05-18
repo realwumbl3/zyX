@@ -315,7 +315,7 @@ export default class ZyXAudio {
      * @param {Function} [options.onEnded] - Callback when sound playback ends
      * @returns {Promise<AudioBufferSourceNode>} The playing audio source
      */
-    async play({ source, name, looping = false, delay = 0, volume = 1, loopOnEnded, n = 0,
+    async play({ source, name, looping = false, delay = 0, volume = 1, n = 0,
         playbackRate = 1, pan = 0, fadeIn = 0, onEnded = null } = {}) {
         await this.addSound(name);
         volume = this.muted ? 0 : volume;
