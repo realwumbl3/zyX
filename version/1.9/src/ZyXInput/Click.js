@@ -44,15 +44,7 @@ export function rightClick(element, { onDown, onUp, once = false, capture = fals
 
             // Only handle right mouse button clicks
             if (up_e.pointerType === "mouse" && up_e.button === 2) {
-                if (moveFuse.true) return;
-                if (eventFuse.false) {
-                    console.warn("[ZyXInput] EventFuse not found in activeEvents for RightClick", {
-                        element,
-                        eventFuse,
-                        args,
-                    });
-                    return;
-                }
+                if (moveFuse.true || eventFuse.false) return;
                 this.kingOfTheStack(eventFuse, () => onUp(args));
             }
         },

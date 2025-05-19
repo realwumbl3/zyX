@@ -14,7 +14,7 @@
 import html, { ZyXHtml, makePlaceable } from "./src/zyX-HTML.js";
 import { getTopLevelElements } from "./src/html/HTML.js";
 
-import { dynamicVar } from "./src/html/dynamicVariable.js";
+import { dynamicVar, interpVar } from "./src/html/dynamicVariable.js";
 import LiveDomList from "./src/html/LiveDomList.js";
 // CSS
 import css, { zyxcss } from "./src/zyX-CSS.js";
@@ -121,6 +121,7 @@ export {
     ZyXIO,
     // Dynamic Variable
     dynamicVar,
+    interpVar,
     // LiveDomList
     LiveDomList,
     // Types

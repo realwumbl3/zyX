@@ -91,7 +91,8 @@ export function dynamicVar(initialValue) {
  * @returns {void}
  */
 export function processDynamicVarAttributes(zyxhtml, node, attrName, reactive) {
-    if (!(reactive instanceof ZyXDynamicVar)) throw new Error("reactive must be an instance of ZyXDynamicVar");
+    if (!(reactive instanceof ZyXDynamicVar || reactive instanceof DynamicVarOutput))
+        throw new Error("reactive must be an instance of ZyXDynamicVar or DynamicVarOutput");
 
     if (attrName) {
         // For attributes: update the attribute when the value changes
@@ -116,19 +117,39 @@ export function processDynamicVarAttributes(zyxhtml, node, attrName, reactive) {
     } else {
         // For content: create a span that updates when the value changes
         const span = document.createElement("span");
-
-        const updateContent = (newValue) => {
-            if (VERBOSE) console.log("updating content", { span, newValue });
-            span.textContent = newValue;
-        };
-
-        // Initial update
-        updateContent(reactive.value);
-
-        // Subscribe to changes
-        reactive.subscribe(updateContent);
+        let updateFunction;
+        if (reactive instanceof DynamicVarOutput) {
+            updateFunction = () => {
+                const interp = reactive.interprate();
+                span.textContent = interp;
+            };
+            updateFunction();
+            reactive.reactive.subscribe(updateFunction);
+        } else {
+            updateFunction = (newValue) => {
+                span.textContent = newValue;
+            };
+            // Initial update
+            updateFunction(reactive.value);
+            reactive.subscribe(updateFunction);
+        }
 
         // Replace the node with our reactive span
         node.replaceWith(span);
     }
+}
+
+export class DynamicVarOutput {
+    constructor(reactive, interp) {
+        this.reactive = reactive;
+        this.interp = interp;
+    }
+
+    interprate() {
+        return this.interp(this.reactive.value);
+    }
+}
+
+export function interpVar(reactive, interp) {
+    return new DynamicVarOutput(reactive, interp);
 }

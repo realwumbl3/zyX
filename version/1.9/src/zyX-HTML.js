@@ -16,7 +16,7 @@ const QUOTED_VALUE_CONTEXT = "quoted-value";
 
 /* <zyx-module place src="./exampleCode.js"></zyx-script> TODO: query for zyx-module and replace with ZyXHTML default at src. */
 
-import { ZyXDynamicVar, processDynamicVarAttributes } from "./html/dynamicVariable.js";
+import { ZyXDynamicVar, DynamicVarOutput, processDynamicVarAttributes } from "./html/dynamicVariable.js";
 
 import { LegacyShadowRoot } from "./zyX-Shadowroot.js";
 
@@ -333,7 +333,7 @@ export class ZyXHtml {
 
         for (const { node, dataValue } of this.#map.placeholders) {
             try {
-                if (dataValue instanceof ZyXDynamicVar) {
+                if (dataValue instanceof ZyXDynamicVar || dataValue instanceof DynamicVarOutput) {
                     processDynamicVarAttributes(this, node, null, dataValue);
                 } else {
                     node.replaceWith(makePlaceable(dataValue));
