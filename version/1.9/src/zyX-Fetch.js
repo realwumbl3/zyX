@@ -56,6 +56,7 @@ export function postForm(url, data, options = {}) {
     Object.entries(data).forEach(([key, value]) => formData.append(key, value));
     return fetch(url, {
         method: "POST",
+        credentials: "include",
         body: formData,
         ...options,
     });

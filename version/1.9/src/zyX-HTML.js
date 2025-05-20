@@ -16,7 +16,7 @@ const QUOTED_VALUE_CONTEXT = "quoted-value";
 
 /* <zyx-module place src="./exampleCode.js"></zyx-script> TODO: query for zyx-module and replace with ZyXHTML default at src. */
 
-import { ZyXDynamicVar, DynamicVarOutput, processDynamicVarAttributes } from "./html/dynamicVariable.js";
+import { ZyXDynamicVar, VarInterp } from "./html/dynamicVariable.js";
 
 import { LegacyShadowRoot } from "./zyX-Shadowroot.js";
 
@@ -61,7 +61,7 @@ import { LegacyShadowRoot } from "./zyX-Shadowroot.js";
  * @property {Array<TagExpressionData>} [tagData=[]] - The tag data
  * @property {MutationObserver} [selfMutationObserver=null] - The self mutation observer
  */
-export class ZyXHtml {
+export class ZyXHTML {
     /** @private */
     #constructed = false;
     /** @private */
@@ -85,7 +85,7 @@ export class ZyXHtml {
     /** @private */
     #logMap;
     /**
-     * Creates a new ZyXHtml instance
+     * Creates a new ZyXHTML instance
      * @param {TemplateStringsArray} raw - The raw HTML template string
      * @param {...*} tagData - The data to be inserted into the template
      */
@@ -185,14 +185,14 @@ export class ZyXHtml {
     /**
      * Constructs the final DOM structure
      * @param {CleanupOptions & {mutationObserver?: boolean}} options - Options for the construction process
-     * @returns {ZyXHtml} The current instance
+     * @returns {ZyXHTML} The current instance
      */
     const({ keepRaw = false, keepMarkup = false, keepData = false, keepMap = false, mutationObserver = false } = {}) {
         if (this.#constructed) return this;
 
         this.#map = this.mapEverything();
 
-        if (this.#logMap) console.log("ZyXHtml: map", this.#map, { this: this });
+        if (this.#logMap) console.log("ZyXHTML: map", this.#map, { this: this });
 
         this.replaceDOMPlaceholders();
 
@@ -233,7 +233,7 @@ export class ZyXHtml {
                     node,
                     "with handler",
                     handler,
-                    "error",
+                    "error:",
                     e
                 );
                 this.markAttributeProcessed(node, `errored-${attr}`, e);
@@ -242,7 +242,7 @@ export class ZyXHtml {
 
         // Process dynamic values in all attributes
         for (const { node, attr, data } of this.#map.zyxDynamicVars) {
-            processDynamicVarAttributes(this, node, attr, data);
+            data.processDynamicVarAttributes(this, node, attr);
             this.markAttributeProcessed(node, attr);
         }
 
@@ -312,7 +312,7 @@ export class ZyXHtml {
                 const hasData = getPlaceholderID(attr.value);
                 const data = this.#data[hasData]?.value;
                 if (attr.name in zyxAttributes) initialMap.zyxBindAttributes.push({ node, attr: attr.name, data });
-                if (data && data instanceof ZyXDynamicVar)
+                if (data && (data instanceof ZyXDynamicVar || data instanceof VarInterp))
                     initialMap.zyxDynamicVars.push({ node, attr: attr.name, data });
             }
         }
@@ -333,8 +333,8 @@ export class ZyXHtml {
 
         for (const { node, dataValue } of this.#map.placeholders) {
             try {
-                if (dataValue instanceof ZyXDynamicVar || dataValue instanceof DynamicVarOutput) {
-                    processDynamicVarAttributes(this, node, null, dataValue);
+                if (dataValue instanceof ZyXDynamicVar || dataValue instanceof VarInterp) {
+                    dataValue.processDynamicVarAttributes(this, node, null);
                 } else {
                     node.replaceWith(makePlaceable(dataValue));
                 }
@@ -431,7 +431,7 @@ export class ZyXHtml {
     /**
      * Appends the markup to a target element
      * @param {Element} target - The target element to append to
-     * @returns {ZyXHtml} The current instance
+     * @returns {ZyXHTML} The current instance
      */
     appendTo(target) {
         target.append(this.markup);
@@ -441,7 +441,7 @@ export class ZyXHtml {
     /**
      * Prepends the markup to a target element
      * @param {Element} target - The target element to prepend to
-     * @returns {ZyXHtml} The current instance
+     * @returns {ZyXHTML} The current instance
      */
     prependTo(target) {
         target.prepend(this.markup);
@@ -451,7 +451,7 @@ export class ZyXHtml {
     /**
      * Places the markup at a specified location
      * @param {string|Element} place - The placement target
-     * @returns {ZyXHtml} The current instance
+     * @returns {ZyXHTML} The current instance
      */
     place(place) {
         placer(this.markup, place);
@@ -462,7 +462,7 @@ export class ZyXHtml {
      * Binds the instance to an object and constructs the DOM
      * @param {Object} any - The object to bind to
      * @param {CleanupOptions & {mutationObserver?: boolean}} opts - Construction options
-     * @returns {ZyXHtml} The current instance
+     * @returns {ZyXHTML} The current instance
      */
     bind(any, opts = {}) {
         this.#mutable = any;
@@ -476,7 +476,7 @@ export class ZyXHtml {
     /**
      * Joins the instance with a target object
      * @param {Object} target - The target object to join with
-     * @returns {ZyXHtml} The current instance
+     * @returns {ZyXHTML} The current instance
      */
     join(target) {
         this.#mutable = target;
@@ -487,10 +487,10 @@ export class ZyXHtml {
     /**
      * @deprecated
      * @param {Function} callback - The callback function to call
-     * @returns {ZyXHtml} The current instance
+     * @returns {ZyXHTML} The current instance
      */
     touch(callback) {
-        console.warn("ZyXHtml: touch is deprecated");
+        console.warn("ZyXHTML: touch is deprecated");
         callback({
             proxy: this,
             markup: this.markup,
@@ -499,7 +499,7 @@ export class ZyXHtml {
     }
 }
 
-ZyXHtml.prototype.super = ZyXHtml.prototype.join;
+ZyXHTML.prototype.super = ZyXHTML.prototype.join;
 
 /**
  * Creates a placeable element from an object
@@ -510,8 +510,8 @@ export function makePlaceable(object) {
     if (object === false || object === null || object === undefined) return "";
     if (Array.isArray(object)) return templateFromPlaceables(object).content;
     if (typeof object === "function") return makePlaceable(object());
-    if (object?.[IDENTIFIER_KEY] instanceof ZyXHtml) return object[IDENTIFIER_KEY].markup;
-    if (object instanceof ZyXHtml) return object.markup;
+    if (object?.[IDENTIFIER_KEY] instanceof ZyXHTML) return object[IDENTIFIER_KEY].markup;
+    if (object instanceof ZyXHTML) return object.markup;
     if (object instanceof HTMLTemplateElement) return object.content;
     return object;
 }
@@ -564,10 +564,10 @@ const zyxAttributes = {
 };
 
 /**
- * Creates a new ZyXHtml instance
+ * Creates a new ZyXHTML instance
  * @param {TemplateStringsArray} args - The template strings and data
- * @returns {ZyXHtml} A new ZyXHtml instance
+ * @returns {ZyXHTML} A new ZyXHTML instance
  */
 export default function html(...args) {
-    return new ZyXHtml(...args);
+    return new ZyXHTML(...args);
 }

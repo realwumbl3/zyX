@@ -11,12 +11,12 @@ Tagged template literal function for creating HTML templates.
 html`template string`
 ```
 
-### ZyXHtml Class
+### ZyXHTML Class
 Main class for HTML template processing and manipulation.
 
 #### Constructor
 ```javascript
-new ZyXHtml(raw, ...tagData)
+new ZyXHTML(raw, ...tagData)
 ```
 **Parameters:**
 - `raw`: Raw template string

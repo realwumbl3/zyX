@@ -232,6 +232,7 @@ export default class ZyXInput {
         this.openModals.add(node);
         node.setAttribute("is-modal", "");
         node.clickedOutside = clickedOutside.bind(node);
+        return clickedOutside;
     }
 
     /**

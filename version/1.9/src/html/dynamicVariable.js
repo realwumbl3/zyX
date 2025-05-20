@@ -1,6 +1,5 @@
 // Dynamic value system for zyX HTML
 // Provides reactive values that update DOM when modified
-const VERBOSE = false;
 
 /**
  * Class representing a dynamic variable with reactive behavior
@@ -20,7 +19,6 @@ export class ZyXDynamicVar {
      * Reset the value to its initial value
      */
     reset() {
-        if (VERBOSE) console.log("resetting value", { initialValue: this.initialValue, value: this.value });
         this.value = this.initialValue;
         this.notifySubscribers();
     }
@@ -30,7 +28,6 @@ export class ZyXDynamicVar {
      * @param {*} newValue - The new value to set
      */
     set(newValue) {
-        if (VERBOSE) console.log("setting value", newValue, { value: this.value, subscribers: this.subscribers });
         if (newValue === this.value) return;
         this.value = newValue;
         this.notifySubscribers();
@@ -68,8 +65,46 @@ export class ZyXDynamicVar {
      * @private
      */
     notifySubscribers() {
-        if (VERBOSE) console.log("notifying subscribers", { value: this.value, subscribers: this.subscribers });
         this.subscribers.forEach((callback) => callback(this.value));
+    }
+
+    processDynamicVarAttributes(zyxhtml, node, attrName) {
+        this._processDynamicVarAttributes(zyxhtml, node, attrName, this);
+    }
+
+    _processDynamicVarAttributes(zyxhtml, node, attrName, reactive) {
+        const isInterp = reactive instanceof VarInterp;
+        let updateFunction;
+        if (attrName) {
+            // For attributes: update the attribute when the value changes
+            updateFunction = () => {
+                const newValue = isInterp ? reactive.interprate() : reactive.value;
+                node.setAttribute(attrName, newValue);
+
+                if (node.tagName === "INPUT") {
+                    node.value = newValue;
+                    node.dispatchEvent(new Event("change"));
+                }
+            };
+            // Initial update - ensure it runs after the node is in the DOM
+            setTimeout(() => {
+                updateFunction();
+            }, 0);
+        } else {
+            // For content: create a span that updates when the value changes
+            const span = document.createElement("span");
+            node.replaceWith(span);
+            updateFunction = () => {
+                span.textContent = isInterp ? reactive.interprate() : reactive.value;
+            };
+            updateFunction();
+        }
+        this.subscribe(updateFunction);
+    }
+
+    interp(callback) {
+        const newReactiveInterp = new VarInterp(this, callback);
+        return newReactiveInterp;
     }
 }
 
@@ -82,64 +117,7 @@ export function dynamicVar(initialValue) {
     return new ZyXDynamicVar(initialValue);
 }
 
-/**
- * Processes reactive values in attributes and content
- * @param {ZyXHtml} zyxhtml - The zyX HTML instance
- * @param {Element} node - The DOM element to process
- * @param {string} attrName - The name of the attribute to process
- * @param {ZyXDynamicVar} reactive - The reactive value object
- * @returns {void}
- */
-export function processDynamicVarAttributes(zyxhtml, node, attrName, reactive) {
-    if (!(reactive instanceof ZyXDynamicVar || reactive instanceof DynamicVarOutput))
-        throw new Error("reactive must be an instance of ZyXDynamicVar or DynamicVarOutput");
-
-    if (attrName) {
-        // For attributes: update the attribute when the value changes
-        const updateAttribute = (newValue) => {
-            if (VERBOSE) console.log("updating attribute", { node, attrName, newValue });
-            node.setAttribute(attrName, newValue);
-
-            if (node.tagName === "INPUT") {
-                if (VERBOSE) console.log("updating input", { node, newValue });
-                node.value = newValue;
-                node.dispatchEvent(new Event("change"));
-            }
-        };
-
-        // Initial update - ensure it runs after the node is in the DOM
-        setTimeout(() => {
-            updateAttribute(reactive.value);
-        }, 0);
-
-        // Subscribe to changes
-        reactive.subscribe(updateAttribute);
-    } else {
-        // For content: create a span that updates when the value changes
-        const span = document.createElement("span");
-        let updateFunction;
-        if (reactive instanceof DynamicVarOutput) {
-            updateFunction = () => {
-                const interp = reactive.interprate();
-                span.textContent = interp;
-            };
-            updateFunction();
-            reactive.reactive.subscribe(updateFunction);
-        } else {
-            updateFunction = (newValue) => {
-                span.textContent = newValue;
-            };
-            // Initial update
-            updateFunction(reactive.value);
-            reactive.subscribe(updateFunction);
-        }
-
-        // Replace the node with our reactive span
-        node.replaceWith(span);
-    }
-}
-
-export class DynamicVarOutput {
+export class VarInterp {
     constructor(reactive, interp) {
         this.reactive = reactive;
         this.interp = interp;
@@ -148,8 +126,12 @@ export class DynamicVarOutput {
     interprate() {
         return this.interp(this.reactive.value);
     }
+
+    processDynamicVarAttributes(zyxhtml, node, attrName) {
+        this.reactive._processDynamicVarAttributes(zyxhtml, node, attrName, this);
+    }
 }
 
-export function interpVar(reactive, interp) {
-    return new DynamicVarOutput(reactive, interp);
+export function varInterp(reactive, interp) {
+    return new VarInterp(reactive, interp);
 }

@@ -11,10 +11,10 @@
 
 // Core imports
 // HTML
-import html, { ZyXHtml, makePlaceable } from "./src/zyX-HTML.js";
+import html, { ZyXHTML, makePlaceable } from "./src/zyX-HTML.js";
 import { getTopLevelElements } from "./src/html/HTML.js";
 
-import { dynamicVar, interpVar } from "./src/html/dynamicVariable.js";
+import { dynamicVar, varInterp } from "./src/html/dynamicVariable.js";
 import LiveDomList from "./src/html/LiveDomList.js";
 // CSS
 import css, { zyxcss } from "./src/zyX-CSS.js";
@@ -109,7 +109,7 @@ export {
     queryAllRoots,
     // Store
     Cookies,
-    ZyXHtml,
+    ZyXHTML,
     ZyXAudio,
     // Events
     ZyXEvents,
@@ -121,7 +121,7 @@ export {
     ZyXIO,
     // Dynamic Variable
     dynamicVar,
-    interpVar,
+    varInterp,
     // LiveDomList
     LiveDomList,
     // Types

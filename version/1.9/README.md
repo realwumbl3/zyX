@@ -38,23 +38,23 @@ This document provides a summary of the functions and classes available in the z
 ```jsdoc
 /**
  * @function html
- * @description Template literal tag function for creating ZyXHtml instances.
+ * @description Template literal tag function for creating ZyXHTML instances.
  * Processes HTML strings with embedded expressions and prepares them for DOM manipulation.
  * @param {TemplateStringsArray} raw - The raw HTML template string parts.
  * @param {...*} tagData - The values to be interpolated into the template.
- * @returns {ZyXHtml} A new ZyXHtml instance representing the processed template.
+ * @returns {ZyXHTML} A new ZyXHTML instance representing the processed template.
  * @example
  * const myComponent = html`<div id="main">Hello ${name}</div>`;
  * myComponent.appendTo(document.body);
  */
- // Note: This export uses the ZyXHtml class constructor internally.
+ // Note: This export uses the ZyXHTML class constructor internally.
 ```
 
-### `ZyXHtml`
+### `ZyXHTML`
 
 ```jsdoc
 /**
- * @class ZyXHtml
+ * @class ZyXHTML
  * @description A class that handles HTML template processing and DOM manipulation. It parses template literals, manages placeholders for dynamic data, constructs DOM fragments, and provides methods for placing the content (`appendTo`, `prependTo`, `place`). It also supports binding to component instances (`bind`, `join`) and special attribute handling.
  */
 ```
@@ -65,7 +65,7 @@ This document provides a summary of the functions and classes available in the z
 /**
  * @function makePlaceable
  * @description Creates a placeable DOM element or fragment from various object types.
- * Handles arrays, functions, ZyXHtml instances, and template elements. Returns primitives directly.
+ * Handles arrays, functions, ZyXHTML instances, and template elements. Returns primitives directly.
  * Returns an empty string for false, null, or undefined inputs.
  * @param {*} object - The object to convert into a placeable DOM node/fragment.
  * @returns {Element|DocumentFragment|string} The placeable DOM structure or an empty string.
