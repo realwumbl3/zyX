@@ -32,7 +32,7 @@ export class ConditionalGroup {
 
         // If this is a reactive condition, subscribe to changes
         if (condition.reactive && typeof condition.reactive === "object" && "subscribe" in condition.reactive) {
-            condition.reactive.subscribe(() => this.evaluateConditions());
+            condition.reactive.subscribe(() => this.evaluateConditions(), element);
         }
 
         // Defer evaluation to next tick to ensure all conditions are added first

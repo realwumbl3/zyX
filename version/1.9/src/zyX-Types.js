@@ -61,7 +61,7 @@ export class WeakRefSet extends Set {
         if (ref === null || ref === undefined) {
             throw new TypeError("Cannot add null or undefined to WeakRefSet");
         }
-        super.add(new WeakRef(ref));
+        if (!this.has(ref)) super.add(new WeakRef(ref));
     }
 
     /**

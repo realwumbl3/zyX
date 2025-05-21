@@ -31,9 +31,10 @@ export class LiveList extends Array {
     /**
      * Adds an event listener
      * @param {Function} cb - The callback function
+     * @param {Object} ref - The reference object
      */
-    subscribe(cb) {
-        this.#eventListeners.subscribe(cb);
+    subscribe(cb, ref) {
+        this.#eventListeners.subscribe(cb, ref);
     }
 
     /**
@@ -211,8 +212,8 @@ export class LiveVar {
      * Add a callback to be notified when the value changes
      * @param {Function} callback - The callback function to call when value changes
      */
-    subscribe(callback) {
-        this.eventListeners.subscribe(callback);
+    subscribe(callback, ref) {
+        this.eventListeners.subscribe(callback, ref);
     }
 
     /**
@@ -242,9 +243,11 @@ export class LiveVar {
     }
 }
 
+const RefWeakMap = new WeakMap();
+
 export class EventSubscriber {
     constructor() {
-        this.subscribers = new Set();
+        this.subscribers = new WeakRefSet();
     }
 
     /**
@@ -252,10 +255,11 @@ export class EventSubscriber {
      * @param {Function} callback - The callback function to call when value changes
      * @returns {Function} Unsubscribe function
      */
-    subscribe(callback) {
+    subscribe(callback, ref) {
         if (typeof callback !== "function") {
             throw new TypeError("Callback must be a function");
         }
+        if (ref) RefWeakMap.set(ref, callback);
         this.subscribers.add(callback);
         return () => this.unsubscribe(callback); // Return unsubscribe function
     }

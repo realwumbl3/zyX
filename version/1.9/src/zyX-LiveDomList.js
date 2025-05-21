@@ -72,19 +72,19 @@ export default class LiveDomList {
         this.#offset = offset;
         this.#debounce = debounce;
 
-        this.#list.subscribe(this.arrayModified);
+        this.#list.subscribe(this.arrayModified.bind(this), this.#container);
 
         this.update();
     }
 
-    arrayModified = (array, method, ...elements) => {
+    arrayModified(array, method, ...elements) {
         if (this.#debounce <= 0) return this.update();
         if (this.#pending_update) clearTimeout(this.#pending_update);
         this.#pending_update = setTimeout(() => {
             this.#pending_update = null;
             this.update();
         }, this.#debounce);
-    };
+    }
 
     forEach(cb) {
         for (const entry of this.entries()) cb(entry);

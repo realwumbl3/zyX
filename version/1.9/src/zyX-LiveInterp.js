@@ -1,6 +1,3 @@
-// Dynamic value system for zyX HTML
-// Provides reactive values that update DOM when modified
-
 export class LiveInterp {
     constructor(reactive, interp) {
         this.reactive = reactive;
@@ -28,20 +25,21 @@ export class LiveInterp {
             };
             // Initial update - ensure it runs after the node is in the DOM
         } else {
-            // For content: create a span that updates when the value changes
-            const span = document.createElement("span");
-            node.replaceWith(span);
+            // For content: create a text node that updates when the value changes
+            const textNode = document.createTextNode("");
+            node.replaceWith(textNode);
+            node = textNode;
             updateFunction = () => {
-                span.textContent = this.interprate();
+                textNode.textContent = this.interprate();
             };
         }
         setTimeout(() => {
             updateFunction();
-        }, 0);
+        }, 1);
         if (this.reactive.eventListeners) {
-            this.reactive.eventListeners.subscribe(updateFunction);
+            this.reactive.eventListeners.subscribe(updateFunction, node);
         } else {
-            this.reactive.subscribe(updateFunction);
+            this.reactive.subscribe(updateFunction, node);
         }
     }
 }
