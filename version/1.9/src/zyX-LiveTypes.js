@@ -21,28 +21,11 @@ export class LiveList extends Array {
     }
 
     interp(callback) {
-        return new VarInterp(this, callback, () => this);
+        return new VarInterp(this, callback);
     }
 
-    /**
-     * Gets a proxy for the array that handles events
-     * @returns {Proxy} The proxied array
-     */
-    getProxy() {
-        return new Proxy(this, {
-            set: (target, property, value, receiver) => {
-                const result = Reflect.set(target, property, value, receiver);
-                if (typeof property === "string" && !isNaN(property)) {
-                    this.callListeners("set", property, value);
-                }
-                return result;
-            },
-            get: (target, property, receiver) => {
-                const result = Reflect.get(target, property, receiver);
-                if (typeof result === "function") return result.bind(target);
-                return result;
-            },
-        });
+    get value() {
+        return this;
     }
 
     /**
@@ -50,9 +33,6 @@ export class LiveList extends Array {
      * @param {Function} cb - The callback function
      */
     addListener(cb) {
-        if (typeof cb !== "function") {
-            throw new TypeError("Callback must be a function");
-        }
         this.#eventListeners.addListener(cb);
     }
 
@@ -61,9 +41,6 @@ export class LiveList extends Array {
      * @param {Function} cb - The callback function
      */
     removeListener(cb) {
-        if (typeof cb !== "function") {
-            throw new TypeError("Callback must be a function");
-        }
         this.#eventListeners.unsubscribe(cb);
     }
 
@@ -221,8 +198,21 @@ export class LiveVar {
         this.eventListeners = new EventSubscriber();
     }
 
+    /**
+     * Create a new reactive variable with interpolation
+     * @param {Function} callback - The callback function to call when value changes
+     * @returns {VarInterp} The reactive variable
+     */
     interp(callback) {
         return new VarInterp(this, callback, () => this.value);
+    }
+
+    /**
+     * Add a callback to be notified when the value changes
+     * @param {Function} callback - The callback function to call when value changes
+     */
+    addListener(callback) {
+        this.eventListeners.addListener(callback);
     }
 
     /**
@@ -267,6 +257,9 @@ export class EventSubscriber {
      * @returns {Function} Unsubscribe function
      */
     subscribe(callback) {
+        if (typeof callback !== "function") {
+            throw new TypeError("Callback must be a function");
+        }
         this.subscribers.add(callback);
         return () => this.unsubscribe(callback); // Return unsubscribe function
     }
@@ -276,6 +269,9 @@ export class EventSubscriber {
      * @param {Function} callback - The callback function
      */
     unsubscribe(callback) {
+        if (typeof callback !== "function") {
+            throw new TypeError("Callback must be a function");
+        }
         this.subscribers.delete(callback);
     }
 

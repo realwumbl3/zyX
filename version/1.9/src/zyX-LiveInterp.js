@@ -2,15 +2,16 @@
 // Provides reactive values that update DOM when modified
 
 export class VarInterp {
-    constructor(reactive, interp, getValue) {
+    constructor(reactive, interp) {
         this.reactive = reactive;
         this.interp = interp;
-        this.getValue = getValue;
-        this.updateFunction = () => {};
     }
 
     interprate() {
-        return this.interp(this.getValue?.());
+        if (this.interp) {
+            return this.interp(this.reactive.value);
+        }
+        return this.reactive.value;
     }
 
     createZyXHTMLReactiveNode(zyxhtml, node, attrName) {
