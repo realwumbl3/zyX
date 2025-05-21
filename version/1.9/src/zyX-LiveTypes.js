@@ -1,5 +1,5 @@
 import { WeakRefSet, Deque } from "./zyX-Types.js";
-import { VarInterp } from "./zyX-LiveInterp.js";
+import { LiveInterp } from "./zyX-LiveInterp.js";
 
 /**
  * An enhanced array implementation with event handling
@@ -21,7 +21,7 @@ export class LiveList extends Array {
     }
 
     interp(callback) {
-        return new VarInterp(this, callback);
+        return new LiveInterp(this, callback);
     }
 
     get value() {
@@ -32,8 +32,8 @@ export class LiveList extends Array {
      * Adds an event listener
      * @param {Function} cb - The callback function
      */
-    addListener(cb) {
-        this.#eventListeners.addListener(cb);
+    subscribe(cb) {
+        this.#eventListeners.subscribe(cb);
     }
 
     /**
@@ -204,15 +204,15 @@ export class LiveVar {
      * @returns {VarInterp} The reactive variable
      */
     interp(callback) {
-        return new VarInterp(this, callback, () => this.value);
+        return new LiveInterp(this, callback);
     }
 
     /**
      * Add a callback to be notified when the value changes
      * @param {Function} callback - The callback function to call when value changes
      */
-    addListener(callback) {
-        this.eventListeners.addListener(callback);
+    subscribe(callback) {
+        this.eventListeners.subscribe(callback);
     }
 
     /**
@@ -242,12 +242,8 @@ export class LiveVar {
     }
 }
 
-/**
- * Class representing a dynamic variable with reactive behavior
- */
 export class EventSubscriber {
-    constructor(callback_value) {
-        this.callback_value = callback_value;
+    constructor() {
         this.subscribers = new Set();
     }
 
@@ -273,15 +269,6 @@ export class EventSubscriber {
             throw new TypeError("Callback must be a function");
         }
         this.subscribers.delete(callback);
-    }
-
-    /**
-     * Alias for subscribe to maintain compatibility with LiveVariable
-     * @param {Function} callback - The callback function
-     * @returns {Function} Unsubscribe function
-     */
-    addListener(callback) {
-        return this.subscribe(callback);
     }
 
     notifySubscribers(...args) {

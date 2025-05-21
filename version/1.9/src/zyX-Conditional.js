@@ -31,8 +31,8 @@ export class ConditionalGroup {
         element.style.display = "none";
 
         // If this is a reactive condition, subscribe to changes
-        if (condition.reactive && typeof condition.reactive === "object" && "addListener" in condition.reactive) {
-            condition.reactive.addListener(() => this.evaluateConditions());
+        if (condition.reactive && typeof condition.reactive === "object" && "subscribe" in condition.reactive) {
+            condition.reactive.subscribe(() => this.evaluateConditions());
         }
 
         // Defer evaluation to next tick to ensure all conditions are added first

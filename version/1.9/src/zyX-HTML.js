@@ -6,7 +6,7 @@ import {
     strPlaceholder,
     wrapInTemplate,
     trimTextNodes,
-} from "./html/HTML.js";
+} from "./zyX-HTML-Utils.js";
 
 const IDENTIFIER_KEY = "###";
 const CONTENT_CONTEXT = "content";
@@ -16,7 +16,7 @@ const QUOTED_VALUE_CONTEXT = "quoted-value";
 
 /* <zyx-module place src="./exampleCode.js"></zyx-script> TODO: query for zyx-module and replace with ZyXHTML default at src. */
 
-import { VarInterp } from "./zyX-LiveInterp.js";
+import { LiveInterp } from "./zyX-LiveInterp.js";
 
 import { LegacyShadowRoot } from "./zyX-Shadowroot.js";
 
@@ -301,7 +301,7 @@ export class ZyXHTML {
                 const hasData = getPlaceholderID(attr.value);
                 const data = this.#data[hasData]?.value;
                 if (attr.name in zyxAttributes) initialMap.zyxBindAttributes.push({ node, attr: attr.name, data });
-                if (data && data instanceof VarInterp) initialMap.zyxDynamicVars.push({ node, attr: attr.name, data });
+                if (data && data instanceof LiveInterp) initialMap.zyxDynamicVars.push({ node, attr: attr.name, data });
             }
         }
 
@@ -321,7 +321,7 @@ export class ZyXHTML {
 
         for (const { node, dataValue } of this.#map.placeholders) {
             try {
-                if (dataValue instanceof VarInterp) {
+                if (dataValue instanceof LiveInterp) {
                     dataValue.createZyXHTMLReactiveNode(this, node, null);
                 } else {
                     node.replaceWith(makePlaceable(dataValue));
@@ -516,8 +516,8 @@ export function templateFromPlaceables(placeables) {
 }
 
 import { defaultEvents } from "./html/DefaultEvents.js";
-import { conditionalAttributes } from "./html/Conditional.js";
-import { processLiveDomListAttributes } from "./html/LiveDomList.js";
+import { conditionalAttributes } from "./zyX-Conditional.js";
+import { processLiveDomListAttributes } from "./zyX-LiveDomList.js";
 import zyxTransform from "./zyX-Transform.js";
 
 const zyxAttributes = {

@@ -1,7 +1,7 @@
 // Dynamic value system for zyX HTML
 // Provides reactive values that update DOM when modified
 
-export class VarInterp {
+export class LiveInterp {
     constructor(reactive, interp) {
         this.reactive = reactive;
         this.interp = interp;
@@ -39,13 +39,9 @@ export class VarInterp {
             updateFunction();
         }, 0);
         if (this.reactive.eventListeners) {
-            this.reactive.eventListeners.addListener(updateFunction);
+            this.reactive.eventListeners.subscribe(updateFunction);
         } else {
-            this.reactive.addListener(updateFunction);
+            this.reactive.subscribe(updateFunction);
         }
     }
-}
-
-export function varInterp(reactive, interp) {
-    return new VarInterp(reactive, interp);
 }

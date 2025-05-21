@@ -1,5 +1,5 @@
-import { makePlaceable } from "../zyX-HTML.js";
-import { LiveList } from "../zyX-LiveTypes.js";
+import { makePlaceable } from "./zyX-HTML.js";
+import { LiveList } from "./zyX-LiveTypes.js";
 
 const LiveLists = new WeakMap();
 
@@ -72,7 +72,7 @@ export default class LiveDomList {
         this.#offset = offset;
         this.#debounce = debounce;
 
-        this.#list.addListener(this.arrayModified);
+        this.#list.subscribe(this.arrayModified);
 
         this.update();
     }

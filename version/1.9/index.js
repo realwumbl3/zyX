@@ -12,9 +12,8 @@
 // Core imports
 // HTML
 import html, { ZyXHTML, makePlaceable } from "./src/zyX-HTML.js";
-import { getTopLevelElements } from "./src/html/HTML.js";
+import { getTopLevelElements } from "./src/zyX-HTML-Utils.js";
 
-import LiveDomList from "./src/html/LiveDomList.js";
 // CSS
 import css, { zyxcss } from "./src/zyX-CSS.js";
 // Shadowroot
@@ -45,7 +44,10 @@ import {
 } from "./src/zyX-Math.js";
 // Types
 import { WeakRefSet, Deque } from "./src/zyX-Types.js";
+// LiveTypes
 import { LiveList, LiveDeque, LiveVar } from "./src/zyX-LiveTypes.js";
+// LiveDomList
+import LiveDomList from "./src/zyX-LiveDomList.js";
 // Audio
 import ZyXAudio from "./src/zyX-Audio.js";
 // Fetch
@@ -122,12 +124,12 @@ export {
     // Types
     WeakRefSet,
     Deque,
-    // LiveDomList
-    LiveDomList,
     // Live Types
     LiveList,
     LiveDeque,
     LiveVar,
+    // LiveDomList
+    LiveDomList,
     // Async
     sleep,
     AsyncWorker,
