@@ -1,7 +1,7 @@
-import { html, dynamicVar } from "../..";
+import { html, LiveVar } from "../..";
 
 // Create a dynamic value with an initial value of 69 boats
-const boats = dynamicVar(69);
+const boats = LiveVar(69);
 
 // Create HTML with dynamic values in both attributes and content
 const template = html`

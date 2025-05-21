@@ -1,5 +1,5 @@
 import { makePlaceable } from "../zyX-HTML.js";
-import { LiveList } from "../zyX-Types.js";
+import { LiveList } from "../zyX-LiveTypes.js";
 
 const LiveLists = new WeakMap();
 

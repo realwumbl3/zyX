@@ -14,7 +14,6 @@
 import html, { ZyXHTML, makePlaceable } from "./src/zyX-HTML.js";
 import { getTopLevelElements } from "./src/html/HTML.js";
 
-import { dynamicVar, varInterp } from "./src/html/dynamicVariable.js";
 import LiveDomList from "./src/html/LiveDomList.js";
 // CSS
 import css, { zyxcss } from "./src/zyX-CSS.js";
@@ -45,7 +44,8 @@ import {
     isFloat,
 } from "./src/zyX-Math.js";
 // Types
-import { WeakRefSet, Deque, LiveList, LiveVariable, LiveDeque } from "./src/zyX-Types.js";
+import { WeakRefSet, Deque } from "./src/zyX-Types.js";
+import { LiveList, LiveDeque, LiveVar } from "./src/zyX-LiveTypes.js";
 // Audio
 import ZyXAudio from "./src/zyX-Audio.js";
 // Fetch
@@ -119,17 +119,15 @@ export {
     ZyXInput,
     // Websocket
     ZyXIO,
-    // Dynamic Variable
-    dynamicVar,
-    varInterp,
-    // LiveDomList
-    LiveDomList,
     // Types
     WeakRefSet,
     Deque,
+    // LiveDomList
+    LiveDomList,
+    // Live Types
     LiveList,
-    LiveVariable,
     LiveDeque,
+    LiveVar,
     // Async
     sleep,
     AsyncWorker,

@@ -1,0 +1,50 @@
+// Dynamic value system for zyX HTML
+// Provides reactive values that update DOM when modified
+
+export class VarInterp {
+    constructor(reactive, interp, getValue) {
+        this.reactive = reactive;
+        this.interp = interp;
+        this.getValue = getValue;
+        this.updateFunction = () => {};
+    }
+
+    interprate() {
+        return this.interp(this.getValue?.());
+    }
+
+    createZyXHTMLReactiveNode(zyxhtml, node, attrName) {
+        let updateFunction;
+        if (attrName) {
+            // For attributes: update the attribute when the value changes
+            updateFunction = () => {
+                const newValue = this.interprate();
+                node.setAttribute(attrName, newValue);
+                if (node.tagName === "INPUT") {
+                    node.value = newValue;
+                    node.dispatchEvent(new Event("change"));
+                }
+            };
+            // Initial update - ensure it runs after the node is in the DOM
+        } else {
+            // For content: create a span that updates when the value changes
+            const span = document.createElement("span");
+            node.replaceWith(span);
+            updateFunction = () => {
+                span.textContent = this.interprate();
+            };
+        }
+        setTimeout(() => {
+            updateFunction();
+        }, 0);
+        if (this.reactive.eventListeners) {
+            this.reactive.eventListeners.addListener(updateFunction);
+        } else {
+            this.reactive.addListener(updateFunction);
+        }
+    }
+}
+
+export function varInterp(reactive, interp) {
+    return new VarInterp(reactive, interp);
+}

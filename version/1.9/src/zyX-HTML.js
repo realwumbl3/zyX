@@ -16,7 +16,7 @@ const QUOTED_VALUE_CONTEXT = "quoted-value";
 
 /* <zyx-module place src="./exampleCode.js"></zyx-script> TODO: query for zyx-module and replace with ZyXHTML default at src. */
 
-import { ZyXDynamicVar, VarInterp } from "./html/dynamicVariable.js";
+import { VarInterp } from "./zyX-LiveInterp.js";
 
 import { LegacyShadowRoot } from "./zyX-Shadowroot.js";
 
@@ -224,25 +224,14 @@ export class ZyXHTML {
                 handler({ zyxhtml: this, node, data });
                 this.markAttributeProcessed(node, attr);
             } catch (e) {
-                console.error(
-                    "ZyXHTML: Error binding attribute",
-                    attr,
-                    "to",
-                    data,
-                    "on",
-                    node,
-                    "with handler",
-                    handler,
-                    "error:",
-                    e
-                );
+                console.error("ZyXHTML: Error binding attribute", { attr, node, handler, data, error: e });
                 this.markAttributeProcessed(node, `errored-${attr}`, e);
             }
         }
 
         // Process dynamic values in all attributes
         for (const { node, attr, data } of this.#map.zyxDynamicVars) {
-            data.processDynamicVarAttributes(this, node, attr);
+            data.createZyXHTMLReactiveNode(this, node, attr);
             this.markAttributeProcessed(node, attr);
         }
 
@@ -312,8 +301,7 @@ export class ZyXHTML {
                 const hasData = getPlaceholderID(attr.value);
                 const data = this.#data[hasData]?.value;
                 if (attr.name in zyxAttributes) initialMap.zyxBindAttributes.push({ node, attr: attr.name, data });
-                if (data && (data instanceof ZyXDynamicVar || data instanceof VarInterp))
-                    initialMap.zyxDynamicVars.push({ node, attr: attr.name, data });
+                if (data && data instanceof VarInterp) initialMap.zyxDynamicVars.push({ node, attr: attr.name, data });
             }
         }
 
@@ -333,8 +321,8 @@ export class ZyXHTML {
 
         for (const { node, dataValue } of this.#map.placeholders) {
             try {
-                if (dataValue instanceof ZyXDynamicVar || dataValue instanceof VarInterp) {
-                    dataValue.processDynamicVarAttributes(this, node, null);
+                if (dataValue instanceof VarInterp) {
+                    dataValue.createZyXHTMLReactiveNode(this, node, null);
                 } else {
                     node.replaceWith(makePlaceable(dataValue));
                 }

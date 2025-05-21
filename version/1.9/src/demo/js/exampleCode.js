@@ -1,7 +1,7 @@
-import { html, dynamicVar } from "zyX";
+import { html, LiveVar } from "zyX";
 
 // Create a reactive variable
-const count = dynamicVar(0);
+const count = LiveVar(0);
 
 // Create a component with template binding
 class Counter {

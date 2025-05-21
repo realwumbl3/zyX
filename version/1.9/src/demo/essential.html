@@ -52,7 +52,7 @@
       }
     </style>
     <script type="module" id="main_script">
-      import { html, dynamicVar } from "../../";
+      import { html, LiveVar } from "../../";
 
       import { CodePreview } from "./js/codePreview.js";
 
@@ -94,7 +94,7 @@
 
       class App {
         constructor() {
-          this.testDynamic = dynamicVar("initial value");
+          this.testDynamic = LiveVar("initial value");
 
           html`
           <div id="apptest" class="test-section">    

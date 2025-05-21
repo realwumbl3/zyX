@@ -1,4 +1,4 @@
-import { html, dynamicVar, clamp } from "../../../";
+import { html, LiveVar, clamp } from "../../../";
 
 function getSliderStyle(value, min, max) {
   const percent = getSliderPercentage(value, min, max);
@@ -12,16 +12,16 @@ function getSliderPercentage(value, min, max) {
 }
 
 class TransformControl {
-  constructor(key, dynamicVar, limit) {
+  constructor(key, LiveVar, limit) {
     this.key = key;
-    this.dynamicVar = dynamicVar;
+    this.LiveVar = LiveVar;
     this.limit = limit;
 
     html`
       <div class="control-group">
           <div class="main-controls">
             <h3>
-              ${this.key} <span class="value-separator">|</span> <span class="value-display">${this.dynamicVar}</span>
+              ${this.key} <span class="value-separator">|</span> <span class="value-display">${this.LiveVar}</span>
             </h3>
             <div class="slider-container">
               <input
@@ -29,12 +29,12 @@ class TransformControl {
                 min=${this.limit.min}
                 max=${this.limit.max}
                 step=${this.limit.step}
-                value=${this.dynamicVar}
+                value=${this.LiveVar}
                 zyx-input=${this.handleSliderChange.bind(this)}
                 zyx-change=${this.updateSliderBar.bind(this)}
                 />
                 <div this=slider_bar class="slider-bar"
-                  style="${getSliderStyle(this.dynamicVar.value, this.limit.min.value, this.limit.max.value)}"
+                  style="${getSliderStyle(this.LiveVar.value, this.limit.min.value, this.limit.max.value)}"
                 ></div>
             </div>
           </div>
@@ -69,44 +69,44 @@ class TransformControl {
   }
 
   updateSliderBar() {
-    const percent = clamp(getSliderPercentage(this.dynamicVar.value, this.limit.min.value, this.limit.max.value), 0, 100);
+    const percent = clamp(getSliderPercentage(this.LiveVar.value, this.limit.min.value, this.limit.max.value), 0, 100);
     this.slider_bar.style.setProperty("--slider-value", `${percent}%`);
   }
 
   handleSliderChange(z) {
-    this.dynamicVar.set(parseFloat(z.e.target.value));
+    this.LiveVar.set(parseFloat(z.e.target.value));
     this.updateSliderBar();
   }
 
   reset() {
-    this.dynamicVar.reset();
+    this.LiveVar.reset();
   }
 }
 
 class TransformControls {
   constructor() {
     this.dynamicVars = {
-      scale: dynamicVar(1.2),
-      rotateX: dynamicVar(15),
-      rotateY: dynamicVar(30),
-      rotateZ: dynamicVar(-20),
-      translateX: dynamicVar(1),
-      translateY: dynamicVar(1),
-      translateZ: dynamicVar(1),
-      originX: dynamicVar(50),
-      originY: dynamicVar(50),
+      scale: LiveVar(1.2),
+      rotateX: LiveVar(15),
+      rotateY: LiveVar(30),
+      rotateZ: LiveVar(-20),
+      translateX: LiveVar(1),
+      translateY: LiveVar(1),
+      translateZ: LiveVar(1),
+      originX: LiveVar(50),
+      originY: LiveVar(50),
     };
 
     this.limits = {
-      scale: { min: dynamicVar(0.5), max: dynamicVar(4), step: dynamicVar(0.01) },
-      rotateX: { min: dynamicVar(-180), max: dynamicVar(180), step: dynamicVar(1) },
-      rotateY: { min: dynamicVar(-180), max: dynamicVar(180), step: dynamicVar(1) },
-      rotateZ: { min: dynamicVar(-180), max: dynamicVar(180), step: dynamicVar(1) },
-      translateX: { min: dynamicVar(-100), max: dynamicVar(100), step: dynamicVar(1) },
-      translateY: { min: dynamicVar(-100), max: dynamicVar(100), step: dynamicVar(1) },
-      translateZ: { min: dynamicVar(-200), max: dynamicVar(200), step: dynamicVar(1) },
-      originX: { min: dynamicVar(0), max: dynamicVar(100), step: dynamicVar(1) },
-      originY: { min: dynamicVar(0), max: dynamicVar(100), step: dynamicVar(1) },
+      scale: { min: LiveVar(0.5), max: LiveVar(4), step: LiveVar(0.01) },
+      rotateX: { min: LiveVar(-180), max: LiveVar(180), step: LiveVar(1) },
+      rotateY: { min: LiveVar(-180), max: LiveVar(180), step: LiveVar(1) },
+      rotateZ: { min: LiveVar(-180), max: LiveVar(180), step: LiveVar(1) },
+      translateX: { min: LiveVar(-100), max: LiveVar(100), step: LiveVar(1) },
+      translateY: { min: LiveVar(-100), max: LiveVar(100), step: LiveVar(1) },
+      translateZ: { min: LiveVar(-200), max: LiveVar(200), step: LiveVar(1) },
+      originX: { min: LiveVar(0), max: LiveVar(100), step: LiveVar(1) },
+      originY: { min: LiveVar(0), max: LiveVar(100), step: LiveVar(1) },
     };
 
     /**
@@ -117,8 +117,8 @@ class TransformControls {
     html`
       <div class="transform-controls">
         <div this=menu class="control-group" 
-        zyx-insert-entries=${[this.dynamicVars, (z, key, dynamicVar) => {
-        return new TransformControl(key, dynamicVar, this.limits[key]);
+        zyx-insert-entries=${[this.dynamicVars, (z, key, LiveVar) => {
+        return new TransformControl(key, LiveVar, this.limits[key]);
       }, this.controls]}></div>
       </div>
     `.bind(this);

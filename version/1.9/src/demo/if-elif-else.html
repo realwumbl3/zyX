@@ -77,7 +77,7 @@
     </style>
 
     <script type="module" id="main_script">
-      import { html, dynamicVar } from "../../";
+      import { html, LiveVar } from "../../";
 
       import { CodePreview } from "./js/codePreview.js";
 
@@ -89,7 +89,7 @@
       class ConditionalDemo {
         constructor() {
           // Create a dynamic value for testing conditions
-          this.count = dynamicVar(3);
+          this.count = LiveVar(3);
 
           html`
             <div class="condition-demo">
