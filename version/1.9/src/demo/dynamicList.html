@@ -1,182 +1,187 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>zyX Library Tests - Dynamic List</title>
-    <link rel="stylesheet" href="./css/styles.css" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap"
-      rel="stylesheet"
-    />
-  </head>
-  <body>
-    <div class="container">
-      <a class="back-button" id="back-button" href="./index.html">Go Back</a>
-      <script src="./js/js.js"></script>
-      <h1 class="page-title">zyX Library Tests - Dynamic List</h1>
-      <div class="description">Dynamic list rendering and management</div>
-      <div id="app"></div>
-      <div id="code-example"></div>
-    </div>
+    <head>
+        <title>zyX Library Tests - Dynamic List</title>
+        <link rel="stylesheet" href="./css/styles.css" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap"
+            rel="stylesheet"
+        />
+    </head>
+    <body>
+        <div class="container">
+            <a class="back-button" id="back-button" href="./index.html">Go Back</a>
+            <script src="./js/js.js"></script>
+            <h1 class="page-title">zyX Library Tests - Dynamic List</h1>
+            <div class="description">Dynamic list rendering and management</div>
+            <div id="app"></div>
+            <div id="code-example"></div>
+        </div>
 
-    <style>
-      .test-heading {
-        color: var(--primary);
-        margin-bottom: var(--space-xl);
-        font-size: 1.75rem;
-      }
+        <style>
+            .test-heading {
+                color: var(--primary);
+                margin-bottom: var(--space-xl);
+                font-size: 1.75rem;
+            }
 
-      .test-value {
-        background: var(--bg-card);
-        padding: var(--space-lg);
-        border-radius: var(--space-md);
-        margin: var(--space-md) 0;
-        border: 1px solid var(--border-color);
-        transition: var(--transition-normal);
-      }
+            .test-value {
+                background: var(--bg-card);
+                padding: var(--space-lg);
+                border-radius: var(--space-md);
+                margin: var(--space-md) 0;
+                border: 1px solid var(--border-color);
+                transition: var(--transition-normal);
+            }
 
-      .test-value:hover {
-        border-color: var(--primary);
-        transform: translateX(4px);
-      }
+            .test-value:hover {
+                border-color: var(--primary);
+                transform: translateX(4px);
+            }
 
-      .test-element {
-        background: var(--bg-card);
-        padding: var(--space-lg);
-        border-radius: var(--space-md);
-        margin: var(--space-md) 0;
-        border: 1px solid var(--border-color);
-      }
+            .test-element {
+                background: var(--bg-card);
+                padding: var(--space-lg);
+                border-radius: var(--space-md);
+                margin: var(--space-md) 0;
+                border: 1px solid var(--border-color);
+            }
 
-      /* Dynamic List Styles */
-      .dynamic-list-container {
-        background: var(--bg-card);
-        padding: var(--space-xl);
-        border-radius: var(--space-lg);
-        margin: var(--space-xl) 0;
-        border: 1px solid var(--border-color);
-      }
+            /* Dynamic List Styles */
+            .dynamic-list-container {
+                background: var(--bg-card);
+                padding: var(--space-xl);
+                border-radius: var(--space-lg);
+                margin: var(--space-xl) 0;
+                border: 1px solid var(--border-color);
+            }
 
-      .dynamic-list-container .input-group {
-        display: flex;
-        flex-wrap: wrap;
-        gap: var(--space-sm);
-        margin: var(--space-xl) 0;
-        justify-content: center;
-      }
+            .dynamic-list-container .input-group {
+                display: flex;
+                flex-wrap: wrap;
+                gap: var(--space-sm);
+                margin: var(--space-xl) 0;
+                justify-content: center;
+            }
 
-      .dynamic-list-container .input-group .text-input {
-        flex: 2;
-        min-width: 200px;
-        max-width: 400px;
-      }
+            .dynamic-list-container .input-group .text-input {
+                flex: 2;
+                min-width: 200px;
+                max-width: 400px;
+            }
 
-      .dynamic-list-container .input-group .button,
-      .dynamic-list-container .input-group button {
-        flex: 1;
-        min-width: 120px;
-      }
+            .dynamic-list-container .input-group .button,
+            .dynamic-list-container .input-group button {
+                flex: 1;
+                min-width: 120px;
+            }
 
-      .list-item {
-        background: var(--bg-card-hover);
-        padding: var(--space-lg);
-        border-radius: var(--space-md);
-        margin: var(--space-sm) 0;
-        border: 1px solid var(--border-color);
-        transition: var(--transition-normal);
-        position: relative;
-        overflow: hidden;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        & > div.item-content {
-          flex: 1;
-        }
-        & > button {
-          max-width: 100px;
-        }
-      }
+            .list-item {
+                background: var(--bg-card-hover);
+                padding: var(--space-lg);
+                border-radius: var(--space-md);
+                margin: var(--space-sm) 0;
+                border: 1px solid var(--border-color);
+                transition: var(--transition-normal);
+                position: relative;
+                overflow: hidden;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                & > div.item-content {
+                    flex: 1;
+                }
+                & > button {
+                    max-width: 100px;
+                }
+            }
 
-      .list-item::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(45deg, transparent, var(--primary-alpha));
-        opacity: 0;
-        transition: var(--transition-normal);
-      }
+            .list-item::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(45deg, transparent, var(--primary-alpha));
+                opacity: 0;
+                transition: var(--transition-normal);
+            }
 
-      .list-item:hover {
-        border-color: var(--primary);
-        transform: translateX(4px);
-      }
+            .list-item:hover {
+                border-color: var(--primary);
+                transform: translateX(4px);
+            }
 
-      .list-item:hover::before {
-        opacity: 1;
-      }
-    </style>
+            .list-item:hover::before {
+                opacity: 1;
+            }
+        </style>
 
-    <script type="module" id="main_script">
-      import { html, LiveList } from "../../";
+        <script type="module" id="main_script">
+            import { html, LiveList } from "../../";
 
-      import { CodePreview } from "./js/codePreview.js";
+            import { CodePreview } from "./js/codePreview.js";
 
-      const codePreview = new CodePreview();
-      codePreview.appendTo(document.getElementById("code-example"));
+            const codePreview = new CodePreview();
+            codePreview.appendTo(document.getElementById("code-example"));
 
-      await codePreview.updateCode(document.getElementById("main_script"));
+            await codePreview.updateCode(document.getElementById("main_script"));
 
-      const testDynamicList = new LiveList(JSON.parse(localStorage.getItem("testDynamicList") || "[]"));
-      testDynamicList.addListener((list) => localStorage.setItem("testDynamicList", JSON.stringify(list)));
+            const testDynamicList = new LiveList(JSON.parse(localStorage.getItem("testDynamicList") || "[]"));
+            testDynamicList.subscribe((list) => localStorage.setItem("testDynamicList", JSON.stringify(list)));
 
-      class TestDynamicList {
-        constructor() {
-          html`
-            <div class="dynamic-list-container">
-              <div
-                zyx-live-list=${{
-                  list: testDynamicList,
-                  compose: (item) => html`
-                    <div class="list-item">
-                      <div class="item-content">${item.name}</div>
-                      <button class="button button-danger" zyx-click=${() => testDynamicList.remove(item)}>
-                        Remove
-                      </button>
-                    </div>
-                  `,
-                  range: [0, 100],
-                  offset: 0,
-                  debounce: 100,
-                }}
-              ></div>
+            class TestDynamicList {
+                constructor() {
+                    html`
+                        <div class="dynamic-list-container">
+                            <div
+                                zyx-live-list=${{
+                                    list: testDynamicList,
+                                    compose: (item) => html`
+                                        <div class="list-item">
+                                            <div class="item-content">${item.name}</div>
+                                            <button
+                                                class="button button-danger"
+                                                zyx-click=${() => testDynamicList.remove(item)}
+                                            >
+                                                Remove
+                                            </button>
+                                        </div>
+                                    `,
+                                    range: [0, 100],
+                                    offset: 0,
+                                    debounce: 100,
+                                }}
+                            ></div>
 
-              <div class="input-group">
-                <input
-                  class="text-input"
-                  this="input"
-                  type="text"
-                  placeholder="Enter item name"
-                  zyx-enter=${this.handleSubmit}
-                />
-                <button class="button" zyx-click=${this.handleSubmit}>Add Item</button>
-                <button class="button button-danger" zyx-click=${() => testDynamicList.clear()}>Clear List</button>
-              </div>
-            </div>
-          `.bind(this);
-        }
+                            <div class="input-group">
+                                <input
+                                    class="text-input"
+                                    this="input"
+                                    type="text"
+                                    placeholder="Enter item name"
+                                    zyx-enter=${this.handleSubmit}
+                                />
+                                <button class="button" zyx-click=${this.handleSubmit}>Add Item</button>
+                                <button class="button button-danger" zyx-click=${() => testDynamicList.clear()}>
+                                    Clear List
+                                </button>
+                            </div>
+                        </div>
+                    `.bind(this);
+                }
 
-        handleSubmit = (z) => {
-          testDynamicList.push({ name: this.input.value });
-          this.input.value = "";
-        };
-      }
+                handleSubmit = (z) => {
+                    testDynamicList.push({ name: this.input.value });
+                    this.input.value = "";
+                };
+            }
 
-      window.app = new TestDynamicList().place(document.getElementById("app"));
-      document.body.classList.add("loaded");
-    </script>
-  </body>
+            window.app = new TestDynamicList().place(document.getElementById("app"));
+            document.body.classList.add("loaded");
+        </script>
+    </body>
 </html>

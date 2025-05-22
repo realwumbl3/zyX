@@ -1,7 +1,7 @@
 import { html, LiveVar } from "zyX";
 
 // Create a reactive variable
-const count = LiveVar(0);
+const count = new LiveVar(0);
 
 // Create a component with template binding
 class Counter {
@@ -10,7 +10,7 @@ class Counter {
     html`
       <div class="counter">
         <h2 this="title">Counter Example</h2>
-        <p>Current count: ${count}</p>
+        <p>Current count: ${count.interp()}</p>
         <button zyx-click=${() => count.set(count.value + 1)}>Increment</button>
         <button zyx-click=${() => count.set(0)}>Reset</button>
       </div>
