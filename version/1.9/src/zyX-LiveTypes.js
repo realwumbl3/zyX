@@ -245,6 +245,11 @@ export class LiveVar {
 
 const RefWeakMap = new WeakMap();
 
+function getNodeCallbackRefs(node) {
+    if (!RefWeakMap.has(node)) RefWeakMap.set(node, []);
+    return RefWeakMap.get(node);
+}
+
 export class EventSubscriber {
     constructor() {
         this.subscribers = new WeakRefSet();
@@ -259,7 +264,7 @@ export class EventSubscriber {
         if (typeof callback !== "function") {
             throw new TypeError("Callback must be a function");
         }
-        if (ref) RefWeakMap.set(ref, callback);
+        if (ref) getNodeCallbackRefs(ref).push(callback);
         this.subscribers.add(callback);
         return () => this.unsubscribe(callback); // Return unsubscribe function
     }

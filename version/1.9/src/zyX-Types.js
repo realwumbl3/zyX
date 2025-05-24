@@ -72,9 +72,8 @@ export class WeakRefSet extends Set {
         if (typeof callback !== "function") {
             throw new TypeError("Callback must be a function");
         }
-        for (const weakRef of super.values()) {
-            const ref = weakRef.deref();
-            if (ref !== undefined) callback(ref);
+        for (const weakRef of this.get()) {
+            callback(weakRef);
         }
     }
 
@@ -104,9 +103,7 @@ export class WeakRefSet extends Set {
             throw new TypeError("Cannot singleize with null or undefined reference");
         }
         for (const weakRef of super.values()) {
-            if (weakRef.deref() !== ref) {
-                super.delete(weakRef);
-            }
+            if (weakRef.deref() !== ref) super.delete(weakRef);
         }
     }
 
