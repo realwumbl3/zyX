@@ -31,8 +31,6 @@ export default class ZyXAudio {
         this.isChangingBackgroundMusic = false;  // Flag to track if we're in the middle of changing music
         this.filters = null;
         this.filtersEnabled = false;
-
-        console.log("ZyXAudio initialized", this);
     }
 
     /**

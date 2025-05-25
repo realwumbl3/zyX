@@ -6,8 +6,6 @@
  * @param {Function} callback
  */
 export default function displayAnimation(element, animationName, animationArgs, targetDisplay, callback) {
-    console.log("displayAnimation", { element, animationName, animationArgs, targetDisplay, callback });
-
     const onEnd = (e) => {
         if (e.animationName === animationName) {
             if (targetDisplay === "none") {
@@ -24,6 +22,3 @@ export default function displayAnimation(element, animationName, animationArgs, 
     element.style.animation = `${animationName} ${animationArgs}`;
     element.addEventListener("animationend", onEnd);
 }
-
-// displayAnimation(element, "fade_in_animation", "grid");
-// displayAnimation(element, "fade_out_animation", "none");

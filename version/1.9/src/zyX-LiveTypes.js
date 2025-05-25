@@ -225,6 +225,17 @@ export class LiveVar {
     }
 
     /**
+     * Toggle the value between true and false
+     * @returns {LiveVar} The LiveVar instance
+     */
+    toggle() {
+        const val = this.get();
+        if (typeof val === "boolean") this.set(!val);
+        else throw new TypeError("LiveVar.toggle() only works for Booleans");
+        return this;
+    }
+
+    /**
      * Set a new value and notify subscribers
      * @param {*} newValue - The new value to set
      */
