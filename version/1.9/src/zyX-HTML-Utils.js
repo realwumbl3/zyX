@@ -3,9 +3,9 @@
  * @returns {Element}
  */
 export function innerHTML(markup) {
-  const markupContent = document.createElement("div");
-  markupContent.innerHTML = markup;
-  return markupContent;
+    const markupContent = document.createElement("div");
+    markupContent.innerHTML = markup;
+    return markupContent;
 }
 
 /**
@@ -13,9 +13,9 @@ export function innerHTML(markup) {
  * @returns {Element}
  */
 export function wrapInTemplate(markup) {
-  const asHTMLTemplate = document.createElement("template");
-  asHTMLTemplate.content.append(...markup.childNodes);
-  return asHTMLTemplate;
+    const asHTMLTemplate = document.createElement("template");
+    asHTMLTemplate.content.append(...markup.childNodes);
+    return asHTMLTemplate;
 }
 
 /**
@@ -27,10 +27,10 @@ export function wrapInTemplate(markup) {
  * @returns {void}
  */
 export function placer(what, where) {
-  if (typeof where === "object") return where.replaceWith(what);
-  const placeTarget = document.querySelector(`ph[${where}]`);
-  if (placeTarget) placeTarget.replaceWith(what);
-  else throw new Error(`${where} not found`);
+    if (typeof where === "object") return where.replaceWith(what);
+    const placeTarget = document.querySelector(`ph[${where}]`);
+    if (placeTarget) placeTarget.replaceWith(what);
+    else throw new Error(`${where} not found`);
 }
 
 /**
@@ -43,7 +43,7 @@ export const placeholdTag = "zyx-ph";
  * @returns {string}
  */
 export function strPlaceholder(key) {
-  return `<${placeholdTag} id='${key}'></${placeholdTag}>`;
+    return `<${placeholdTag} id='${key}'></${placeholdTag}>`;
 }
 
 /**
@@ -56,8 +56,8 @@ export const placeholderRegex = new RegExp(`(${strPlaceholder("\\d+")})`, "g");
  * @returns {string}
  */
 export function getPlaceholderID(markup) {
-  const match = markup.match(/id='(.*?)'/);
-  return match?.length > 0 ? match[1] : null;
+    const match = markup.match(/id='(.*?)'/);
+    return match?.length > 0 ? match[1] : null;
 }
 
 /**
@@ -65,25 +65,34 @@ export function getPlaceholderID(markup) {
  * @returns {Element}
  */
 export function trimTextNodes(dom) {
-  // remove first and last child if they are empty text nodes
-  const nodes = dom.childNodes;
-  for (let i = 0; i < 2; i++) {
-    if (!nodes[i]) continue;
-    if (nodes[i].nodeType === 3 && nodes[i].textContent.trim() === "") {
-      dom.removeChild(nodes[i]);
+    // remove first and last child if they are empty text nodes
+    const nodes = dom.childNodes;
+    for (let i = 0; i < 2; i++) {
+        if (!nodes[i]) continue;
+        if (nodes[i].nodeType === 3 && nodes[i].textContent.trim() === "") {
+            dom.removeChild(nodes[i]);
+        }
     }
-  }
-  return dom;
+    return dom;
 }
-
 
 // Convert markup strings to HTML elements.
 // Returns an array of all the created elements.
 export function getTopLevelElements(htmlString) {
-  // Create a temporary container
-  const container = document.createElement("div");
-  container.innerHTML = htmlString.trim();
+    // Create a temporary container
+    const container = document.createElement("div");
+    container.innerHTML = htmlString.trim();
 
-  // Convert the top-level child nodes to an array
-  return Array.from(container.children);
+    // Convert the top-level child nodes to an array
+    return Array.from(container.children);
+}
+
+/**
+ * Inserts a node after a reference node
+ * @param {Element} newNode
+ * @param {Element} referenceNode
+ * @returns {void}
+ */
+export function insertAfter(newNode, referenceNode) {
+    referenceNode.parentNode.insertBefore(newNode, referenceNode.nextSibling);
 }

@@ -29,12 +29,19 @@ export function setProps(that, props) {
  * @param {Element} container - The container element
  * @param {number} x - X coordinate (negative values position from right)
  * @param {number} y - Y coordinate (negative values position from bottom)
+ * @param {boolean} offSetCursorCords - Whether to offset the cursor cords by the container bounds (default: true)
  * @param {string} unit - CSS unit to use (default: "em")
  */
-export async function placeSafely(target, container, x, y, unit = "em") {
-    container.appendChild(target);
+export async function placeSafely(target, container, x, y, offSetCursorCords, unit) {
+    unit = unit || "em";
+    if (offSetCursorCords) {
+        const containerBounds = container.getBoundingClientRect();
+        x = x - containerBounds.left;
+        y = y - containerBounds.top;
+    }
     target.style[y >= 0 ? "top" : "bottom"] = `${Math.abs(y)}${unit}`;
     target.style[x >= 0 ? "left" : "right"] = `${Math.abs(x)}${unit}`;
+    container.appendChild(target);
     await sleep(1);
     const { offsetWidth: targetWidth, offsetHeight: targetHeight } = target;
     const { offsetWidth: containerWidth, offsetHeight: containerHeight } = container;

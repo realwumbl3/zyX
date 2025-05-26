@@ -12,7 +12,7 @@
 // Core imports
 // HTML
 import html, { ZyXHTML, makePlaceable } from "./src/zyX-HTML.js";
-import { getTopLevelElements } from "./src/zyX-HTML-Utils.js";
+import { getTopLevelElements, insertAfter } from "./src/zyX-HTML-Utils.js";
 
 // CSS
 import css, { zyxcss } from "./src/zyX-CSS.js";
@@ -101,6 +101,7 @@ export {
     makePlaceable,
     // HTML utils
     getTopLevelElements,
+    insertAfter,
     // CSS
     css,
     zyxcss,

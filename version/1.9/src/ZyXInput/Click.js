@@ -80,10 +80,6 @@ export function clickOne(element, args) {
         label = "click",
     } = args;
     const func = (dwn_e) => {
-        if (!(typeof onClick === "function")) {
-            throw new Error("[ZyXInput] onClick required for ClickOne");
-        }
-
         // Handle event propagation
         stopPropagation && dwn_e.stopPropagation();
         stopImmediatePropagation && dwn_e.stopImmediatePropagation();
@@ -95,29 +91,31 @@ export function clickOne(element, args) {
         const b4 = this.beforePointerEvent("clickone", dwn_e);
         if (!b4) return;
 
-        // Call onDown callback if provided
-        const down_return = onDown?.(dwn_e);
-
-        // Store initial click position and target
-        const { clientX, clientY, target } = dwn_e;
-
         // Create event fuse for tracking
         const eventFuse = new Fuse(true, { label });
         this.activeEvents.add(eventFuse);
 
+        // Call onDown callback if provided
+        const down_return = onDown?.({ dwn_e, kingOfTheStack: (_) => this.kingOfTheStack(eventFuse) });
+
+        // Store initial click position and target
+        const { clientX, clientY, target } = dwn_e;
+
         // Set up move detection
         const { check } = this.moveTripper({ startX: clientX, startY: clientY });
 
-        // Handle pointer up
-        element.addEventListener(
-            "pointerup",
-            (up_e) => {
-                if (!check(up_e) && eventFuse.true && up_e.target === target) {
-                    this.kingOfTheStack(eventFuse, () => onClick({ dwn_e, up_e, down_return, eventFuse }, b4));
-                }
-            },
-            { once: true }
-        );
+        if (onClick) {
+            // Handle pointer up
+            element.addEventListener(
+                "pointerup",
+                (up_e) => {
+                    if (!check(up_e) && eventFuse.true && up_e.target === target) {
+                        this.kingOfTheStack(eventFuse, () => onClick({ dwn_e, up_e, down_return, eventFuse }, b4));
+                    }
+                },
+                { once: true }
+            );
+        }
     };
 
     // Set up event listeners
