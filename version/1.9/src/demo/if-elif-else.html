@@ -1,138 +1,154 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>zyX Library Tests - Conditional</title>
-    <link rel="stylesheet" href="./css/styles.css" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap"
-      rel="stylesheet"
-    />
-  </head>
-  <body>
-    <div class="container">
-      <a class="back-button" id="back-button" href="./index.html">Go Back</a>
-      <script src="./js/js.js"></script>
-      <h1 class="page-title">zyX Library Tests - Conditional</h1>
-      <div class="description">Conditional rendering and logic handling</div>
+    <head>
+        <title>zyX Library Tests - Conditional</title>
+        <link rel="stylesheet" href="./css/styles.css" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap"
+            rel="stylesheet"
+        />
+    </head>
+    <body>
+        <div class="container">
+            <a class="back-button" id="back-button" href="./index.html">Go Back</a>
+            <script src="./js/js.js"></script>
+            <h1 class="page-title">zyX Library Tests - Conditional</h1>
+            <div class="description">Conditional rendering and logic handling</div>
 
-      <div id="app"></div>
+            <div id="app"></div>
 
-      <h1>This file's code:</h1>
-      <div id="code-example"></div>
-    </div>
-    <style>
-      /* Condition Demo Styles */
-      .condition-demo {
-        background: var(--bg-card);
-        padding: var(--space-xl);
-        border-radius: var(--space-lg);
-        margin: var(--space-xl) 0;
-        border: 1px solid var(--border-color);
-      }
+            <h1>This file's code:</h1>
+            <div id="code-example"></div>
+        </div>
+        <style>
+            /* Condition Demo Styles */
+            .condition-demo {
+                background: var(--bg-card);
+                padding: var(--space-xl);
+                border-radius: var(--space-lg);
+                margin: var(--space-xl) 0;
+                border: 1px solid var(--border-color);
+            }
 
-      .value-display {
-        font-size: 1.5rem;
-        color: var(--primary);
-        margin: var(--space-lg) 0;
-        text-align: center;
-        font-weight: 500;
-      }
+            .value-display {
+                font-size: 1.5rem;
+                color: var(--primary);
+                margin: var(--space-lg) 0;
+                text-align: center;
+                font-weight: 500;
+            }
 
-      /* Condition Blocks */
-      .condition-block {
-        padding: var(--space-lg);
-        border-radius: var(--space-md);
-        margin: var(--space-sm) 0;
-        border: 1px solid var(--color);
-        color: var(--color);
-        background: var(--bg-card);
-        transition: var(--transition-normal);
-        position: relative;
-        overflow: hidden;
-      }
+            /* Condition Blocks */
+            .condition-block {
+                padding: var(--space-lg);
+                border-radius: var(--space-md);
+                margin: var(--space-sm) 0;
+                border: 1px solid var(--color);
+                color: var(--color);
+                background: var(--bg-card);
+                transition: var(--transition-normal);
+                position: relative;
+                overflow: hidden;
+            }
 
-      .condition-block::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(45deg, transparent, color-mix(in srgb, var(--color) 10%, transparent));
-        opacity: 0;
-        transition: var(--transition-normal);
-      }
+            .condition-block::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(45deg, transparent, color-mix(in srgb, var(--color) 10%, transparent));
+                opacity: 0;
+                transition: var(--transition-normal);
+            }
 
-      .condition-block:hover::before {
-        opacity: 1;
-      }
+            .condition-block:hover::before {
+                opacity: 1;
+            }
 
-      .condition-blocks {
-        display: grid;
-        gap: var(--space-md);
-        margin: var(--space-xl) 0;
-      }
-    </style>
+            .condition-blocks {
+                display: grid;
+                gap: var(--space-md);
+                margin: var(--space-xl) 0;
+            }
+        </style>
 
-    <script type="module" id="main_script">
-      import { html, LiveVar } from "../../";
+        <script type="module" id="main_script">
+            import { html, LiveVar } from "../../";
 
-      import { CodePreview } from "./js/codePreview.js";
+            import { CodePreview } from "./js/codePreview.js";
 
-      const codePreview = new CodePreview();
-      codePreview.appendTo(document.getElementById("code-example"));
+            const codePreview = new CodePreview();
+            codePreview.appendTo(document.getElementById("code-example"));
 
-      await codePreview.updateCode(document.getElementById("main_script"));
+            await codePreview.updateCode(document.getElementById("main_script"));
 
-      class ConditionalDemo {
-        constructor() {
-          // Create a dynamic value for testing conditions
-          this.count = new LiveVar(3);
+            class ConditionalDemo {
+                constructor() {
+                    // Create a dynamic value for testing conditions
+                    this.count = new LiveVar(3);
 
-          html`
-            <div class="condition-demo">
-              <h1>zyX Conditional Rendering Test</h1>
+                    html`
+                        <div class="condition-demo">
+                            <h1>zyX Conditional Rendering Test</h1>
 
-              <div class="value-display">Current value: ${this.count}</div>
-              <div>
-                <button zyx-click="${() => this.count.set(Math.max(this.count.value - 1, 0))}">Decrement</button>
-                <button zyx-click="${() => this.count.set(this.count.value + 1)}">Increment</button>
-                <button zyx-click="${() => this.count.set(3)}">Reset to 3</button>
-              </div>
+                            <div class="value-display">Current value: ${this.count.interp()}</div>
+                            <div>
+                                <button zyx-click="${() => this.count.set(Math.max(this.count.value - 1, 0))}">
+                                    Decrement
+                                </button>
+                                <button zyx-click="${() => this.count.set(this.count.value + 1)}">Increment</button>
+                                <button zyx-click="${() => this.count.set(3)}">Reset to 3</button>
+                            </div>
 
-              <h2>Conditional Blocks:</h2>
-              <div class="condition-blocks">
-                <div zyx-if=${[this.count, (v) => v > 3]} class="condition-block" style="--color: #4caf50;">
-                  This block is shown when value is greater than 3 (current: ${this.count})
-                </div>
+                            <h2>Conditional Blocks:</h2>
+                            <div class="condition-blocks">
+                                <div
+                                    zyx-if=${[this.count, (v) => v > 3]}
+                                    class="condition-block"
+                                    style="--color: #4caf50;"
+                                >
+                                    This block is shown when value is greater than 3 (current: ${this.count.interp()})
+                                </div>
 
-                <div zyx-elif=${[this.count, (v) => v == 3]} class="condition-block" style="--color: #66d9ef;">
-                  This block is shown when value is equal to 3 (current: ${this.count})
-                </div>
+                                <div
+                                    zyx-elif=${[this.count, (v) => v == 3]}
+                                    class="condition-block"
+                                    style="--color: #66d9ef;"
+                                >
+                                    This block is shown when value is equal to 3 (current: ${this.count.interp()})
+                                </div>
 
-                <div zyx-else class="condition-block" style="--color: #f1c40f;">
-                  This block is shown when value is less than 3 (current: ${this.count})
-                </div>
-              </div>
+                                <div zyx-else class="condition-block" style="--color: #f1c40f;">
+                                    This block is shown when value is less than 3 (current: ${this.count.interp()})
+                                </div>
+                            </div>
 
-              <h2>Multiple Conditional Examples:</h2>
-              <div class="condition-blocks">
-                <div zyx-if=${[this.count, (v) => v % 2 === 0]} class="condition-block" style="--color: #cc99cd;">
-                  This value is even: ${this.count}
-                </div>
-                <div zyx-else class="condition-block" style="--color: #ff9966;">This value is odd: ${this.count}</div>
-              </div>
-            </div>
-          `
-            .bind(this)
-            .place(document.getElementById("app"));
-        }
-      }
+                            <h2>Multiple Conditional Examples:</h2>
+                            <div class="condition-blocks">
+                                <div
+                                    zyx-if=${[this.count, (v) => v % 2 === 0]}
+                                    class="condition-block"
+                                    style="--color: #cc99cd;"
+                                >
+                                    This value is even: ${this.count.interp()}
+                                </div>
+                                <div zyx-else class="condition-block" style="--color: #ff9966;">
+                                    This value is odd: ${this.count.interp()}
+                                </div>
+                            </div>
+                        </div>
+                    `
+                        .bind(this)
+                        .place(document.getElementById("app"));
+                }
+            }
 
-      const demo = new ConditionalDemo();
-      document.body.classList.add("loaded");
-    </script>
-  </body>
+            const demo = new ConditionalDemo();
+            document.body.classList.add("loaded");
+        </script>
+    </body>
 </html>

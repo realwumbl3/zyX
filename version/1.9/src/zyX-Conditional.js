@@ -1,4 +1,4 @@
-// Map to store conditional groups
+// Map to store conditional groups - now keyed by the if element
 const conditionalGroups = new WeakMap();
 
 /**
@@ -9,8 +9,8 @@ export class ConditionalGroup {
     #conditions = [];
     #activeElement = null;
 
-    constructor(container) {
-        conditionalGroups.set(container, this);
+    constructor(ifElement) {
+        conditionalGroups.set(ifElement, this);
     }
 
     /**
@@ -86,25 +86,56 @@ export class ConditionalGroup {
 }
 
 /**
- * Get or create a conditional group for a container
+ * Find the most recent zyx-if sibling that precedes the given element
+ * @param {HTMLElement} element - The element to search backwards from
+ * @returns {HTMLElement|null} - The preceding zyx-if element or null
  */
-export function getConditionalGroup(container) {
-    let group = conditionalGroups.get(container);
+function findPrecedingIfElement(element) {
+    let currentElement = element.previousElementSibling;
+
+    while (currentElement) {
+        if (currentElement.hasAttribute("zyx-if")) {
+            return currentElement;
+        }
+        currentElement = currentElement.previousElementSibling;
+    }
+
+    return null;
+}
+
+/**
+ * Get or create a conditional group for an if element
+ * @param {HTMLElement} ifElement - The zyx-if element that starts the group
+ * @returns {ConditionalGroup} - The conditional group
+ */
+export function getConditionalGroup(ifElement) {
+    let group = conditionalGroups.get(ifElement);
     if (!group) {
-        group = new ConditionalGroup(container);
+        group = new ConditionalGroup(ifElement);
     }
     return group;
+}
+
+/**
+ * Get the conditional group for an elif or else element by finding its corresponding if
+ * @param {HTMLElement} element - The zyx-elif or zyx-else element
+ * @returns {ConditionalGroup|null} - The conditional group or null if no if found
+ */
+function getConditionalGroupForElseIf(element) {
+    const ifElement = findPrecedingIfElement(element);
+    if (!ifElement) {
+        console.warn("zyx-elif or zyx-else found without a preceding zyx-if:", element);
+        return null;
+    }
+    return getConditionalGroup(ifElement);
 }
 
 /**
  * Process zyx-if attribute
  */
 export function processIf({ node, data, zyxhtml }) {
-    // Extract the parent element to use as container
-    const parent = node.parentElement;
-
-    // Get or create conditional group
-    const group = getConditionalGroup(parent);
+    // Create a new conditional group for this if element
+    const group = getConditionalGroup(node);
 
     // Process condition data
     const [reactive, predicate] = Array.isArray(data) ? data : [data, null];
@@ -120,11 +151,12 @@ export function processIf({ node, data, zyxhtml }) {
  * Process zyx-else-if attribute
  */
 export function processElseIf({ node, data, zyxhtml }) {
-    // Extract the parent element to use as container
-    const parent = node.parentElement;
+    // Find the conditional group from the preceding zyx-if
+    const group = getConditionalGroupForElseIf(node);
 
-    // Get conditional group (should already exist from a preceding if)
-    const group = getConditionalGroup(parent);
+    if (!group) {
+        return; // Warning already logged in getConditionalGroupForElseIf
+    }
 
     // Process condition data
     const [reactive, predicate] = Array.isArray(data) ? data : [data, null];
@@ -140,11 +172,12 @@ export function processElseIf({ node, data, zyxhtml }) {
  * Process zyx-else attribute
  */
 export function processElse({ node, data, zyxhtml }) {
-    // Extract the parent element to use as container
-    const parent = node.parentElement;
+    // Find the conditional group from the preceding zyx-if
+    const group = getConditionalGroupForElseIf(node);
 
-    // Get conditional group (should already exist from a preceding if)
-    const group = getConditionalGroup(parent);
+    if (!group) {
+        return; // Warning already logged in getConditionalGroupForElseIf
+    }
 
     // Add to conditional group as an else block
     group.addCondition(node, {

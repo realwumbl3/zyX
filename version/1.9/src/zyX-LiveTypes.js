@@ -20,8 +20,20 @@ export class LiveList extends Array {
         this.#eventListeners = new EventSubscriber();
     }
 
+    fill(length, callback) {
+        for (let i = 0; i < length; i++) {
+            super.push(callback(i));
+        }
+        this.callListeners("fill");
+        return this;
+    }
+
     interp(callback) {
         return new LiveInterp(this, callback);
+    }
+
+    contentInterp(callback) {
+        return new LiveInterp(this, callback, "html");
     }
 
     get value() {
@@ -205,7 +217,16 @@ export class LiveVar {
      * @returns {VarInterp} The reactive variable
      */
     interp(callback) {
-        return new LiveInterp(this, callback);
+        return new LiveInterp(this, callback, "text");
+    }
+
+    /**
+     * Create a new reactive variable with interpolation
+     * @param {Function} callback - The callback function to call when value changes
+     * @returns {VarInterp} The reactive variable
+     */
+    contentInterp(callback) {
+        return new LiveInterp(this, callback, "html");
     }
 
     /**
@@ -243,6 +264,16 @@ export class LiveVar {
         if (newValue === this.value) return;
         this.value = newValue;
         this.eventListeners.notifySubscribers(this.value);
+    }
+
+    /**
+     * Set a new value if the current value is the default value/null/undefined or the same as the default value
+     * @param {*} defaultVal - The default value
+     * @param {*} newValue - The new value to set
+     */
+    default(defaultVal, newValue) {
+        if (this.value === undefined || this.value === null || this.value === defaultVal) this.set(newValue);
+        return this;
     }
 
     /**

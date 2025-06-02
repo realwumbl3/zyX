@@ -15,6 +15,9 @@
  * @returns {Promise<Response>} The response from the server
  */
 export function postData(url, data, options = {}) {
+    if (options.form) {
+        return postForm(url, data, options);
+    }
     return fetch(url, {
         headers: new Headers({ "Content-Type": "application/json" }),
         method: "POST",

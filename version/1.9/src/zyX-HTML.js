@@ -20,6 +20,8 @@ import { LiveInterp } from "./zyX-LiveInterp.js";
 
 import { LegacyShadowRoot } from "./zyX-Shadowroot.js";
 
+const REMOVE_ATTRIBUTES = ["this", "push", "ph"];
+
 /**
  * @typedef {Object} TagExpressionData
  * @property {*} value - The actual value to be inserted
@@ -386,14 +388,12 @@ export class ZyXHTML {
      * @param {string} keyname - The key name(s) to assign the node to
      */
     pushAssigner(node, keyname) {
-        console.log("pushAssigner", keyname, this[keyname]);
         if (!this[keyname]) this[keyname] = [];
         this[keyname].push(node);
         if (this.#mutable) {
             if (!this.#mutable[keyname]) this.#mutable[keyname] = [];
             this.#mutable[keyname].push(node);
         }
-        console.log("pushAssigner", { keyname, this: this, mutable: this.#mutable });
     }
 
     /**
@@ -404,8 +404,9 @@ export class ZyXHTML {
      * @param {string} [value] - Optional value to store
      */
     markAttributeProcessed(node, attr, value) {
-        node.removeAttribute(attr);
-        node.setAttribute(`${attr}-processed`, value || "");
+        if (REMOVE_ATTRIBUTES.includes(attr)) node.removeAttribute(attr);
+        else node.setAttribute(`${attr}-processed`, value || "");
+        node.setAttribute(attr, "");
     }
 
     /**
