@@ -1,102 +1,102 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>zyX Library Tests - Essential</title>
-    <link rel="stylesheet" href="./css/styles.css" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap"
-      rel="stylesheet"
-    />
+    <head>
+        <title>zyX Library Tests - Essential</title>
+        <link rel="stylesheet" href="./css/styles.css" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap"
+            rel="stylesheet"
+        />
     </head>
     <body>
-    <div class="container">
-      <a class="back-button" id="back-button" href="./index.html">Go Back</a>
-      <script src="./js/js.js"></script>
-      <h1 class="page-title">zyX Library Tests - Essential</h1>
-      <div class="description">Basic functionality, bindings, and attribute handling</div>
-      <div id="app"></div>
-      <div id="code-example"></div>
-    </div>
-    <style>
-      /* Test Components */
-      .test-container {
-        background: var(--bg-card);
-        border: 1px solid var(--primary);
-        padding: var(--space-xl);
-        border-radius: var(--space-lg);
-        margin: var(--space-xl) 0;
-      }
+        <div class="container">
+            <a class="back-button" id="back-button" href="./index.html">Go Back</a>
+            <script src="./js/js.js"></script>
+            <h1 class="page-title">zyX Library Tests - Essential</h1>
+            <div class="description">Basic functionality, bindings, and attribute handling</div>
+            <div id="app"></div>
+            <div id="code-example"></div>
+        </div>
+        <style>
+            /* Test Components */
+            .test-container {
+                background: var(--bg-card);
+                border: 1px solid var(--primary);
+                padding: var(--space-xl);
+                border-radius: var(--space-lg);
+                margin: var(--space-xl) 0;
+            }
 
-      .test-section {
-        background: var(--bg-card);
-        padding: var(--space-xl);
-        border-radius: var(--space-lg);
-        margin: var(--space-xl) 0;
-        border: 1px solid var(--border-color);
-      }
+            .test-section {
+                background: var(--bg-card);
+                padding: var(--space-xl);
+                border-radius: var(--space-lg);
+                margin: var(--space-xl) 0;
+                border: 1px solid var(--border-color);
+            }
 
-      .test-value {
-        background: var(--bg-card);
-        padding: var(--space-lg);
-        border-radius: var(--space-md);
-        margin: var(--space-md) 0;
-        border: 1px solid var(--border-color);
-        transition: var(--transition-normal);
-      }
+            .test-value {
+                background: var(--bg-card);
+                padding: var(--space-lg);
+                border-radius: var(--space-md);
+                margin: var(--space-md) 0;
+                border: 1px solid var(--border-color);
+                transition: var(--transition-normal);
+            }
 
-      .test-value:hover {
-        border-color: var(--primary);
-        transform: translateX(4px);
-      }
-    </style>
-    <script type="module" id="main_script">
-      import { html, LiveVar } from "../../";
+            .test-value:hover {
+                border-color: var(--primary);
+                transform: translateX(4px);
+            }
+        </style>
+        <script type="module" id="main_script">
+            import { html, LiveVar } from "../../";
 
-      import { CodePreview } from "./js/codePreview.js";
+            import { CodePreview } from "./js/codePreview.js";
 
-      const codePreview = new CodePreview();
-      codePreview.appendTo(document.getElementById("code-example"));
+            const codePreview = new CodePreview();
+            codePreview.appendTo(document.getElementById("code-example"));
 
-      await codePreview.updateCode(document.getElementById("main_script"));
+            await codePreview.updateCode(document.getElementById("main_script"));
 
-      class TestParentClass {
-        constructor() {
-          html`
-            <div class="test-container">
-              <h2>Test ZyX Binded Parent Class</h2>
-              <div this="test_container" class="test-container" test-container></div>
-            </div>
-          `.bind(this);
-        }
-      }
+            class TestParentClass {
+                constructor() {
+                    html`
+                        <div class="test-container">
+                            <h2>Test ZyX Binded Parent Class</h2>
+                            <div this="test_container" class="test-container" test-container></div>
+                        </div>
+                    `.bind(this);
+                }
+            }
 
-      class TestChildClass extends TestParentClass {
-        constructor() {
-          super();
-          html` <h2>Test ZyX Joined Child Class</h2> `.join(this).appendTo(this.test_container);
-        }
-      }
+            class TestChildClass extends TestParentClass {
+                constructor() {
+                    super();
+                    html` <h2>Test ZyX Joined Child Class</h2> `.join(this).appendTo(this.test_container);
+                }
+            }
 
-      const div = document.createElement("div");
-      div.id = "test";
-      div.textContent = "Native div";
-      div.classList.add("test-element");
+            const div = document.createElement("div");
+            div.id = "test";
+            div.textContent = "Native div";
+            div.classList.add("test-element");
 
-      const testChild = new TestChildClass();
+            const testChild = new TestChildClass();
 
-      const testzyXHTML = html`<h1>Test ZyXHTML</h1>`;
+            const testzyXHTML = html`<h1>Test ZyXHTML</h1>`;
 
-      const testTag = "div";
-      const testAttributeName = "test-attribute";
-      const testAttributeValue = "test-value";
+            const testTag = "div";
+            const testAttributeName = "test-attribute";
+            const testAttributeValue = "test-value";
 
-      class App {
-        constructor() {
-          this.testDynamic = new LiveVar("initial value");
+            class App {
+                constructor() {
+                    this.testDynamic = new LiveVar("initial value");
 
-          html`
+                    html`
           <div id="apptest" class="test-section">    
 
             <a>Strings as tags:</a>
@@ -115,7 +115,7 @@
                 undefined-return="${undefined}"
                 empty-return="${""}"
                 okstring-return="${"ok"}"
-                dynamic-value=${this.testDynamic}
+                dynamic-value=${this.testDynamic.interp()}
             ></div>
             <div this=visible_markup class="test-value"></div>
             
@@ -128,7 +128,7 @@
             <div class="test-value">undefined-return{${undefined}}</div>
             <div class="test-value">empty-return{${""}}</div>
             <div class="test-value">okstring-return{${"ok"}}</div>
-            <div class="test-value">dynamic-value{${this.testDynamic}}</div>
+            <div class="test-value">dynamic-value{${this.testDynamic.interp()}}</div>
     
             </br>
 
@@ -152,22 +152,22 @@
 
           </div>
         `
-            .bind(this, { keepRaw: true, keepMarkup: true, keepData: true })
-            .place(document.getElementById("app"));
+                        .bind(this, { keepRaw: true, keepMarkup: true, keepData: true })
+                        .place(document.getElementById("app"));
 
-          this.visible_markup.textContent = this.test_element.outerHTML;
-          this.visible_markup_a.textContent = this.test_element_a.outerHTML;
+                    this.visible_markup.textContent = this.test_element.outerHTML;
+                    this.visible_markup_a.textContent = this.test_element_a.outerHTML;
 
-          setInterval(() => {
-            this.testDynamic.set(Math.random());
-          }, 100);
+                    setInterval(() => {
+                        this.testDynamic.set(Math.random().toString());
+                    }, 100);
 
-          console.log(this);
-        }
-      }
+                    console.log(this);
+                }
+            }
 
-      const app = new App();
-      document.body.classList.add("loaded");
-    </script>
-  </body>
+            const app = new App();
+            document.body.classList.add("loaded");
+        </script>
+    </body>
 </html>

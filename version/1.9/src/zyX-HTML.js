@@ -226,7 +226,8 @@ export class ZyXHTML {
                 handler({ zyxhtml: this, node, data });
                 this.markAttributeProcessed(node, attr);
             } catch (e) {
-                console.error("ZyXHTML: Error binding attribute", { attr, node, handler, data, error: e });
+                console.error(e);
+                console.error("ZyXHTML: Error binding attribute", { attr, node, handler, data });
                 this.markAttributeProcessed(node, `errored-${attr}`, e);
             }
         }

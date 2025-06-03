@@ -88,16 +88,16 @@ export class MomentumScroll {
         this.smallDeltaStep = {
             floor: 10,
             culm: 0,
-            culmLimit: 40,
-            tick: 50,
+            culmLimit: 10,
+            tick: 10,
         };
 
         // Add horizontal trackpad optimization (new)
         this.smallDeltaStepX = {
-            floor: 10,
+            floor: 10,  
             culm: 0,
-            culmLimit: 40,
-            tick: 50,
+            culmLimit: 20,
+            tick: 20,
         };
 
         // Animation timing

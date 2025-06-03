@@ -105,40 +105,28 @@
                             </div>
 
                             <h2>Conditional Blocks:</h2>
-                            <div class="condition-blocks">
-                                <div
-                                    zyx-if=${[this.count, (v) => v > 3]}
-                                    class="condition-block"
-                                    style="--color: #4caf50;"
-                                >
-                                    This block is shown when value is greater than 3 (current: ${this.count.interp()})
-                                </div>
-
-                                <div
-                                    zyx-elif=${[this.count, (v) => v == 3]}
-                                    class="condition-block"
-                                    style="--color: #66d9ef;"
-                                >
-                                    This block is shown when value is equal to 3 (current: ${this.count.interp()})
-                                </div>
-
-                                <div zyx-else class="condition-block" style="--color: #f1c40f;">
-                                    This block is shown when value is less than 3 (current: ${this.count.interp()})
-                                </div>
+                            <div zyx-if=${[this.count, (v) => v > 3]} class="condition-block" style="--color: #4caf50;">
+                                This block is shown when value is greater than 3 (current: ${this.count.interp()})
                             </div>
-
-                            <h2>Multiple Conditional Examples:</h2>
-                            <div class="condition-blocks">
-                                <div
-                                    zyx-if=${[this.count, (v) => v % 2 === 0]}
-                                    class="condition-block"
-                                    style="--color: #cc99cd;"
-                                >
-                                    This value is even: ${this.count.interp()}
-                                </div>
-                                <div zyx-else class="condition-block" style="--color: #ff9966;">
-                                    This value is odd: ${this.count.interp()}
-                                </div>
+                            <div
+                                zyx-elif=${[this.count, (v) => v == 3]}
+                                class="condition-block"
+                                style="--color: #66d9ef;"
+                            >
+                                This block is shown when value is equal to 3 (current: ${this.count.interp()})
+                            </div>
+                            <div zyx-else class="condition-block" style="--color: #f1c40f;">
+                                This block is shown when value is less than 3 (current: ${this.count.interp()})
+                            </div>
+                            <div
+                                zyx-if=${[this.count, (v) => v % 2 === 0]}
+                                class="condition-block"
+                                style="--color: #cc99cd;"
+                            >
+                                This value is even: ${this.count.interp()}
+                            </div>
+                            <div zyx-else class="condition-block" style="--color: #ff9966;">
+                                This value is odd: ${this.count.interp()}
                             </div>
                         </div>
                     `

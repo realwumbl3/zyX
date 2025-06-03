@@ -90,6 +90,12 @@ export default function zyxTransform(element, mappedKeys) {
         snapshots[name] = { ...transforms };
     }
 
+    function set(newTransforms) {
+        transforms = newTransforms;
+        updateTransformOrigin();
+        updateTransformString();
+    }
+
     /**
      * Restores a previously saved transform state
      * @param {string} name - The name of the snapshot to restore

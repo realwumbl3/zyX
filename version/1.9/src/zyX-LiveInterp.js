@@ -9,9 +9,7 @@ export class LiveInterp {
     }
 
     interprate() {
-        if (this.interp) {
-            return this.interp(this.reactive.value);
-        }
+        if (this.interp) return this.interp(this.reactive.value);
         return this.reactive.value;
     }
 
@@ -29,10 +27,11 @@ export class LiveInterp {
                 }
             };
             ref = node;
-            // Initial update - ensure it runs after the node is in the DOM
+            // Initial update - ensure it runs after the node is in the DOM because inputs :3
+            setTimeout(() => updateFunction(), 0);
         } else {
-            // For content: create a text node that updates when the value changes
             if (this.mode === "text") {
+                // For text: create a text node that updates when the value changes
                 const textNode = document.createTextNode("");
                 node.replaceWith(textNode);
                 ref = textNode;
@@ -41,6 +40,7 @@ export class LiveInterp {
                     textNode.textContent = newValue;
                 };
             } else if (this.mode === "html") {
+                // For html: create a replaceable node that updates when the value changes
                 this.activeDomNode = node;
                 ref = node.parentElement;
                 updateFunction = () => {
@@ -53,8 +53,9 @@ export class LiveInterp {
                     this.activeDomNode = newValue;
                 };
             }
+            // Initial update - it can be done immediately because.
+            updateFunction();
         }
-        setTimeout(() => updateFunction(), 1);
         if (this.reactive.eventListeners) {
             this.reactive.eventListeners.subscribe(updateFunction, ref);
         } else {

@@ -36,7 +36,8 @@ export class ConditionalGroup {
         }
 
         // Defer evaluation to next tick to ensure all conditions are added first
-        setTimeout(() => this.evaluateConditions(), 0);
+        // setTimeout(() => this.evaluateConditions(), 0);
+        this.evaluateConditions();
     }
 
     /**
