@@ -1,5 +1,6 @@
 import { makePlaceable } from "./zyX-HTML.js";
 import { LiveList } from "./zyX-LiveTypes.js";
+import { LiveInterp } from "./zyX-LiveInterp.js";
 
 const LiveLists = new WeakMap();
 
@@ -12,6 +13,13 @@ export const processLiveDomListAttributes = {
 };
 
 export default class LiveDomList {
+    get startIndex() {
+        return this.#range[0];
+    }
+    get endIndex() {
+        return this.#range[1];
+    }
+
     /**
      * map between dom elements and reactive objects
      */
@@ -21,9 +29,13 @@ export default class LiveDomList {
      */
     #container;
     /**
-     *  @type {LiveList} - reactive LiveList object
+     *  @type {LiveList|LiveInterp} - reactive LiveList object or LiveVar.interp() that returns LiveList
      */
     #list;
+    /**
+     *  @type {LiveList} - current active LiveList (resolved from #list)
+     */
+    #activeList;
     /**
      * @type {Function} - compose function
      */
@@ -44,6 +56,10 @@ export default class LiveDomList {
      * @type {Function} - callback after update
      */
     #after;
+    /**
+     * @type {Function} - bound callback for array modifications
+     */
+    #boundArrayModified;
 
     #pending_update = null;
     constructor({
@@ -55,7 +71,9 @@ export default class LiveDomList {
         after = null,
         offset = 0,
     } = {}) {
-        if (!(list instanceof LiveList)) throw new Error("list must be an instance of LiveList");
+        if (!(list instanceof LiveList) && !(list instanceof LiveInterp)) {
+            throw new Error("list must be an instance of LiveList or LiveVar.interp() (LiveInterp)");
+        }
 
         container.liveDomList = this;
 
@@ -72,8 +90,67 @@ export default class LiveDomList {
         this.#offset = offset;
         this.#debounce = debounce;
 
-        this.#list.subscribe(this.arrayModified.bind(this), this.#container);
+        // Bind the array modified callback once to reuse
+        this.#boundArrayModified = this.arrayModified.bind(this);
 
+        // Setup subscription based on list type
+        if (list instanceof LiveList) {
+            this.#activeList = list;
+            this.#activeList.subscribe(this.#boundArrayModified, this.#container);
+        } else if (list instanceof LiveInterp) {
+            // Subscribe to the LiveVar.interp() changes
+            this.#activeList = this.#resolveActiveList();
+            this.#subscribeToActiveList();
+            this.#list.reactive.subscribe(this.liveVarChanged.bind(this), this.#container);
+        }
+
+        this.update();
+    }
+
+    #resolveActiveList() {
+        if (this.#list instanceof LiveList) {
+            return this.#list;
+        } else if (this.#list instanceof LiveInterp) {
+            const result = this.#list.interprate();
+
+            // If the interp callback returns nothing, show no elements
+            if (result == null || result === undefined) {
+                return new LiveList([]);
+            }
+
+            // If it returns something but it's not a LiveList, throw error
+            if (!(result instanceof LiveList)) {
+                throw new Error("LiveVar.interp() callback must return a LiveList instance or null/undefined");
+            }
+
+            return result;
+        }
+        throw new Error("Invalid list type");
+    }
+
+    #subscribeToActiveList() {
+        if (this.#activeList) {
+            this.#activeList.subscribe(this.#boundArrayModified, this.#container);
+        }
+    }
+
+    #unsubscribeFromActiveList() {
+        if (this.#activeList) {
+            this.#activeList.removeListener(this.#boundArrayModified);
+        }
+    }
+
+    liveVarChanged() {
+        // Unsubscribe from old list
+        this.#unsubscribeFromActiveList();
+
+        // Resolve new active list
+        this.#activeList = this.#resolveActiveList();
+
+        // Subscribe to new list
+        this.#subscribeToActiveList();
+
+        // Update DOM
         this.update();
     }
 
@@ -119,15 +196,15 @@ export default class LiveDomList {
     }
 
     getTarget() {
-        if (this.#range === null) return Object.values(this.#list);
+        if (this.#range === null) return Object.values(this.#activeList);
         const { start, end } = this.getRange();
-        return Object.values(this.#list).slice(start, end);
+        return Object.values(this.#activeList).slice(start, end);
     }
 
     getRange() {
         return {
             start: Math.max(0, this.#range[0] + this.#offset),
-            end: Math.min(this.#list.length, this.#range[1] + this.#offset),
+            end: Math.min(this.#activeList.length, this.#range[1] + this.#offset),
         };
     }
 
@@ -140,11 +217,19 @@ export default class LiveDomList {
         return this.getRange().end - this.getRange().start;
     }
 
+    /**
+     * Update the range of elements to display
+     * @param {Function} cb - callback to update the range, takes the current range as an argument and returns the new range
+     */
     updateRange(cb) {
         const newRange = cb(this.#range);
         this.#range = [Math.max(0, newRange[0]), Math.max(0, newRange[1])];
         this.#container.setAttribute("data-range", this.#range.join(","));
         this.update();
+    }
+
+    shiftRange(n) {
+        this.updateRange((range) => [range[0] + n, range[1] + n]);
     }
 
     updateOffset(cb) {
@@ -156,10 +241,10 @@ export default class LiveDomList {
 
     removeNonArrayElements(target_content) {
         target_content = target_content || this.getTarget();
-        const domItems = this.domItems();
-        for (const domItem of domItems) {
-            if (target_content.includes(domItem)) continue;
-            this.get(domItem).remove();
+        const domItems = this.entries();
+        for (const [domItem, item] of domItems) {
+            if (target_content.includes(item)) continue;
+            domItem.remove();
         }
     }
 

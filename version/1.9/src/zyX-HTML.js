@@ -158,12 +158,13 @@ export class ZyXHTML {
             }
 
             const placeholder = needsQuotes ? `"${strPlaceholder(i)}"` : strPlaceholder(i);
+            const needsPlaceholder = value !== null && (typeof value === "object" || typeof value === "function");
 
             return {
                 context,
                 value,
-                replacement: context === "tag" ? value : placeholder,
-                needsPlaceholder: value !== null && (typeof value === "object" || typeof value === "function"),
+                replacement: context === TAG_CONTEXT ? value : placeholder,
+                needsPlaceholder,
             };
         });
     }
@@ -176,11 +177,8 @@ export class ZyXHTML {
      * the HTML template string.
      */
     becomeDOM() {
-        const string = String.raw(
-            { raw: this.#raw },
-            ...this.#data.map(({ value, needsPlaceholder, replacement }) => (needsPlaceholder ? replacement : value))
-        );
-
+        const getValue = ({ value, needsPlaceholder, replacement }) => (needsPlaceholder ? replacement : value ?? "");
+        const string = String.raw({ raw: this.#raw }, ...this.#data.map(getValue));
         return trimTextNodes(innerHTML(string));
     }
 

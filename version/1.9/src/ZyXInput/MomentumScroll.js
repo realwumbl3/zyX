@@ -25,7 +25,7 @@ export class MomentumScroll {
      * @param {Object} options - Scroll options
      * @param {Element} [options.scrollTarget] - Alternative scroll target element
      * @param {string} [options.directions] - Directions to scroll, e.g "x" or "y"(Default) or "xy" for both
-     * @param {boolean} [options.overrideDefaultScroll=false] - Whether to override default scroll behavior
+     * @param {boolean} [options.overrideDefaultScroll=true] - Whether to override default scroll behavior
      * @param {Function} [options.onPointerMove] - Callback for pointer move events
      * @param {Function} [options.onWheel] - Callback for scroll events
      * @param {boolean} [options.swapY] - Swap Y scroll for X scroll, Y scroll events will become X scroll events
@@ -37,7 +37,7 @@ export class MomentumScroll {
         {
             scrollTarget,
             directions = "y",
-            overrideDefaultScroll = false,
+            overrideDefaultScroll = true,
             onPointerMove,
             onWheel,
             onScroll,
@@ -94,7 +94,7 @@ export class MomentumScroll {
 
         // Add horizontal trackpad optimization (new)
         this.smallDeltaStepX = {
-            floor: 10,  
+            floor: 10,
             culm: 0,
             culmLimit: 20,
             tick: 20,
@@ -302,6 +302,17 @@ export class MomentumScroll {
         if (this.directions.y) this.velocityY /= 10;
         if (this.directions.x) this.velocityX /= 10;
         this.__animate__();
+    }
+
+    /**
+     * Slow stop the animation, gradually reducing velocity to 0
+     */
+    slowStop() {
+        console.log("> slowStop", this.velocityY, this.velocityX);
+        this.velocityY /= 4;
+        this.velocityX /= 4;
+        console.log("slowStop >", this.velocityY, this.velocityX);
+        // this.__animate__();
     }
 
     /**
