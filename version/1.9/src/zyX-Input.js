@@ -10,7 +10,6 @@ import { MomentumScroll } from "./ZyXInput/MomentumScroll.js";
 import BackHandler from "./ZyXInput/Back.js";
 import { timeoutLimiter } from "./zyX-Delay.js";
 
-
 // #endregion
 
 /**
@@ -39,7 +38,7 @@ export default class ZyXInput {
 
         // Input state tracking
         this.mouse = { x: 0, y: 0, pointerDown: false };
-        this.keyCooldown = timeoutLimiter(100);
+        this.keyCooldown = timeoutLimiter(50);
         this.activeEvents = new WeakRefSet();
         this.openModals = new WeakRefSet();
         this.listenToController = false;
@@ -51,7 +50,7 @@ export default class ZyXInput {
 
         // Back button handling
         this.backHandler = new BackHandler(this);
-        this.backHandler.on(_ => this.processModalEvent(), { weight: 1000 });
+        this.backHandler.on((_) => this.processModalEvent(), { weight: 1000 });
     }
 
     /**
@@ -65,19 +64,19 @@ export default class ZyXInput {
         document.addEventListener("keyup", (e) => this.keyEvent("keyup", e));
 
         // Mouse/Touch events
-        document.addEventListener("pointermove", e => this._updateMousePosition(e));
-        document.addEventListener("pointerdown", e => this._updateMousePosition(e, true));
-        document.addEventListener("pointerup", e => this.mouse.pointerDown = false);
-        document.addEventListener("pointerleave", e => this.mouse.pointerDown = false);
+        document.addEventListener("pointermove", (e) => this._updateMousePosition(e));
+        document.addEventListener("pointerdown", (e) => this._updateMousePosition(e, true));
+        document.addEventListener("pointerup", (e) => (this.mouse.pointerDown = false));
+        document.addEventListener("pointerleave", (e) => (this.mouse.pointerDown = false));
 
         // Context menu handling
-        document.addEventListener("contextmenu", e => {
+        document.addEventListener("contextmenu", (e) => {
             if (e.shiftKey || pointerEventPathContainsMatching(e, "[can-contextmenu]")) return false;
             nullifyEvent(e);
         });
 
         // Drag handling
-        this.on(document).dragstart((e) => { });
+        this.on(document).dragstart((e) => {});
     }
 
     /**
@@ -101,7 +100,7 @@ export default class ZyXInput {
      */
     on(element) {
         return new Proxy(presets, {
-            get: (o, k) => this.customEventHandlers(element, k)
+            get: (o, k) => this.customEventHandlers(element, k),
         });
     }
 
@@ -213,7 +212,7 @@ export default class ZyXInput {
 
         if (modals.length > 0) {
             if (e && pointerEventPathContainsMatching(e, "[is-modal]")) return false;
-            modals.forEach(modal => modal.clickedOutside(modal));
+            modals.forEach((modal) => modal.clickedOutside(modal));
             this.nullAllEvents();
             e?.stopPropagation();
             e?.stopImmediatePropagation();
@@ -252,7 +251,9 @@ export default class ZyXInput {
     moveTripper({ startX, startY, deadzone } = {}) {
         const { moveFuse, check } = this.deadzone({ startX, startY, deadzone });
         document.addEventListener("pointermove", check);
-        document.addEventListener("pointerup", () => document.removeEventListener("pointermove", check), { once: true });
+        document.addEventListener("pointerup", () => document.removeEventListener("pointermove", check), {
+            once: true,
+        });
         return { moveFuse, check };
     }
 
@@ -262,18 +263,13 @@ export default class ZyXInput {
      * @param {Object} options - Deadzone options
      * @returns {Object} The deadzone system
      */
-    deadzone({
-        startX,
-        startY,
-        deadzone = this.moveTripperDist,
-        moveFuse = new Fuse()
-    } = {}) {
+    deadzone({ startX, startY, deadzone = this.moveTripperDist, moveFuse = new Fuse() } = {}) {
         return {
             moveFuse,
             check: (e) => {
                 Math.hypot(e.clientX - startX, e.clientY - startY) > deadzone && moveFuse.setTrue();
                 return moveFuse.true;
-            }
+            },
         };
     }
 
@@ -285,13 +281,15 @@ export default class ZyXInput {
      */
     async keyEvent(event, e) {
         try {
-            if (!this.keyCooldown() || !("key" in e)) return;
+            if (!this.keyCooldown()) {
+                e.preventDefault();
+                e.stopPropagation();
+                return;
+            }
 
-            if (
-                e.ctrlKey ||
-                e.metaKey ||
-                this.queryApplication("input:focus,textarea:focus").length > 0
-            ) return false;
+            if (!("key" in e)) return;
+
+            if (e.ctrlKey || e.metaKey || this.queryApplication("input:focus,textarea:focus").length > 0) return false;
 
             if (
                 !e.joy && // Don't prevent default for xbox controller
@@ -318,7 +316,6 @@ export default class ZyXInput {
         this.keyEvent(buttonState, { joy: true, key: XboxControllerMap[data.button] });
     }
 }
-
 
 /**
  * Prevent default behavior and stop event propagation

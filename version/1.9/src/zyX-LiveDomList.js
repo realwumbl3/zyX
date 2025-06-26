@@ -288,7 +288,10 @@ export default class LiveDomList {
         const target_content = this.getTarget();
         this.removeNonArrayElements(target_content);
         const elements = this.getCreateElements(target_content);
-        for (const { element, index } of elements) element.style.order = index;
+        for (const { element, index } of elements) {
+            element.style.order = index;
+            element.setAttribute("list-index", index);
+        }
         if (this.#after) this.#after();
     }
 }

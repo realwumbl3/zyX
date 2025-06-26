@@ -65,6 +65,7 @@ import {
     injectScript,
     dataToBlob,
     fetchWithTimeout,
+    loadImg,
 } from "./src/zyX-Fetch.js";
 // Focusable
 import { FocusController, Focusable } from "./src/zyX-Focus.js";
@@ -172,6 +173,7 @@ export {
     injectScript,
     dataToBlob,
     fetchWithTimeout,
+    loadImg,
     // Focusable
     FocusController,
     Focusable,

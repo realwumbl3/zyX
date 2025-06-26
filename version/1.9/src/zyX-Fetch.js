@@ -111,7 +111,7 @@ export async function grabBlob(url) {
  * @returns {Promise<HTMLImageElement>} The loaded image element
  * @throws {Error} If the image fails to load
  */
-async function loadImg(url) {
+export async function loadImg(url) {
     return new Promise((resolve, reject) => {
         const img = new Image();
         img.onload = () => resolve(img);
