@@ -66,7 +66,10 @@ export function LegacyShadowRoot({ node }) {
 
     // Create shadow root and move children
     node.shadow = node.attachShadow({ mode: "open" });
+    const styles = document.createElement("style");
+
     node.shadow.append(...node.childNodes);
+    node.shadow.append(styles);
 
     /**
      * Loads CSS into the shadow root.
@@ -82,7 +85,7 @@ export function LegacyShadowRoot({ node }) {
         }
 
         const { link } = await fetchCSS(paths);
-        node.shadow.append(link);
+        styles.append(link);
     };
 
     // Mark as processed

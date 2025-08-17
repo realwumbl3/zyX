@@ -206,7 +206,7 @@ export function throttle(that, keyname, func, ms) {
      * @returns {Function} - Returns true if the cooldown has passed
 
  */
-export function timeoutLimiter(cooldown) {
+export function keyCooldown(cooldown) {
     const last = { ago: 0, key: null };
     cooldown = cooldown || 60;
     return (key) => {

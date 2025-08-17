@@ -133,10 +133,9 @@ export class MomentumScroll {
             onDown: ({ dwn_e }) => {
                 // Check if any child element has momentum scrolling enabled
                 const check = this._checkPathForMomentumScroll(dwn_e);
-                if (check) return;
+                if (check) return false;
                 this.pointerDown = true;
-                const selectionRange = window.getSelection();
-                return { selectionRange };
+                return true;
             },
             onStartMove: ({ direction, stop, clearAllSelections } = {}) => {
                 const dir = direction();

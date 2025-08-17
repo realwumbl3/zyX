@@ -8,7 +8,6 @@ import * as presets from "./ZyXInput/Presets.js";
 
 import { MomentumScroll } from "./ZyXInput/MomentumScroll.js";
 import BackHandler from "./ZyXInput/Back.js";
-import { timeoutLimiter } from "./zyX-Delay.js";
 
 // #endregion
 
@@ -38,7 +37,7 @@ export default class ZyXInput {
 
         // Input state tracking
         this.mouse = { x: 0, y: 0, pointerDown: false };
-        this.keyCooldown = timeoutLimiter(50);
+
         this.activeEvents = new WeakRefSet();
         this.openModals = new WeakRefSet();
         this.listenToController = false;
@@ -281,12 +280,6 @@ export default class ZyXInput {
      */
     async keyEvent(event, e) {
         try {
-            if (!this.keyCooldown()) {
-                e.preventDefault();
-                e.stopPropagation();
-                return;
-            }
-
             if (!("key" in e)) return;
 
             if (e.ctrlKey || e.metaKey || this.queryApplication("input:focus,textarea:focus").length > 0) return false;
