@@ -84,8 +84,21 @@ export function LegacyShadowRoot({ node }) {
             return;
         }
 
-        const { link } = await fetchCSS(paths);
-        styles.append(link);
+        // const { link } = await fetchCSS(paths);
+        // // styles.appendChild(link);
+        // node.shadow.appendChild(link);
+
+        const link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.type = "text/css";
+        link.href = paths;
+
+        await new Promise((resolve, reject) => {
+            link.onload = () => resolve();
+            link.onerror = reject;
+            // Append into the shadow root so styles apply inside it
+            node.shadow.appendChild(link);
+        });
     };
 
     // Mark as processed

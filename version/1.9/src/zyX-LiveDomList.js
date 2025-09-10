@@ -107,6 +107,10 @@ export default class LiveDomList {
         this.update();
     }
 
+    get isUpdating() {
+        return this.#pending_update !== null;
+    }
+
     #resolveActiveList() {
         if (this.#list instanceof LiveList) {
             return this.#list;
@@ -155,11 +159,11 @@ export default class LiveDomList {
     }
 
     arrayModified(array, method, ...elements) {
-        if (this.#debounce <= 0) return this.update();
+        // if (this.#debounce <= 0) return this.update();
         if (this.#pending_update) clearTimeout(this.#pending_update);
         this.#pending_update = setTimeout(() => {
-            this.#pending_update = null;
             this.update();
+            this.#pending_update = null;
         }, this.#debounce);
     }
 
@@ -273,8 +277,6 @@ export default class LiveDomList {
     }
 
     appendToContainer(element, item) {
-        if (this.pauseScrolling) clearTimeout(this.pauseScrolling);
-        this.pauseScrolling = setTimeout(() => (this.pauseScrolling = null), 20);
         this.#container.appendChild(element);
         if (this.infiniteScrolling) this.infiniteScrolling.mutationObserver.observe(element);
         try {
