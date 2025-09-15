@@ -9,7 +9,7 @@ alwaysApply: true
 - You can @ files here
 - You can use markdown but dont have to
 
-The only current version you can work on is /version/1.8/
+The only current version you can work on is /version/1.9/
 
 Do not ask to reploy or run test servers, the codebase is already live.
 

@@ -3,9 +3,9 @@ const webpack = require('webpack');
 const CompressionPlugin = require('compression-webpack-plugin');
 
 module.exports = {
-    entry: './version/1.6/index.js',
+    entry: './version/1.9/index.js',
     output: {
-        path: path.resolve(__dirname, 'version/1.6/dist'),
+        path: path.resolve(__dirname, 'version/1.9/dist'),
         libraryTarget: 'umd',
         library: 'zyX', 
         filename: 'zyX.umd.js'
@@ -29,14 +29,14 @@ ___ZZZZZZ.....Y------X     X    \      \      \
 https://github.com/realwumbl3/zyX/
 `
         }),
-        new CompressionPlugin({
-            filename: '[path][base].gz',
-            algorithm: 'gzip',
-            test: /\.(js|css|html|svg)$/,
-            threshold: 10240, // Only compress files larger than 10kb
-            minRatio: 0.8 // Only compress files if compression is at least 80% smaller
-        }),
+        // new CompressionPlugin({
+        //     filename: '[path][base].gz',
+        //     algorithm: 'gzip',
+        //     test: /\.(js|css|html|svg)$/,
+        //     threshold: 10240, // Only compress files larger than 10kb
+        //     minRatio: 0.8 // Only compress files if compression is at least 80% smaller
+        // }),
     ]
 };
 
-// npx webpack --config /home/wumbl3vps/Dev-23/zyX/webpack.config.umd.js
+// npx webpack --config webpack.config.umd.js
