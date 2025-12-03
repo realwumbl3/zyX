@@ -128,6 +128,17 @@
                             <div zyx-else class="condition-block" style="--color: #ff9966;">
                                 This value is odd: ${this.count.interp()}
                             </div>
+                            <h2>Inline or on individual blocks:</h2>
+                            <div
+                                id="inline_or_example"
+                                zyx-if=${[this.count, (v) => v === 0]}
+                                or=${[this.count, (v) => v === 5]}
+                                class="condition-block"
+                                style="--color: #9b59b6;"
+                            >
+                                This block is shown when value is 0, or when the main condition is false but the inline
+                                or (value === 5) is true. Current: ${this.count.interp()}
+                            </div>
                         </div>
                     `
                         .bind(this)

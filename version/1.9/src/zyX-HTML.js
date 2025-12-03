@@ -20,6 +20,12 @@ import { LiveInterp } from "./zyX-LiveInterp.js";
 
 import { LegacyShadowRoot } from "./zyX-Shadowroot.js";
 
+import { defaultEvents, enhandedDefaultEvents } from "./zyX-HTML/DefaultEvents.js";
+import { conditionalAttributes } from "./zyX-Conditional.js";
+import { processLiveDomListAttributes } from "./zyX-LiveDomList.js";
+import { radioViewAttributes, RadioViewManager } from "./zyX-HTML/RadioView.js";
+import zyxTransform from "./zyX-Transform.js";
+
 const REMOVE_ATTRIBUTES = ["this", "push", "ph"];
 
 /**
@@ -29,6 +35,7 @@ const REMOVE_ATTRIBUTES = ["this", "push", "ph"];
  * @property {boolean} [needsPlaceholder=false] - Whether the value needs a placeholder
  * @property {string} [context=CONTENT_CONTEXT] - The context where the value appears (tag, content, etc.)
  * @property {boolean} [needsQuotes=false] - Whether the value needs to be quoted
+ * @property {string|null} [parentType=null] - The parent tag type (lowercase tag name) or null if not inside any tag
  */
 
 /**
@@ -86,6 +93,8 @@ export class ZyXHTML {
     #selfMutationObserver;
     /** @private */
     #logMap;
+    /** @private */
+    #managers;
     /**
      * Creates a new ZyXHTML instance
      * @param {TemplateStringsArray} raw - The raw HTML template string
@@ -102,11 +111,44 @@ export class ZyXHTML {
         this.#map = null;
         this.#constructed = false;
         this.#logMap = false;
+        this.#managers = new Map();
     }
 
     logMap() {
         this.#logMap = true;
         return this;
+    }
+    /**
+     * Retrieve or lazily create a per-instance manager by name.
+     * @param {string} name - Unique name for the manager (e.g., "radioView")
+     * @param {() => any} [factory] - Optional factory invoked when manager is missing
+     * @returns {any} - The stored or newly created manager instance
+     */
+    getManager(name, factory) {
+        if (this.#managers.has(name)) return this.#managers.get(name);
+        if (factory) {
+            const instance = factory();
+            this.#managers.set(name, instance);
+            return instance;
+        }
+        return null;
+    }
+    /**
+     * Check if a manager exists by name.
+     * @param {string} name
+     * @returns {boolean}
+     */
+    hasManager(name) {
+        return this.#managers.has(name);
+    }
+    /**
+     * Set or replace a manager instance by name.
+     * @param {string} name
+     * @param {any} instance
+     * @returns {void}
+     */
+    setManager(name, instance) {
+        this.#managers.set(name, instance);
     }
 
     /**
@@ -124,6 +166,116 @@ export class ZyXHTML {
     }
 
     /**
+     * Detects the parent tag type by tracking open/close tags in the scanned HTML
+     * @private
+     * @param {string} html - The HTML string scanned up to the current position
+     * @returns {string|null} The parent tag name (lowercase) or null if not inside any tag
+     */
+    #detectParentType(html) {
+        // Track open tags using a stack approach
+        const tagStack = [];
+        // Combined regex to match all tags in order: opening, closing, or self-closing
+        // Matches: <tagName...>, </tagName>, or <tagName.../>
+        const tagRegex = /<\/?([a-zA-Z][a-zA-Z0-9-]*)\b[^>]*\/?>/g;
+
+        let match;
+        while ((match = tagRegex.exec(html)) !== null) {
+            const fullMatch = match[0];
+            const tagName = match[1].toLowerCase();
+            const isClosing = fullMatch.startsWith('</');
+            const isSelfClosing = fullMatch.endsWith('/>') || fullMatch.endsWith('/ >');
+
+            // Self-closing tags don't affect the stack
+            if (isSelfClosing) {
+                continue;
+            }
+
+            if (isClosing) {
+                // Remove the most recent matching tag from stack (LIFO)
+                const lastIndex = tagStack.lastIndexOf(tagName);
+                if (lastIndex !== -1) {
+                    tagStack.splice(lastIndex, 1);
+                }
+            } else {
+                // Opening tag - add to stack
+                tagStack.push(tagName);
+            }
+        }
+
+        // Return the most recent (innermost) parent tag, or null if stack is empty
+        return tagStack.length > 0 ? tagStack[tagStack.length - 1] : null;
+    }
+
+    /**
+     * Returns the appropriate placeholder tag for contexts with strict child requirements.
+     * Falls back to the generic ZyX placeholder otherwise.
+     * @private
+     * @param {string|null} parentType - The detected parent tag name (lowercase) or null
+     * @param {number} index - The placeholder index
+     * @returns {string} - The placeholder tag HTML string
+     */
+    #getPlaceholderTagForParent(parentType, index) {
+        switch (parentType) {
+            case "select":
+                return `<option data-ph-id='${index}'></option>`;
+            case "table":
+                return `<tr data-ph-id='${index}'></tr>`;
+            case "tr":
+                return `<td data-ph-id='${index}'></td>`;
+            default:
+                return strPlaceholder(index);
+        }
+    }
+
+    /**
+     * Determine whether a parent tag enforces strict child types and needs special handling.
+     * @private
+     * @param {string|null} parentType
+     * @returns {boolean}
+     */
+    #needsStrictChildHandling(parentType) {
+        return parentType === "select" || parentType === "table" || parentType === "tr";
+    }
+
+    /**
+     * Insert a resolved placeable into a parent that enforces strict child requirements.
+     * @private
+     * @param {Element|null} parent
+     * @param {Element} placeholderNode
+     * @param {Node|string} placeable
+     * @returns {void}
+     */
+    #insertIntoStrictParent(parent, placeholderNode, placeable) {
+        // If we somehow lost the parent, fall back to normal replacement semantics.
+        if (!parent) {
+            placeholderNode.replaceWith(placeable);
+            return;
+        }
+
+        if (placeable instanceof DocumentFragment) {
+            const children = Array.from(placeable.childNodes);
+            if (children.length === 0) {
+                // Empty fragment - just remove placeholder
+                placeholderNode.remove();
+            } else {
+                placeholderNode.remove();
+                parent.append(...children);
+            }
+            return;
+        }
+
+        if (placeable instanceof Element || placeable instanceof Text) {
+            // For single node placeables, append directly to the strict parent
+            placeholderNode.remove();
+            parent.append(placeable);
+            return;
+        }
+
+        // Non-node, empty string or falsy value - just remove the placeholder
+        placeholderNode.remove();
+    }
+
+    /**
      * Processes tag data and determines context for each placeholder
      * @private
      */
@@ -137,6 +289,9 @@ export class ZyXHTML {
             // We need to analyze the full string before the placeholder to determine context
             let context = CONTENT_CONTEXT; // Default - between tags
             let needsQuotes = false;
+
+            // Detect the parent tag type for this placeholder
+            const parentType = this.#detectParentType(scanned);
 
             // Check if we're in a tag name position by looking for < followed by optional whitespace
             if (/<\s*$/.test(scanned)) {
@@ -157,7 +312,12 @@ export class ZyXHTML {
                 context = TAG_CONTEXT;
             }
 
-            const placeholder = needsQuotes ? `"${strPlaceholder(i)}"` : strPlaceholder(i);
+            // Use valid placeholder tags for elements that have strict child requirements:
+            // - <select> requires <option> children
+            // - <table> requires <tr> children
+            // - <tr> requires <td> or <th> children
+            const placeholderTag = this.#getPlaceholderTagForParent(parentType, i);
+            const placeholder = needsQuotes ? `"${placeholderTag}"` : placeholderTag;
             const needsPlaceholder = value !== null && (typeof value === "object" || typeof value === "function");
 
             return {
@@ -165,6 +325,7 @@ export class ZyXHTML {
                 value,
                 replacement: context === TAG_CONTEXT ? value : placeholder,
                 needsPlaceholder,
+                parentType,
             };
         });
     }
@@ -280,7 +441,24 @@ export class ZyXHTML {
                 const phid = node.getAttribute("id");
                 if (phid) {
                     const dataValue = this.#data[phid]?.value;
-                    initialMap.placeholders.push({ node, phid, dataValue });
+                    const parentType = this.#data[phid]?.parentType ?? null;
+                    initialMap.placeholders.push({ node, phid, dataValue, parentType });
+                }
+                continue;
+            }
+            // Also check for special placeholder elements used inside elements with strict child requirements:
+            // - <option data-ph-id> inside <select>
+            // - <tr data-ph-id> inside <table>
+            // - <td data-ph-id> inside <tr>
+            if (
+                (node.tagName === "OPTION" || node.tagName === "TR" || node.tagName === "TD") &&
+                node.hasAttribute("data-ph-id")
+            ) {
+                const phid = node.getAttribute("data-ph-id");
+                if (phid) {
+                    const dataValue = this.#data[phid]?.value;
+                    const parentType = this.#data[phid]?.parentType ?? null;
+                    initialMap.placeholders.push({ node, phid, dataValue, parentType });
                 }
                 continue;
             }
@@ -320,12 +498,23 @@ export class ZyXHTML {
         // Replace DOM placeholders with their corresponding elements
         if (!this.#map?.placeholders?.length) return;
 
-        for (const { node, dataValue } of this.#map.placeholders) {
+        for (const { node, dataValue, parentType } of this.#map.placeholders) {
             try {
                 if (dataValue instanceof LiveInterp) {
                     dataValue.createZyXHTMLReactiveNode(this, node, null);
                 } else {
-                    node.replaceWith(makePlaceable(dataValue));
+                    const placeable = makePlaceable(dataValue);
+                    const parent = node.parentElement;
+
+                    // Special handling for elements with strict child requirements: browsers don't properly handle
+                    // DocumentFragment insertion via replaceWith() and will automatically delete invalid children.
+                    // We need to append children directly for: <select>, <table>, and <tr>
+                    // Use parentType from data instead of checking DOM
+                    if (this.#needsStrictChildHandling(parentType)) {
+                        this.#insertIntoStrictParent(parent, node, placeable);
+                    } else {
+                        node.replaceWith(placeable);
+                    }
                 }
             } catch (error) {
                 console.error("Error replacing DOM placeholder:", error);
@@ -367,13 +556,22 @@ export class ZyXHTML {
                 this[key] = node;
                 this.#mutable && (this.#mutable[key] = node);
             } else {
-                for (const key of splitNames) {
-                    if (key && key.trim()) {
-                        node.__key__ = key;
-                        this[key] = node;
-                        this.#mutable && (this.#mutable[key] = node);
-                    }
+                // for (const key of splitNames) {
+                //     if (key && key.trim()) {
+                //         node.__key__ = key;
+                //         this[key] = node;
+                //         this.#mutable && (this.#mutable[key] = node);
+                //     }
+                // }
+                const [first_key, second_key] = splitNames;
+                if (!this[first_key]) this[first_key] = {};
+                this[first_key][second_key] = node;
+                if (this.#mutable) {
+                    if (!this.#mutable[first_key]) this.#mutable[first_key] = {};
+                    this.#mutable[first_key][second_key] = node;
                 }
+                node.__group__ = first_key;
+                node.__key__ = second_key;
             }
         } catch (error) {
             console.error("Error in thisAssigner:", error);
@@ -406,6 +604,15 @@ export class ZyXHTML {
         if (REMOVE_ATTRIBUTES.includes(attr)) node.removeAttribute(attr);
         else node.setAttribute(`${attr}-processed`, value || "");
         node.setAttribute(attr, "");
+    }
+
+    /**
+     * Get data value by placeholder ID (for internal use by attribute processors)
+     * @param {string} placeholderId - The placeholder ID
+     * @returns {*} The data value or null
+     */
+    getDataByPlaceholderId(placeholderId) {
+        return this.#data?.[placeholderId]?.value ?? null;
     }
 
     /**
@@ -485,6 +692,60 @@ export class ZyXHTML {
         });
         return this;
     }
+    /**
+     * Lazily get the RadioView manager for this instance.
+     * @private
+     * @returns {RadioViewManager}
+     */
+    getRadioViewManager() {
+        return this.getManager("radioView", () => new RadioViewManager(this));
+    }
+    /**
+     * Select a view within a namespace for radio-view.
+     * @param {string} namespace - The radio-view namespace (e.g., "queues")
+     * @param {string} view - The view name to select (e.g., "queued")
+     * @returns {void}
+     */
+    radioViewSelect(namespace, view) {
+        this.getRadioViewManager().select(namespace, view);
+    }
+    /**
+     * Get currently selected view within a namespace.
+     * @param {string} namespace - The radio-view namespace
+     * @returns {string|null} - The selected view or null
+     */
+    radioViewSelected(namespace) {
+        return this.getRadioViewManager().getSelected(namespace);
+    }
+    /**
+     * Subscribe to selection changes within a namespace.
+     * @param {string} namespace - The radio-view namespace
+     * @param {(view: string)=>void} cb - Callback invoked on selection change
+     * @returns {() => void} - Unsubscribe function
+     */
+    onRadioViewChange(namespace, cb) {
+        return this.getRadioViewManager().subscribe(namespace, cb);
+    }
+    /**
+     * Register a control element for a namespace.view.
+     * @param {string} namespace
+     * @param {string} view
+     * @param {Element} node
+     * @returns {void}
+     */
+    radioViewRegisterControl(namespace, view, node) {
+        this.getRadioViewManager().registerControl(namespace, view, node);
+    }
+    /**
+     * Register a panel element for a namespace.view.
+     * @param {string} namespace
+     * @param {string} view
+     * @param {Element} node
+     * @returns {void}
+     */
+    radioViewRegisterPanel(namespace, view, node) {
+        this.getRadioViewManager().registerPanel(namespace, view, node);
+    }
 }
 
 ZyXHTML.prototype.super = ZyXHTML.prototype.join;
@@ -515,15 +776,12 @@ export function templateFromPlaceables(placeables) {
     return fragment;
 }
 
-import { defaultEvents } from "./html/DefaultEvents.js";
-import { conditionalAttributes } from "./zyX-Conditional.js";
-import { processLiveDomListAttributes } from "./zyX-LiveDomList.js";
-import zyxTransform from "./zyX-Transform.js";
-
 const zyxAttributes = {
     ...defaultEvents,
+    ...enhandedDefaultEvents,
     ...conditionalAttributes,
     ...processLiveDomListAttributes,
+    ...radioViewAttributes,
     "zyx-insert-n": ({ zyxhtml, node, data }) => {
         const [n, compose] = data;
         for (let i = 0; i < n; i++) {

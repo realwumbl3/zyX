@@ -23,7 +23,7 @@ import { Cookies } from "./src/zyX-Store.js";
 // Async
 import { sleep, AsynConstructor, AsyncWorker, asyncPool, LegacyAsynConstructor } from "./src/zyX-Async.js";
 // Delay
-import { delayChain, breakDelayChain, clearDelay, delay, debounce, instant } from "./src/zyX-Delay.js";
+import { delayChain, breakDelayChain, clearDelay, delay, debounce, instant, throttle } from "./src/zyX-Delay.js";
 // Events
 import ZyXEvents, { addEventListeners, removeEventListeners } from "./src/zyX-Events.js";
 // Math
@@ -75,6 +75,8 @@ import ZyXInput from "./src/zyX-Input.js";
 import ZyXIO from "./src/zyX-IO.js";
 // Animation
 import displayAnimation from "./src/zyX-Animation.js";
+// Transform
+import zyxTransform from "./src/zyX-Transform.js";
 // Toolbox
 import {
     forQuery,
@@ -145,6 +147,7 @@ export {
     debounce,
     instant,
     asyncPool,
+    throttle,
     // Math
     clamp,
     lerp,
@@ -197,6 +200,8 @@ export {
     calculateDominantColor,
     // Animation
     displayAnimation,
+    // Transform
+    zyxTransform,
 };
 
 export function isMobile() {

@@ -1,8 +1,39 @@
 /**
+ * Parse an HTML string into a container element.
+ *
+ * Notes on special cases:
+ * - Table section elements (`<tr>`, `<td>`, `<th>`) cannot be direct children of a `<div>`.
+ *   If we parse them inside a generic `<div>`, browsers may generate unexpected wrapper
+ *   structures or drop them entirely. To preserve the intended structure, we parse:
+ *     - `<tr>...</tr>` inside a `<tbody>`
+ *     - `<td>...</td>` / `<th>...</th>` inside a `<tr>`
+ *
+ * This ensures that ZyXHTML templates like `html`<tr>...</tr`` and `html`<td>...</td``
+ * survive parsing and can later be correctly inserted into real `<table>` / `<tr>` parents.
+ *
  * @param {string} markup
  * @returns {Element}
  */
 export function innerHTML(markup) {
+    const trimmed = markup.trimStart();
+
+    // Handle table row templates as top-level markup.
+    // Example: html`<tr>...</tr>`
+    if (/^<tr\b/i.test(trimmed)) {
+        const tbody = document.createElement("tbody");
+        tbody.innerHTML = markup;
+        return tbody;
+    }
+
+    // Handle table cell / header templates as top-level markup.
+    // Example: html`<td>...</td>` or html`<th>...</th>`
+    if (/^<(td|th)\b/i.test(trimmed)) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = markup;
+        return tr;
+    }
+
+    // Default behavior: parse into a generic container.
     const markupContent = document.createElement("div");
     markupContent.innerHTML = markup;
     return markupContent;

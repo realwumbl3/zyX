@@ -4,17 +4,6 @@
  */
 
 /**
- * Create a new momentum scroll instance
- * @param {ZyXInput} input_binder - The input binder instance
- * @param {Element} container - The scrollable container
- * @param {Object} options - Scroll options
- * @returns {MomentumScroll} The momentum scroll instance
- */
-export default function momentumScroll(...args) {
-    return new MomentumScroll(this, ...args);
-}
-
-/**
  * Momentum scrolling implementation with physics-based animation
  * @class
  */

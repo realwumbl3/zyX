@@ -55,7 +55,6 @@ export function queryAllRoots(selector) {
 
 /**
  * Creates a shadow root for the provided node and moves its children into the shadow DOM.
- * @deprecated Use standard Shadow DOM APIs instead.
  * @param {Object} options - The options object.
  * @param {Element} options.node - The element to create a shadow root for.
  * @returns {void}

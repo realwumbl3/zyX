@@ -20,6 +20,7 @@ export class LiveInterp {
             // For attributes: update the attribute when the value changes
             updateFunction = () => {
                 const newValue = this.interprate();
+                if (newValue === null) return node.removeAttribute(attrName);
                 node.setAttribute(attrName, newValue);
                 if (node.tagName === "INPUT") {
                     node.value = newValue;

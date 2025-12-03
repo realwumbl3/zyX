@@ -1,13 +1,20 @@
+import { getPlaceholderID } from "./zyX-HTML-Utils.js";
+
+// Global variable for the inline "or" attribute name - easily adjustable
+export const INLINE_OR_ATTRIBUTE_NAME = "or";
+
 // Map to store conditional groups - now keyed by the if element
 const conditionalGroups = new WeakMap();
 
 /**
  * Class to manage conditional rendering groups
- * (if/else-if/else blocks)
+ * (if/else-if/else blocks) including per-node inline or conditions.
  */
 export class ConditionalGroup {
     #conditions = [];
     #activeElement = null;
+    /** @type {WeakMap<HTMLElement, Object>} */
+    #elementConditions = new WeakMap();
 
     constructor(ifElement) {
         conditionalGroups.set(ifElement, this);
@@ -20,12 +27,16 @@ export class ConditionalGroup {
      * @param {Object} condition.reactive - Reactive data value
      * @param {Function} condition.predicate - Function that evaluates the condition
      * @param {Boolean} condition.isElse - Whether this is an else block
+     * @param {Object} [condition.inlineOr] - Optional inline or condition
+     * @param {Object} [condition.inlineOr.reactive] - Reactive data value for the inline or
+     * @param {Function} [condition.inlineOr.predicate] - Predicate for inline or evaluation
      */
     addCondition(element, condition) {
         this.#conditions.push({
             element,
             condition,
         });
+        this.#elementConditions.set(element, condition);
 
         // Hide all elements initially
         element.style.display = "none";
@@ -35,10 +46,20 @@ export class ConditionalGroup {
             condition.reactive.subscribe(() => this.evaluateConditions(), element);
         }
 
-        // Defer evaluation to next tick to ensure all conditions are added first
-        // setTimeout(() => this.evaluateConditions(), 0);
+        // If there is an inline or condition with its own reactive value, subscribe as well.
+        if (
+            condition.inlineOr &&
+            condition.inlineOr.reactive &&
+            typeof condition.inlineOr.reactive === "object" &&
+            "subscribe" in condition.inlineOr.reactive
+        ) {
+            condition.inlineOr.reactive.subscribe(() => this.evaluateConditions(), element);
+        }
+
+        // Evaluate immediately so the initial state is reflected
         this.evaluateConditions();
     }
+
 
     /**
      * Evaluates all conditions in the group and updates visibility
@@ -66,9 +87,27 @@ export class ConditionalGroup {
                 continue;
             }
 
-            // Check if condition is met
-            const value = condition.reactive.value;
-            const result = condition.predicate ? condition.predicate(value) : value;
+            // Helper to safely unwrap reactive values that may or may not expose `.value`
+            const resolveValue = (source) => {
+                if (source && typeof source === "object" && "value" in source) {
+                    return source.value;
+                }
+                return source;
+            };
+
+            // Check if primary condition is met
+            const baseValue = resolveValue(condition.reactive);
+            let result = condition.predicate ? condition.predicate(baseValue) : baseValue;
+
+            // If the primary condition failed, but we have an inline or condition
+            // associated with this same element, evaluate that as a secondary path.
+            if (!result && condition.inlineOr) {
+                const orValue = resolveValue(condition.inlineOr.reactive);
+                const orResult = condition.inlineOr.predicate
+                    ? condition.inlineOr.predicate(orValue)
+                    : orValue;
+                result = orResult;
+            }
 
             if (result && !conditionMet) {
                 // Show this element and mark condition as met
@@ -141,10 +180,32 @@ export function processIf({ node, data, zyxhtml }) {
     // Process condition data
     const [reactive, predicate] = Array.isArray(data) ? data : [data, null];
 
+    // Check for inline or attribute and process it
+    let inlineOr = null;
+    if (node.hasAttribute(INLINE_OR_ATTRIBUTE_NAME)) {
+        const orAttrValue = node.getAttribute(INLINE_OR_ATTRIBUTE_NAME);
+        const orPlaceholderId = getPlaceholderID(orAttrValue);
+        const orData = orPlaceholderId !== null && zyxhtml ? zyxhtml.getDataByPlaceholderId(orPlaceholderId) : null;
+        
+        if (orData !== null && orData !== undefined) {
+            const [orReactive, orPredicate] = Array.isArray(orData) ? orData : [orData, null];
+            inlineOr = {
+                reactive: orReactive,
+                predicate: orPredicate,
+            };
+        }
+        
+        // Remove the or attribute after processing
+        if (zyxhtml) {
+            zyxhtml.markAttributeProcessed(node, INLINE_OR_ATTRIBUTE_NAME);
+        }
+    }
+
     // Add to conditional group
     group.addCondition(node, {
         reactive,
         predicate,
+        inlineOr,
     });
 }
 
@@ -162,10 +223,32 @@ export function processElseIf({ node, data, zyxhtml }) {
     // Process condition data
     const [reactive, predicate] = Array.isArray(data) ? data : [data, null];
 
+    // Check for inline or attribute and process it
+    let inlineOr = null;
+    if (node.hasAttribute(INLINE_OR_ATTRIBUTE_NAME)) {
+        const orAttrValue = node.getAttribute(INLINE_OR_ATTRIBUTE_NAME);
+        const orPlaceholderId = getPlaceholderID(orAttrValue);
+        const orData = orPlaceholderId !== null && zyxhtml ? zyxhtml.getDataByPlaceholderId(orPlaceholderId) : null;
+        
+        if (orData !== null && orData !== undefined) {
+            const [orReactive, orPredicate] = Array.isArray(orData) ? orData : [orData, null];
+            inlineOr = {
+                reactive: orReactive,
+                predicate: orPredicate,
+            };
+        }
+        
+        // Remove the or attribute after processing
+        if (zyxhtml) {
+            zyxhtml.markAttributeProcessed(node, INLINE_OR_ATTRIBUTE_NAME);
+        }
+    }
+
     // Add to conditional group
     group.addCondition(node, {
         reactive,
         predicate,
+        inlineOr,
     });
 }
 

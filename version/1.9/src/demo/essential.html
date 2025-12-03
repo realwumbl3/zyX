@@ -50,6 +50,23 @@
                 border-color: var(--primary);
                 transform: translateX(4px);
             }
+
+            /* style the table stuff */
+            .test-table {
+                width: 100%;
+                border-collapse: collapse;
+                border: 1px solid var(--border-color);
+            }
+
+            .test-table th,
+            .test-table td {
+                border: 1px solid var(--border-color);
+                padding: var(--space-md);
+            }
+
+            .test-table th {
+                background: var(--bg-card);
+            }
         </style>
         <script type="module" id="main_script">
             import { html, LiveVar } from "../../";
@@ -60,6 +77,12 @@
             codePreview.appendTo(document.getElementById("code-example"));
 
             await codePreview.updateCode(document.getElementById("main_script"));
+
+            const testMap = {
+                option1: "Option 1 value",
+                option2: "Option 2 value",
+                option3: "Option 3 value",
+            };
 
             class TestParentClass {
                 constructor() {
@@ -92,66 +115,127 @@
             const testAttributeName = "test-attribute";
             const testAttributeValue = "test-value";
 
+            const tdCollumn = Array.from({ length: 10 }).map(
+                (_, index2) => html`<td column-index=${index2}>Cell ${index2 + 1}</td>`
+            );
+
+            const trRow = Array.from({ length: 10 }).map(
+                (_, index) =>
+                    html`<tr row-index=${index}>
+                        ${tdCollumn}
+                    </tr>`
+            );
+
+            console.log({ tdCollumn, trRow });
+
             class App {
                 constructor() {
                     this.testDynamic = new LiveVar("initial value");
 
                     html`
-          <div id="apptest" class="test-section">    
+                      <div id="apptest" class="test-section">
 
-            <a>Strings as tags:</a>
-            <${testTag} ${testAttributeName}=${testAttributeValue} this=test_element_a class="test-element">
-                :3
-            </${testTag}>
-            <div this=visible_markup_a class="test-value"></div>      
+                        <a>Strings as tags:</a>
+                        <${testTag} ${testAttributeName}=${testAttributeValue} this=test_element_a class="test-element">
+                            :3
+                        </${testTag}>
+                        <div this=visible_markup_a class="test-value"></div>
 
-            <a>Attribute values:</a>
-            <div this=test_element
-                negative-return="${-1}"
-                zero-return="${0}"
-                false-return="${false}"
-                true-return="${true}"
-                null-return="${null}"
-                undefined-return="${undefined}"
-                empty-return="${""}"
-                okstring-return="${"ok"}"
-                dynamic-value=${this.testDynamic.interp()}
-            ></div>
-            <div this=visible_markup class="test-value"></div>
-            
-            <a>Handling different values:</a>
-            <div class="test-value">negative-return{${-1}}</div>
-            <div class="test-value">zero-return{${0}}</div>
-            <div class="test-value">false-return{${false}}</div>
-            <div class="test-value">true-return{${true}}</div>
-            <div class="test-value">null-return{${null}}</div>
-            <div class="test-value">undefined-return{${undefined}}</div>
-            <div class="test-value">empty-return{${""}}</div>
-            <div class="test-value">okstring-return{${"ok"}}</div>
-            <div class="test-value">dynamic-value{${this.testDynamic.interp()}}</div>
-    
-            </br>
+                        <a>Attribute values:</a>
+                        <div this=test_element
+                            negative-return="${-1}"
+                            zero-return="${0}"
+                            false-return="${false}"
+                            true-return="${true}"
+                            null-return="${null}"
+                            undefined-return="${undefined}"
+                            empty-return="${""}"
+                            okstring-return="${"ok"}"
+                            dynamic-value=${this.testDynamic.interp()}
+                        ></div>
+                        <div this=visible_markup class="test-value"></div>
 
-            <a>Function returned values:</a>
-            ${() => html`<a class="test-element">returned value</a>`} 
-            
-            </br>
-            
-            <a>Inserted elements:</a>
-            ${div} 
+                        <a>Handling different values:</a>
+                        <div class="test-value">negative-return{${-1}}</div>
+                        <div class="test-value">zero-return{${0}}</div>
+                        <div class="test-value">false-return{${false}}</div>
+                        <div class="test-value">true-return{${true}}</div>
+                        <div class="test-value">null-return{${null}}</div>
+                        <div class="test-value">undefined-return{${undefined}}</div>
+                        <div class="test-value">empty-return{${""}}</div>
+                        <div class="test-value">okstring-return{${"ok"}}</div>
+                        <div class="test-value">dynamic-value{${this.testDynamic.interp()}}</div>
 
-            </br>
+                        </br>
 
-            <a>Inserted Components:</a>
-            ${testChild} ${testzyXHTML}
 
-            </br>
+                        <a>Inserted List inside Select:</a>
+                        <select>
+                            ${Object.entries(testMap).map(
+                                ([key, value]) => html`<option value="${key}">${value}</option>`
+                            )}
+                        </select>
 
-            <a>Inline Event Handlers:</a>
-            <button class="button" zyx-click=${(z) => console.log(z)}>Click Me</button>
+                        <a>Function returned values:</a>
+                        ${() => html`<a class="test-element">returned value</a>`}
 
-          </div>
-        `
+                        </br>
+
+                        <a>Inserted elements:</a>
+                        ${div}
+
+                        </br>
+
+                        <a>Inserted Components:</a>
+                        ${testChild} ${testzyXHTML}
+
+                        </br>
+
+                        <a>Inline Event Handlers:</a>
+                        <button class="button" zyx-click=${(z) => console.log(z)}>Click Me</button>
+
+                        <div class="directNestingHTML">
+                            Direct Nesting HTML:
+                            ${html`
+                                <div id="nestedHtml">
+                                    Depth1
+                                    ${html` <div id="nestedHtml2">
+                                            Depth2
+                                            ${html`<div id="nestedHtml3">Depth3</div>
+                                                <div id="nestedHtml3Sibling">Depth3 sibling</div>`}
+                                        </div>
+                                        <div id="nestedHtml2Sibling">Depth2 sibling</div>`}
+                                </div>
+                                <div id="nestedHtmlSibling">Depth1 sibling</div>
+                            `}
+                      </div>
+
+
+
+                    <div class="test-table">
+                        <a>Table:</a>
+                        <table>
+                            ${Array.from({ length: 10 }).map(
+                                (_, index) =>
+                                    html`<tr row-index=${index}>
+                                        ${Array.from({ length: 10 }).map(
+                                            (_, index2) =>
+                                                html`<td column-index=${index2}>${index * 10 + index2 + 1}</td>`
+                                        )}
+                                    </tr>`
+                            )}
+                        </table>
+
+                    </div>
+                    <div class="test-list">
+                        <a>List:</a>
+                        <ul>
+                            ${Array.from({ length: 10 }).map((_, index) => html`<li>Item ${index + 1}</li>`)}
+                        </ul>
+                    </div>
+
+
+                    `
                         .bind(this, { keepRaw: true, keepMarkup: true, keepData: true })
                         .place(document.getElementById("app"));
 

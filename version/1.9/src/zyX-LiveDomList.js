@@ -41,6 +41,11 @@ export default class LiveDomList {
      */
     #compose;
     /**
+     * @type {Function|null} - optional filter function used to decide which items are rendered
+     * The function receives (item, index) and should return a truthy value to include the item.
+     */
+    #filter;
+    /**
      * @type {Number} - how many elements to cache in the memoize
      */
     #range;
@@ -62,6 +67,17 @@ export default class LiveDomList {
     #boundArrayModified;
 
     #pending_update = null;
+    /**
+     * @param {Object} options
+     * @param {HTMLElement} options.container - container element that will receive rendered items
+     * @param {LiveList|LiveInterp} options.list - reactive list source (or LiveVar.interp() returning a LiveList)
+     * @param {Function} [options.compose] - function or class used to compose DOM/content from list items
+     * @param {number} [options.debounce=1] - debounce time for reacting to list mutations
+     * @param {Array<number, number>|null} [options.range=null] - [start, end] range for windowed rendering
+     * @param {Function|null} [options.after=null] - callback invoked after each update
+     * @param {number} [options.offset=0] - offset applied to the range window
+     * @param {Function|null} [options.filter=null] - predicate (item, index) => boolean controlling which items are rendered
+     */
     constructor({
         container = container,
         list = null,
@@ -70,6 +86,7 @@ export default class LiveDomList {
         range = null,
         after = null,
         offset = 0,
+        filter = null,
     } = {}) {
         if (!(list instanceof LiveList) && !(list instanceof LiveInterp)) {
             throw new Error("list must be an instance of LiveList or LiveVar.interp() (LiveInterp)");
@@ -89,6 +106,7 @@ export default class LiveDomList {
         this.#range = range;
         this.#offset = offset;
         this.#debounce = debounce;
+        this.#filter = typeof filter === "function" ? filter : null;
 
         // Bind the array modified callback once to reuse
         this.#boundArrayModified = this.arrayModified.bind(this);
@@ -191,6 +209,25 @@ export default class LiveDomList {
         return this.#arrayMap.get(obj);
     }
 
+    solo(obj) {
+        let existed = false;
+        // remove all other elements from the list associated with the object
+        for (const [domItem, item] of this.entries()) {
+            if (item !== obj) domItem.remove();
+            else existed = true;
+        }
+        if (!existed) {
+            const element = makePlaceable(this.createCompose(obj));
+            if (element instanceof HTMLTemplateElement || element instanceof DocumentFragment) {
+                throw Error("cannot associate reactive object with a template element");
+            }
+            this.appendToContainer(element, obj);
+            this.#arrayMap.set(element, obj);
+            if (typeof obj === "symbol" || typeof obj === "object") this.#arrayMap.set(obj, element);
+        }
+        return this;
+    }
+
     createCompose(item, ...args) {
         if (!this.#compose) return item;
         if (typeof this.#compose.prototype === "object") {
@@ -200,9 +237,15 @@ export default class LiveDomList {
     }
 
     getTarget() {
-        if (this.#range === null) return Object.values(this.#activeList);
-        const { start, end } = this.getRange();
-        return Object.values(this.#activeList).slice(start, end);
+        let target = Object.values(this.#activeList);
+        if (this.#range !== null) {
+            const { start, end } = this.getRange();
+            target = target.slice(start, end);
+        }
+        if (this.#filter) {
+            target = target.filter((item, index) => this.#filter(item, index));
+        }
+        return target;
     }
 
     getRange() {
@@ -219,6 +262,16 @@ export default class LiveDomList {
 
     getRangeLength() {
         return this.getRange().end - this.getRange().start;
+    }
+
+    /**
+     * Update the filter function used to determine which items are rendered.
+     * Passing a non-function (or null) will clear the filter and render all items in range.
+     * @param {Function|null} filter - predicate (item, index) => boolean
+     */
+    setFilter(filter) {
+        this.#filter = typeof filter === "function" ? filter : null;
+        this.update();
     }
 
     /**
@@ -267,6 +320,12 @@ export default class LiveDomList {
             const zyXHtml = this.createCompose(item);
             element = makePlaceable(zyXHtml);
             if (element instanceof HTMLTemplateElement || element instanceof DocumentFragment) {
+                console.error("cannot associate reactive object with a template element", {
+                    element,
+                    item,
+                    zyXHtml,
+                    target_content,
+                });
                 throw Error("cannot associate reactive object with a template element");
             }
             this.appendToContainer(element, zyXHtml);
