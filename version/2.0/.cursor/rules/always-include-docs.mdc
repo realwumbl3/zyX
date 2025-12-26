@@ -1,0 +1,60 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+ # Documentation Structure Requirements for zyX Library Modules
+
+## Required Documentation Structure
+
+Each zyX library module must maintain its documentation in the following structure:
+
+```
+./Docs/**module-name**/
+├── Docs/
+│   ├── Example-usage.md
+│   └── Example.js
+└── Development/
+    └── TO-DO.md
+```
+
+## Documentation Requirements
+
+1. **Example-usage.md**
+   - Must contain clear, concise examples of how to use the module
+   - Should include code snippets with explanations
+   - Must be written in Markdown format
+   - Should focus only on usage examples, not implementation details
+
+2. **Example.js**
+   - Must contain runnable example code
+   - Should demonstrate the module's main functionality
+   - Must be properly formatted and documented with comments
+   - Should be self-contained and executable
+
+3. **Development/TO-DO.md**
+   - Must list planned improvements and features
+   - Should track known issues
+   - Must include development priorities
+   - Should be updated regularly
+
+## Validation Rules
+
+- Each module must have all required documentation files
+- Example code must be functional and up-to-date
+- Documentation must be maintained alongside code changes
+- Examples should be minimal and focused on usage only
+- No implementation details should be included in example documentation
+
+## Example Structure
+
+For a module named `zyX-utils`, the structure would be:
+
+```
+./Docs/zyX-utils/
+├── Docs/
+│   ├── Example-usage.md
+│   └── Example.js
+└── Development/
+    └── TO-DO.md
+```

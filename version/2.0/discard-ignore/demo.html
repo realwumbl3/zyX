@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>zyX 1.8 HTML Demo</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            background: #4a7bff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 8px;
+        }
+
+        button:hover {
+            background: #3a6aee;
+        }
+
+        input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-right: 8px;
+        }
+
+        .todo-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .todo-item.completed span {
+            text-decoration: line-through;
+            color: #999;
+        }
+
+        .delete-btn {
+            background: #ff4a4a;
+            margin-left: auto;
+        }
+
+        .delete-btn:hover {
+            background: #ee3a3a;
+        }
+    </style>
+    <!-- Import zyX -->
+    <script type="importmap">
+    {
+        "imports": {
+            "zyX": "../",
+            "zyX/": "../"
+        }
+    }
+    </script>
+</head>
+
+<body>
+    <h1>zyX 1.8 HTML Demo</h1>
+    <div id="app"></div>
+
+    <script type="module">
+        import html  from "zyX";
+
+        // Simple counter component
+        function createCounter() {
+            const counter = {};
+            counter.count = 0;
+
+            const counterApp = html`
+                <div class="container">
+                    <h2>Counter Example</h2>
+                    <p>Current count: <span this="counterValue">${counter.count}</span></p>
+                    <button zyx-click="${() => {
+                    counter.count++;
+                    counter.counterValue.textContent = counter.count;
+                }}">Increment</button>
+                    <button zyx-click="${() => {
+                    counter.count--;
+                    counter.counterValue.textContent = counter.count;
+                }}">Decrement</button>
+                    <button zyx-click="${() => {
+                    counter.count = 0;
+                    counter.counterValue.textContent = counter.count;
+                }}">Reset</button>
+                </div>
+            `.bind(counter);
+
+            return counterApp;
+        }
+
+        // Todo list component
+        function createTodoList() {
+            const todoApp = {};
+            todoApp.todos = [];
+            todoApp.nextId = 1;
+
+            // Create todo item component
+            const createTodoItem = (todo) => {
+                return html`
+                    <div class="todo-item ${todo.completed ? 'completed' : ''}" this="item" ${todo.completed ? 'checked' : ''}>
+                        <input type="checkbox" zyx-change="${(e) => toggleTodo(todo.id, e.target.checked)}">
+                        <span>${todo.text}</span>
+                        <button class="delete-btn" zyx-click="${() => deleteTodo(todo.id)}">Delete</button>
+                    </div>
+                `;
+            };
+
+            // Add a new todo
+            const addTodo = () => {
+                const text = todoApp.inputField.value.trim();
+                if (!text) return;
+
+                const todo = { id: todoApp.nextId++, text, completed: false };
+                todoApp.todos.push(todo);
+
+                const todoItem = createTodoItem(todo)
+                todoItem.appendTo(todoApp.todoList)
+
+                todoApp.inputField.value = '';
+            };
+
+            // Toggle todo completion
+            const toggleTodo = (id, completed) => {
+                const todo = todoApp.todos.find(t => t.id === id);
+                if (todo) {
+                    todo.completed = completed;
+
+                    // Find the todo item in DOM and update its class
+                    const items = Array.from(todoApp.todoList.children);
+                    const todoItem = items.find(el => {
+                        const itemTodo = todoApp.todos.find(t => t.id === id);
+                        return el.querySelector('span').textContent === itemTodo.text;
+                    });
+
+                    if (todoItem) {
+                        if (completed) {
+                            todoItem.classList.add('completed');
+                        } else {
+                            todoItem.classList.remove('completed');
+                        }
+                    }
+                }
+            };
+
+            // Delete a todo
+            const deleteTodo = (id) => {
+                const index = todoApp.todos.findIndex(t => t.id === id);
+                if (index !== -1) {
+                    todoApp.todos.splice(index, 1);
+
+                    // Find and remove the todo item from DOM
+                    const items = Array.from(todoApp.todoList.children);
+                    const todoItem = items[index];
+                    if (todoItem) {
+                        todoItem.remove();
+                    }
+                }
+            };
+
+            // Create the main todo app
+            const todoListApp = html`
+                <div class="container">
+                    <h2>Todo List Example</h2>
+                    <div>
+                        <input type="text" placeholder="Add new todo..." this="inputField"
+                            zyx-keypress="${(e) => {
+                    if (e.key === 'Enter') addTodo();
+                }}">
+                        <button zyx-click="${addTodo}">Add Todo</button>
+                    </div>
+                    <div this="todoList">
+                        <!-- Todo items will be appended here -->
+                    </div>
+                </div>
+            `.bind(todoApp);
+
+            return todoListApp;
+        }
+
+        // Simple dynamic content example
+        function createDynamicContent() {
+            const dynamicApp = {};
+            dynamicApp.colors = ['red', 'green', 'blue', 'purple', 'orange'];
+            dynamicApp.selectedColor = 'Choose a color';
+
+            const colorItem = (color) => {
+                return html`
+                    <button style="background-color: ${color}; color: white;" 
+                            zyx-click="${() => {
+                        dynamicApp.selectedColor = color;
+                        dynamicApp.colorDisplay.textContent = color;
+                        dynamicApp.colorDisplay.style.color = color;
+                    }}">
+                        ${color}
+                    </button>
+                `
+            };
+
+            const colorButtons = dynamicApp.colors.map(color => colorItem(color));
+            console.log({ colorButtons })
+
+            const dynamicContent = html`
+                <div class="container">
+                    <h2>Dynamic Content Example</h2>
+                    <div>
+                        ${colorButtons}
+                    </div>
+                    <p>Selected color: <span this="colorDisplay">${dynamicApp.selectedColor}</span></p>
+                </div>
+            `.bind(dynamicApp);
+
+            return dynamicContent;
+        }
+
+        // Main application
+        function createApp() {
+            const app = {};
+
+            // Create components
+            const counter = createCounter();
+            const todoList = createTodoList();
+            const dynamicContent = createDynamicContent();
+
+            // Assemble the application
+            const mainApp = html`
+                <div>
+                    <p>This demo showcases the zyX HTML templating system. All UI is created using the html\`\` template literal.</p>
+                    ${counter}
+                    ${todoList}
+                    ${dynamicContent}
+                </div>
+            `.bind(app);
+
+            return mainApp;
+        }
+
+        // Initialize app and mount to DOM
+        const app = createApp();
+        app.place(document.getElementById('app'))
+    </script>
+</body>
+
+</html>
