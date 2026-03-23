@@ -3,10 +3,10 @@ const webpack = require("webpack");
 const CompressionPlugin = require("compression-webpack-plugin");
 
 module.exports = {
-    entry: "./version/2.1/index.js",
+    entry: "./version/2.2/index.js",
     output: {
         libraryTarget: "module",
-        path: path.resolve(__dirname, "version/2.1/dist"),
+        path: path.resolve(__dirname, "version/2.2/dist"),
         filename: "zyX-es6.js",
     },
     experiments: {
